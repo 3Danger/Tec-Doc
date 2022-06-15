@@ -1,5 +1,7 @@
 package config
 
+import "time"
+
 type Config struct {
 	LogLevel            string `envconfig:"LOG_LEVEL" default:"debug"`
 	ListenInternal      string `envconfig:"LISTEN_INTERNAL" default:":8000"`
@@ -20,4 +22,6 @@ type ContentClientConfig struct {
 }
 
 type TecDocConfig struct {
+	Url     string `envconfig:"TECDOC_URL"`
+	Timeout time.Duration `envconfig:"TECDOC_TIMEOUT" default:"30s"`
 }
