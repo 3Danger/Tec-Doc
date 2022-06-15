@@ -1,11 +1,11 @@
 package config
 
 type Config struct {
-	LogLevel				string	`envconfig:"LOG_LEVEL" default:"debug"`
-	ListenInternal			string	`envconfig:"LISTEN_INTERNAL" default:":8000"`
-	PostgresConfig
-	ContentClientConfig
-	TecDocConfig
+	LogLevel			string	`envconfig:"LOG_LEVEL" default:"debug"`
+	ListenInternal		string	`envconfig:"LISTEN_INTERNAL" default:":8000"`
+	PostgresConfig		PostgresConfig
+	ContentClientConfig	ContentClientConfig
+	TecDocConfig		TecDocConfig
 }
 
 type PostgresConfig struct {
@@ -14,7 +14,9 @@ type PostgresConfig struct {
 }
 
 type ContentClientConfig struct {
+
 }
 
 type TecDocConfig struct {
+
 } 
