@@ -3,6 +3,7 @@ module tec-doc
 go 1.18
 
 require (
+	github.com/gogo/protobuf v1.3.2
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/rs/zerolog v1.27.0
 )
