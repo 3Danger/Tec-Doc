@@ -10,6 +10,7 @@ import (
 )
 
 func NewLogger(conf *config.Config) zerolog.Logger {
+	// Define output format
 	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
 	output.FormatLevel = func(i interface{}) string {
 		return strings.ToUpper(fmt.Sprintf("| %-6s |", i))
@@ -23,8 +24,11 @@ func NewLogger(conf *config.Config) zerolog.Logger {
 	output.FormatFieldValue = func(i interface{}) string {
 		return strings.ToUpper(fmt.Sprintf("%s", i))
 	}
+
+	// New logger
 	log := zerolog.New(output).With().Timestamp().Logger()
-	// Set debug level
+
+	// Setting log level
 	switch strings.ToLower(conf.LogLevel) {
 	case "debug", "d":
 		log.Level(zerolog.DebugLevel)

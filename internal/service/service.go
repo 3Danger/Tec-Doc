@@ -22,7 +22,6 @@ func (s *Service) Start() error {
 	return nil
 }
 
-func (s *Service) Stop() error {
+func (s *Service) Stop() {
 	s.log.Info().Msg("stop")
-	return nil
 }

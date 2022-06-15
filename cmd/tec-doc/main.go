@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/rs/zerolog"
 	"golang.org/x/sync/errgroup"
 	"tec-doc/internal/config"
 	"tec-doc/internal/logger"
@@ -8,22 +9,24 @@ import (
 )
 
 func main() {
-	conf, err := config.NewConfigEnv()
-	if err != nil {
+	var (
+		err    error
+		conf   *config.Config
+		egroup *errgroup.Group
+		log    zerolog.Logger
+		srvc   *service.Service
+	)
+
+	if conf, err = config.NewConfigEnv(); err != nil {
 		panic(err)
 	}
-	log := logger.NewLogger(conf)
-	srvc := service.NewService(conf, log)
+	log = logger.NewLogger(conf)
+	srvc = service.NewService(conf, log)
 
-	eg := new(errgroup.Group)
-	eg.Go(srvc.Start)
-	if err = eg.Wait(); err != nil {
+	egroup = new(errgroup.Group)
+	egroup.Go(srvc.Start)
+	if err = egroup.Wait(); err != nil {
 		log.Error().Msg(err.Error())
+		srvc.Stop()
 	}
-
-	if err = srvc.Stop(); err != nil {
-		log.Error().Msg(err.Error())
-	}
-	//eGroupServer.Go()
-
 }
