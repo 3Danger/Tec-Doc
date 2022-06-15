@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
 	"golang.org/x/sync/errgroup"
 	"tec-doc/internal/config"
 	"tec-doc/internal/logger"
 	"tec-doc/internal/service"
-	"time"
 )
 
 func main() {
@@ -17,13 +15,8 @@ func main() {
 	log := logger.NewLogger(conf)
 	srvc := service.NewService(conf, log)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
 	eg := new(errgroup.Group)
-	eg.Go(func() error {
-		return srvc.Start(ctx)
-	})
+	eg.Go(srvc.Start)
 	if err = eg.Wait(); err != nil {
 		log.Error().Msg(err.Error())
 	}

@@ -1,8 +1,6 @@
 package service
 
 import (
-	"context"
-	"errors"
 	"github.com/rs/zerolog"
 	"tec-doc/internal/config"
 )
@@ -19,16 +17,8 @@ func NewService(conf *config.Config, log zerolog.Logger) *Service {
 	}
 }
 
-func (s *Service) Start(ctx context.Context) error {
-	if ctx == nil {
-		return errors.New("ctx is empty")
-	}
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-		s.log.Info().Str("", "").Msg("start on port: " + s.conf.ServerPort)
-	}
+func (s *Service) Start() error {
+	s.log.Info().Msg("start")
 	return nil
 }
 
