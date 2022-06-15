@@ -11,20 +11,22 @@ import (
 	"github.com/rs/zerolog"
 )
 
+//Client интерфейс с методами для получения запчастей с TecDoc
 type Client interface {
+	GetAllParts(ID []string) ([]model.Autopart, error)
 }
 
 type client struct {
 	http.Client
-	cfg    *config.Config
-	log    *zerolog.Logger
+	cfg *config.Config
+	log *zerolog.Logger
 }
 
 func NewClient(cfg *config.Config, log *zerolog.Logger) (*client, error) {
 	return &client{
 		Client: http.Client{Timeout: cfg.TecDocConfig.Timeout},
-		cfg: cfg,
-		log: log,
+		cfg:    cfg,
+		log:    log,
 	}, nil
 }
 
@@ -34,7 +36,6 @@ func (c *client) GetAllParts(ID []string) ([]model.Autopart, error) {
 		return nil, fmt.Errorf("can't create new request: %v", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-
 
 	//Здесь будет что-то, добавляющее в запрос ID запчастей
 

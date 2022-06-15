@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
+//Store интерфейс описывающий методы для работы с БД
 type Store interface {
 	InsertContent() error
 	UpdateContent() error
