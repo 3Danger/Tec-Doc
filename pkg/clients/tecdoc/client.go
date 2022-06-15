@@ -22,6 +22,7 @@ type client struct {
 
 func NewClient(cfg *config.Config, log *zerolog.Logger) (*client, error) {
 	return &client{
+		Client: http.Client{Timeout: cfg.TecDocConfig.Timeout},
 		cfg: cfg,
 		log: log,
 	}, nil
@@ -37,7 +38,6 @@ func (c *client) GetAllParts(ID []string) ([]model.Autopart, error) {
 
 	//Здесь будет что-то, добавляющее в запрос ID запчастей
 
-
 	resp, err := c.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("can't get response: %v", err)
@@ -52,7 +52,7 @@ func (c *client) GetAllParts(ID []string) ([]model.Autopart, error) {
 
 	var parts []model.Autopart
 
-	err = json.Unmarshal(body, parts)
+	err = json.Unmarshal(body, &parts)
 	if err != nil {
 		return nil, fmt.Errorf("can't unmarshal body: %v", err)
 	}
