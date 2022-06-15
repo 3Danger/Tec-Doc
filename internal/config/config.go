@@ -11,6 +11,9 @@ type Config struct {
 type PostgresConfig struct {
 	Username	string	`envconfig:"POSTGRES_USERNAME"`
 	Password	string	`envconfig:"POSTGRES_PASSWORD"`
+	Host		string	`envconfig:"POSTGRES_HOST"`
+	Port		string	`envconfig:"POSTGRES_PORT"`
+	DbName		string	`envconfig:"POSTGRES_DB"`
 }
 
 type ContentClientConfig struct {
