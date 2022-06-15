@@ -19,20 +19,15 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	eg, ctx := errgroup.WithContext(ctx)
 
-	eg.Go(func() error {
-		return srvc.Start(ctx)
-	})
-	eg.Go(func() error {
-		return srvc.Start(nil)
-	})
+	eg := new(errgroup.Group)
 	eg.Go(func() error {
 		return srvc.Start(ctx)
 	})
 	if err = eg.Wait(); err != nil {
 		log.Error().Msg(err.Error())
 	}
+
 	if err = srvc.Stop(); err != nil {
 		log.Error().Msg(err.Error())
 	}

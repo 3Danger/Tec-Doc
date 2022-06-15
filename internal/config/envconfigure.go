@@ -3,19 +3,20 @@ package config
 import "github.com/kelseyhightower/envconfig"
 
 /*
-	export TEC_DOC_PORT=4242
-	export TEC_DOC_DEBUG_LEVEL=DEBUG
-	export TEC_DOC_DEBUG_TM_FORMAT=MS
+	export TEC_DOC_LOG_LEVEL=DEBUG
+	export TEC_DOC_LOG_TM_FORMAT=MS
+	export TEC_DOC_SERVER_PORT=4242
+	export TEC_DOC_DATABASE_USERNAME=NAN
+	export TEC_DOC_DATABASE_PASSWORD=NAN
+	export TEC_DOC_DATABASE_NAME=NAN
+	export TEC_DOC_DATABASE_PORT=5432
 */
-func NewConfigEnv() (*Config, error) {
-	conf := new(Config)
-	err1 := envconfig.Process("TEC_DOC", &conf.Server)
-	err2 := envconfig.Process("TEC_DOC_DEBUG", &conf.Debug)
-	if err1 != nil {
-		return nil, err1
-	}
-	if err2 != nil {
-		return nil, err2
+
+func NewConfigEnv() (conf *Config, err error) {
+	conf = new(Config)
+	err = envconfig.Process("TEC_DOC", conf)
+	if err != nil {
+		return nil, err
 	}
 	return conf, nil
 }

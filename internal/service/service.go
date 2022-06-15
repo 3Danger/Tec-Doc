@@ -27,7 +27,7 @@ func (s *Service) Start(ctx context.Context) error {
 	case <-ctx.Done():
 		return nil
 	default:
-		s.log.Info().Str("", "").Msg("start on port: " + s.conf.Server.Port)
+		s.log.Info().Str("", "").Msg("start on port: " + s.conf.ServerPort)
 	}
 	return nil
 }

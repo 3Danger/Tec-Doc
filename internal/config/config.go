@@ -3,11 +3,13 @@ package config
 import _ "github.com/kelseyhightower/envconfig"
 
 type Config struct {
-	Debug struct {
-		Level      string `envconfig:"LEVEL"`
-		TimeFormat string `envconfig:"TM_FORMAT"`
-	}
-	Server struct {
-		Port string `envconfig:"PORT" required:"true"`
-	}
+	LogLevel      string `envconfig:"LOG_LEVEL"`
+	LogTimeFormat string `envconfig:"LOG_TM_FORMAT"`
+
+	ServerPort string `envconfig:"SERVER_PORT" required:"true"`
+
+	DbUsername string `envconfig:"DATABASE_USERNAME"`
+	DbPassword string `envconfig:"DATABASE_PASSWORD"`
+	DbName     string `envconfig:"DATABASE_NAME"`
+	DbPort     string `envconfig:"DATABASE_PORT"`
 }

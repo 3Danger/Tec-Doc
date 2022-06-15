@@ -25,7 +25,7 @@ func NewLogger(conf *config.Config) zerolog.Logger {
 	}
 	log := zerolog.New(output).With().Timestamp().Logger()
 	// Set debug level
-	switch strings.ToLower(conf.Debug.Level) {
+	switch strings.ToLower(conf.LogLevel) {
 	case "debug", "d":
 		log.Level(zerolog.DebugLevel)
 	case "info", "i":
