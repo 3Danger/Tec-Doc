@@ -1,15 +1,15 @@
 package content
 
 import (
-	// "fmt"
+	"fmt"
 	"tec-doc/internal/config"
+	"tec-doc/internal/model"
 
 	"github.com/rs/zerolog"
-	// "google.golang.org/grpc"
+	"google.golang.org/grpc"
 )
 
 //jRPC клиент для работы с контентом
-
 type ContentClientgRPC interface {
 }
 
@@ -18,16 +18,18 @@ type contentClientgRPC struct {
 	log	*zerolog.Logger
 }
 
-// func (c contentClientgRPC) NewConn() error {
-// 	conn, err := grpc.Dial(c.cfg.ContentClientConfig.Url, 
-// 				grpc.WithTimeout(c.cfg.ContentClientConfig.Timeout), 
-// 				grpc.WithInsecure)
+func (c contentClientgRPC) PushContent(contents []model.Content) error {
+	conn, err := grpc.Dial(c.cfg.ContentClientConfig.Url, 
+				grpc.WithTimeout(c.cfg.ContentClientConfig.Timeout), 
+				grpc.WithInsecure)
 
-// 	if err != nil {
-// 		return fmt.Errorf("can't dial grpc")
-// 	}
+	if err != nil {
+		return fmt.Errorf("can't dial grpc")
+	}
 
-// 	client := New
+	defer conn.Close()
 
-// 	return nil
-// }
+	return nil
+}
+
+//??????
