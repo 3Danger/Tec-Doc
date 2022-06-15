@@ -1,12 +1,20 @@
 package config
 
 type Config struct {
-	Server struct {
-		Port	string	`yaml:"port" envconfig:"SERVER_PORT"`
-		Host	string	`yaml:"host" envconfig:"SERVER_HOST"`
-	} `yaml:"server"`
-	Database struct {
-		Username	string	`yaml:"user" envconfig:"DB_USERNAME"`
-		Password	string	`yaml:"pass" envconfig:"DB_PASSWORD"`
-	} `yaml:"database"`
+	LogLevel		string	`envconfig:"LOG_LEVEL" default:"debug"`
+	ListenInternal	string	`envconfig:"LISTEN_INTERNAL" default:":8000"`
+	PostgresConfig
+	ContentClientConfig
+	TecDocConfig
 }
+
+type PostgresConfig struct {
+	Username	string	`envconfig:"POSTGRES_USERNAME"`
+	Password	string	`envconfig:"POSTGRES_PASSWORD"`
+}
+
+type ContentClientConfig struct {
+}
+
+type TecDocConfig struct {
+} 
