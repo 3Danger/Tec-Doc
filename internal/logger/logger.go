@@ -42,7 +42,7 @@ func NewLogger(conf *config.Config) zerolog.Logger {
 		log.Level(zerolog.PanicLevel)
 	case "trace", "t":
 		log.Level(zerolog.TraceLevel)
-	case "warn", "w":
+	case "warning", "warn", "w":
 		log.Level(zerolog.WarnLevel)
 	}
 	return log
