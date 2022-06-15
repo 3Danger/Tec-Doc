@@ -13,6 +13,9 @@ type ContentClientgRPC interface {
 }
 
 type contentClientgRPC struct {
+
 	cfg *config.Config
 	log	*zerolog.Logger
 }
+
+func NewConn()
