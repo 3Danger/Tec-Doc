@@ -10,23 +10,23 @@ import (
 )
 
 //Client интерфейс с методами для получения запчастей с TecDoc
-type Client interface {
+type TecDocClient interface {
 	GetAllParts(ID []string) ([]model.Autopart, error)
 }
 
-type client struct {
+type tecDocClient struct {
 	http.Client
 	baseURL string
 }
 
-func NewClient(baseURL string, timeout time.Duration) (*client, error) {
-	return &client{
-		Client: http.Client{Timeout: timeout},
-		baseURL:    baseURL,
+func NewClient(baseURL string, timeout time.Duration) (*tecDocClient, error) {
+	return &tecDocClient{
+		Client:  http.Client{Timeout: timeout},
+		baseURL: baseURL,
 	}, nil
 }
 
-func (c *client) GetAllParts(ID []string) ([]model.Autopart, error) {
+func (c *tecDocClient) GetAllParts(ID []string) ([]model.Autopart, error) {
 	req, err := http.NewRequest(http.MethodGet, c.baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("can't create new request: %v", err)
