@@ -3,69 +3,65 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"runtime"
 	"tec-doc/internal/config"
 	"tec-doc/internal/model"
 
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/rs/zerolog"
 )
 
 //Store интерфейс описывающий методы для работы с БД
 type Store interface {
-	InsertContent() error
-	UpdateContent() error
-	GetContent() (model.Content, error)
-	DeleteContent() error
+	InsertContent(ctx *context.Context) error
+	UpdateContent(ctx *context.Context) error
+	GetContent(ctx *context.Context) (model.Content, error)
+	DeleteContent(ctx *context.Context) error
 }
 
 type store struct {
-	ctx  context.Context
 	cfg  *config.Config
-	log  *zerolog.Logger
 	pool *pgxpool.Pool
 }
 
-func NewStore(ctx context.Context, cfg *config.Config, log *zerolog.Logger) (*store, error) {
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", cfg.PostgresConfig.Username,
-		cfg.PostgresConfig.Password, cfg.PostgresConfig.Host, cfg.PostgresConfig.Port,
-		cfg.PostgresConfig.DbName)
-	pool, err := NewPool(connStr)
+func NewStore(cfg *config.Config) (*store, error) {
+	pool, err := NewPool(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("can't create pool: %v", err)
 	}
 
 	return &store{
-		ctx:  ctx,
 		cfg:  cfg,
-		log:  log,
 		pool: pool,
 	}, nil
 }
 
-func (s *store) InsertContent() error {
+func (s *store) InsertContent(ctx *context.Context) error {
 	return nil
 }
 
-func (s *store) UpdateContent() error {
+func (s *store) UpdateContent(ctx *context.Context) error {
 	return nil
 }
 
-func (s *store) GetContent() (model.Content, error) {
-	return model.Content{}, nil
+func (s *store) GetContent(ctx *context.Context) (model.Autopart, error) {
+	return model.Autopart{}, nil
 }
 
-func (s *store) DeleteContent() error {
+func (s *store) DeleteContent(ctx *context.Context) error {
 	return nil
 }
 
-func NewPool(connstr string) (*pgxpool.Pool, error) {
-	connConf, err := pgxpool.ParseConfig(connstr)
+func NewPool(cfg *config.Config) (*pgxpool.Pool, error) {
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?connect_timeout=%d", cfg.PostgresConfig.Username,
+		cfg.PostgresConfig.Password, cfg.PostgresConfig.Host, cfg.PostgresConfig.Port,
+		cfg.PostgresConfig.DbName, cfg.PostgresConfig.Timeout)
+
+	connConf, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return nil, err
 	}
 
-	connConf.MaxConns = int32(runtime.NumCPU())
+	connConf.MaxConns = cfg.PostgresConfig.MaxConns
+	connConf.MinConns = cfg.PostgresConfig.MinConns
 	pool, err := pgxpool.ConnectConfig(context.Background(), connConf)
 	if err != nil {
 		return nil, err

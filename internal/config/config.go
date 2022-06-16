@@ -11,19 +11,22 @@ type Config struct {
 }
 
 type PostgresConfig struct {
-	Username string `envconfig:"POSTGRES_USERNAME"`
-	Password string `envconfig:"POSTGRES_PASSWORD"`
-	Host     string `envconfig:"POSTGRES_HOST"`
-	Port     string `envconfig:"POSTGRES_PORT"`
-	DbName   string `envconfig:"POSTGRES_DB"`
+	Username string        `envconfig:"POSTGRES_USERNAME"`
+	Password string        `envconfig:"POSTGRES_PASSWORD"`
+	Host     string        `envconfig:"POSTGRES_HOST"`
+	Port     string        `envconfig:"POSTGRES_PORT"`
+	DbName   string        `envconfig:"POSTGRES_DB"`
+	Timeout  time.Duration `envconfig:"POSTGRES_TIMEOUT" default:"30s"`
+	MaxConns int32         `envconfig:"MAX_CONNECTIONS" default:"100"`
+	MinConns int32         `envconfig:"MIN_CONNECTIONS" default:"10"`
 }
 
 type ContentClientConfig struct {
-	Url     string        `envconfig:"CONTENT_URL"`
+	URL     string        `envconfig:"CONTENT_URL"`
 	Timeout time.Duration `envconfig:"CONTENT_TIMEOUT" default:"30s"`
 }
 
 type TecDocConfig struct {
-	Url     string        `envconfig:"TECDOC_URL"`
+	URL     string        `envconfig:"TECDOC_URL"`
 	Timeout time.Duration `envconfig:"TECDOC_TIMEOUT" default:"30s"`
 }

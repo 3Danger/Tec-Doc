@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"tec-doc/internal/config"
 	"tec-doc/internal/model"
-
-	"github.com/rs/zerolog"
+	"time"
 )
 
 //Client интерфейс с методами для получения запчастей с TecDoc
@@ -18,20 +16,18 @@ type Client interface {
 
 type client struct {
 	http.Client
-	cfg *config.Config
-	log *zerolog.Logger
+	baseURL string
 }
 
-func NewClient(cfg *config.Config, log *zerolog.Logger) (*client, error) {
+func NewClient(baseURL string, timeout time.Duration) (*client, error) {
 	return &client{
-		Client: http.Client{Timeout: cfg.TecDocConfig.Timeout},
-		cfg:    cfg,
-		log:    log,
+		Client: http.Client{Timeout: timeout},
+		baseURL:    baseURL,
 	}, nil
 }
 
 func (c *client) GetAllParts(ID []string) ([]model.Autopart, error) {
-	req, err := http.NewRequest(http.MethodGet, c.cfg.TecDocConfig.Url, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("can't create new request: %v", err)
 	}
