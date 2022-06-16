@@ -1,32 +1,61 @@
 package main
 
 import (
+	"context"
+	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 	"tec-doc/internal/config"
-	"tec-doc/internal/logger"
-	"tec-doc/internal/service"
+	l "tec-doc/internal/logger"
+	s "tec-doc/internal/service"
 )
 
 func main() {
 	var (
 		err    error
 		conf   *config.Config
+		ctxeg  context.Context
 		egroup *errgroup.Group
-		log    zerolog.Logger
-		srvc   *service.Service
+		logger *zerolog.Logger
+		svc    *s.Service
 	)
 
-	if conf, err = config.NewConfigEnv(); err != nil {
-		panic(err)
+	// init config & logger
+	conf, logger, err = initConfig()
+	if err != nil {
+		log.Fatal().Err(err).Send()
 	}
-	log = logger.NewLogger(conf)
-	srvc = service.NewService(conf, log)
 
-	egroup = new(errgroup.Group)
-	egroup.Go(srvc.Start)
+	svc = s.NewService(conf, logger)
+	egroup, ctxeg = errgroup.WithContext(context.Background())
+
+	egroup.Go(func() error {
+		return svc.Start(ctxeg)
+	})
+
 	if err = egroup.Wait(); err != nil {
 		log.Error().Msg(err.Error())
-		srvc.Stop()
 	}
+	svc.Stop()
+}
+
+func initConfig() (*config.Config, *zerolog.Logger, error) {
+	var (
+		conf   *config.Config
+		logger zerolog.Logger
+		err    error
+	)
+	// Init Config
+	conf = new(config.Config)
+	if err = envconfig.Process("TEC_DOC", conf); err != nil {
+		return nil, nil, err
+	}
+
+	// Init Logger
+	logger, err = l.InitLogger(conf.LogLevel)
+	if err != nil {
+		return nil, nil, err
+	}
+	return conf, &logger, nil
 }
