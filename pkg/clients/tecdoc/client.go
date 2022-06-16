@@ -1,6 +1,7 @@
 package tecdoc
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -11,7 +12,7 @@ import (
 
 //Client интерфейс с методами для получения запчастей с TecDoc
 type TecDocClient interface {
-	GetAllParts(ID []string) ([]model.Autopart, error)
+	GetAllParts(ctx *context.Context, ID []string) ([]model.Autopart, error)
 }
 
 type tecDocClient struct {
@@ -26,7 +27,7 @@ func NewClient(baseURL string, timeout time.Duration) (*tecDocClient, error) {
 	}, nil
 }
 
-func (c *tecDocClient) GetAllParts(ID []string) ([]model.Autopart, error) {
+func (c *tecDocClient) GetAllParts(ctx *context.Context, ID []string) ([]model.Autopart, error) {
 	req, err := http.NewRequest(http.MethodGet, c.baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("can't create new request: %v", err)
