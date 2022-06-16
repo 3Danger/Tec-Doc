@@ -25,7 +25,8 @@ func main() {
 	// init config & logger
 	conf, logger, err = initConfig()
 	if err != nil {
-		log.Fatal().Err(err).Send()
+		log.Error().Err(err).Send()
+		return
 	}
 
 	svc = s.NewService(conf, logger)
