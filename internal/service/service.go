@@ -26,9 +26,11 @@ func (s *Service) Start(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		s.log.Info().Msg("service done")
-		return nil
+	//case err := <- s.StartService(ctx):
+	//	return err
 	default:
 		// Do something ....
+		return nil
 	}
 	return nil
 }

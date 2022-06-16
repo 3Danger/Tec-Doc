@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
+	"strings"
 	"tec-doc/internal/config"
 	l "tec-doc/internal/logger"
 	s "tec-doc/internal/service"
@@ -53,7 +54,7 @@ func initConfig() (*config.Config, *zerolog.Logger, error) {
 	}
 
 	// Init Logger
-	logger, err = l.InitLogger(conf.LogLevel)
+	logger, err = l.InitLogger(strings.ToLower(conf.LogLevel))
 	if err != nil {
 		return nil, nil, err
 	}
