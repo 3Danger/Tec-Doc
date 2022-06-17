@@ -1,12 +1,16 @@
 package zerolog
 
 import (
+<<<<<<< HEAD
+	"io"
+=======
 	"bytes"
 	"io"
 	"path"
 	"runtime"
 	"strconv"
 	"strings"
+>>>>>>> origin/dev
 	"sync"
 )
 
@@ -31,9 +35,17 @@ type syncWriter struct {
 }
 
 // SyncWriter wraps w so that each call to Write is synchronized with a mutex.
+<<<<<<< HEAD
+// This syncer can be the call to writer's Write method is not thread safe.
+// Note that os.File Write operation is using write() syscall which is supposed
+// to be thread-safe on POSIX systems. So there is no need to use this with
+// os.File on such systems as zerolog guaranties to issue a single Write call
+// per log event.
+=======
 // This syncer can be used to wrap the call to writer's Write method if it is
 // not thread safe. Note that you do not need this wrapper for os.File Write
 // operations on POSIX and Windows systems as they are already thread-safe.
+>>>>>>> origin/dev
 func SyncWriter(w io.Writer) io.Writer {
 	if lw, ok := w.(LevelWriter); ok {
 		return &syncWriter{lw: lw}
@@ -61,6 +73,18 @@ type multiLevelWriter struct {
 
 func (t multiLevelWriter) Write(p []byte) (n int, err error) {
 	for _, w := range t.writers {
+<<<<<<< HEAD
+		n, err = w.Write(p)
+		if err != nil {
+			return
+		}
+		if n != len(p) {
+			err = io.ErrShortWrite
+			return
+		}
+	}
+	return len(p), nil
+=======
 		if _n, _err := w.Write(p); err == nil {
 			n = _n
 			if _err != nil {
@@ -71,10 +95,23 @@ func (t multiLevelWriter) Write(p []byte) (n int, err error) {
 		}
 	}
 	return n, err
+>>>>>>> origin/dev
 }
 
 func (t multiLevelWriter) WriteLevel(l Level, p []byte) (n int, err error) {
 	for _, w := range t.writers {
+<<<<<<< HEAD
+		n, err = w.WriteLevel(l, p)
+		if err != nil {
+			return
+		}
+		if n != len(p) {
+			err = io.ErrShortWrite
+			return
+		}
+	}
+	return len(p), nil
+=======
 		if _n, _err := w.WriteLevel(l, p); err == nil {
 			n = _n
 			if _err != nil {
@@ -85,6 +122,7 @@ func (t multiLevelWriter) WriteLevel(l Level, p []byte) (n int, err error) {
 		}
 	}
 	return n, err
+>>>>>>> origin/dev
 }
 
 // MultiLevelWriter creates a writer that duplicates its writes to all the
@@ -101,6 +139,8 @@ func MultiLevelWriter(writers ...io.Writer) LevelWriter {
 	}
 	return multiLevelWriter{lwriters}
 }
+<<<<<<< HEAD
+=======
 
 // TestingLog is the logging interface of testing.TB.
 type TestingLog interface {
@@ -152,3 +192,4 @@ func ConsoleTestWriter(t TestingLog) func(w *ConsoleWriter) {
 		w.Out = TestWriter{T: t, Frame: 6}
 	}
 }
+>>>>>>> origin/dev

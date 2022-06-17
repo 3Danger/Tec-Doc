@@ -7,7 +7,11 @@ import (
 func appendIntegerTimestamp(dst []byte, t time.Time) []byte {
 	major := majorTypeTags
 	minor := additionalTypeTimestamp
+<<<<<<< HEAD
+	dst = append(dst, byte(major|minor))
+=======
 	dst = append(dst, major|minor)
+>>>>>>> origin/dev
 	secs := t.Unix()
 	var val uint64
 	if secs < 0 {
@@ -17,18 +21,30 @@ func appendIntegerTimestamp(dst []byte, t time.Time) []byte {
 		major = majorTypeUnsignedInt
 		val = uint64(secs)
 	}
+<<<<<<< HEAD
+	dst = appendCborTypePrefix(dst, major, uint64(val))
+=======
 	dst = appendCborTypePrefix(dst, major, val)
+>>>>>>> origin/dev
 	return dst
 }
 
 func (e Encoder) appendFloatTimestamp(dst []byte, t time.Time) []byte {
 	major := majorTypeTags
 	minor := additionalTypeTimestamp
+<<<<<<< HEAD
+	dst = append(dst, byte(major|minor))
+	secs := t.Unix()
+	nanos := t.Nanosecond()
+	var val float64
+	val = float64(secs)*1.0 + float64(nanos)*1E-9
+=======
 	dst = append(dst, major|minor)
 	secs := t.Unix()
 	nanos := t.Nanosecond()
 	var val float64
 	val = float64(secs)*1.0 + float64(nanos)*1e-9
+>>>>>>> origin/dev
 	return e.AppendFloat64(dst, val)
 }
 
@@ -50,7 +66,11 @@ func (e Encoder) AppendTimes(dst []byte, vals []time.Time, unused string) []byte
 	}
 	if l <= additionalMax {
 		lb := byte(l)
+<<<<<<< HEAD
+		dst = append(dst, byte(major|lb))
+=======
 		dst = append(dst, major|lb)
+>>>>>>> origin/dev
 	} else {
 		dst = appendCborTypePrefix(dst, major, uint64(l))
 	}
@@ -82,7 +102,11 @@ func (e Encoder) AppendDurations(dst []byte, vals []time.Duration, unit time.Dur
 	}
 	if l <= additionalMax {
 		lb := byte(l)
+<<<<<<< HEAD
+		dst = append(dst, byte(major|lb))
+=======
 		dst = append(dst, major|lb)
+>>>>>>> origin/dev
 	} else {
 		dst = appendCborTypePrefix(dst, major, uint64(l))
 	}

@@ -38,7 +38,11 @@ func (s RandomSampler) Sample(lvl Level) bool {
 }
 
 // BasicSampler is a sampler that will send every Nth events, regardless of
+<<<<<<< HEAD
+// there level.
+=======
 // their level.
+>>>>>>> origin/dev
 type BasicSampler struct {
 	N       uint32
 	counter uint32
@@ -104,15 +108,22 @@ func (s *BurstSampler) inc() uint32 {
 
 // LevelSampler applies a different sampler for each level.
 type LevelSampler struct {
+<<<<<<< HEAD
+	DebugSampler, InfoSampler, WarnSampler, ErrorSampler Sampler
+=======
 	TraceSampler, DebugSampler, InfoSampler, WarnSampler, ErrorSampler Sampler
+>>>>>>> origin/dev
 }
 
 func (s LevelSampler) Sample(lvl Level) bool {
 	switch lvl {
+<<<<<<< HEAD
+=======
 	case TraceLevel:
 		if s.TraceSampler != nil {
 			return s.TraceSampler.Sample(lvl)
 		}
+>>>>>>> origin/dev
 	case DebugLevel:
 		if s.DebugSampler != nil {
 			return s.DebugSampler.Sample(lvl)

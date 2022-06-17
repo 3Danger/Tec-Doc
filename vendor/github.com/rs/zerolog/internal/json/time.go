@@ -9,7 +9,10 @@ const (
 	// Import from zerolog/global.go
 	timeFormatUnix   = ""
 	timeFormatUnixMs = "UNIXMS"
+<<<<<<< HEAD
+=======
 	timeFormatUnixMicro = "UNIXMICRO"
+>>>>>>> origin/dev
 )
 
 // AppendTime formats the input time with the given format
@@ -20,8 +23,11 @@ func (e Encoder) AppendTime(dst []byte, t time.Time, format string) []byte {
 		return e.AppendInt64(dst, t.Unix())
 	case timeFormatUnixMs:
 		return e.AppendInt64(dst, t.UnixNano()/1000000)
+<<<<<<< HEAD
+=======
 	case timeFormatUnixMicro:
 		return e.AppendInt64(dst, t.UnixNano()/1000)
+>>>>>>> origin/dev
 	}
 	return append(t.AppendFormat(append(dst, '"'), format), '"')
 }

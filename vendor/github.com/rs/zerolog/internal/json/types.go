@@ -1,6 +1,10 @@
 package json
 
 import (
+<<<<<<< HEAD
+	"encoding/json"
+=======
+>>>>>>> origin/dev
 	"fmt"
 	"math"
 	"net"
@@ -278,7 +282,11 @@ func (Encoder) AppendUints32(dst []byte, vals []uint32) []byte {
 // AppendUint64 converts the input uint64 to a string and
 // appends the encoded string to the input byte slice.
 func (Encoder) AppendUint64(dst []byte, val uint64) []byte {
+<<<<<<< HEAD
+	return strconv.AppendUint(dst, uint64(val), 10)
+=======
 	return strconv.AppendUint(dst, val, 10)
+>>>>>>> origin/dev
 }
 
 // AppendUints64 encodes the input uint64s to json and
@@ -300,7 +308,11 @@ func (Encoder) AppendUints64(dst []byte, vals []uint64) []byte {
 
 func appendFloat(dst []byte, val float64, bitSize int) []byte {
 	// JSON does not permit NaN or Infinity. A typical JSON encoder would fail
+<<<<<<< HEAD
+	// with an error, but a logging library wants the data to get thru so we
+=======
 	// with an error, but a logging library wants the data to get through so we
+>>>>>>> origin/dev
 	// make a tradeoff and store those types as string.
 	switch {
 	case math.IsNaN(val):
@@ -349,7 +361,11 @@ func (Encoder) AppendFloats64(dst []byte, vals []float64) []byte {
 		return append(dst, '[', ']')
 	}
 	dst = append(dst, '[')
+<<<<<<< HEAD
+	dst = appendFloat(dst, vals[0], 32)
+=======
 	dst = appendFloat(dst, vals[0], 64)
+>>>>>>> origin/dev
 	if len(vals) > 1 {
 		for _, val := range vals[1:] {
 			dst = appendFloat(append(dst, ','), val, 64)
@@ -362,7 +378,11 @@ func (Encoder) AppendFloats64(dst []byte, vals []float64) []byte {
 // AppendInterface marshals the input interface to a string and
 // appends the encoded string to the input byte slice.
 func (e Encoder) AppendInterface(dst []byte, i interface{}) []byte {
+<<<<<<< HEAD
+	marshaled, err := json.Marshal(i)
+=======
 	marshaled, err := JSONMarshalFunc(i)
+>>>>>>> origin/dev
 	if err != nil {
 		return e.AppendString(dst, fmt.Sprintf("marshaling error: %v", err))
 	}
@@ -378,10 +398,18 @@ func (Encoder) AppendObjectData(dst []byte, o []byte) []byte {
 	//    to separate with existing content OR
 	// 3. existing content has already other fields
 	if o[0] == '{' {
+<<<<<<< HEAD
+		if len(dst) == 0 {
+			o = o[1:]
+		} else {
+			o[0] = ','
+		}
+=======
 		if len(dst) > 1 {
 			dst = append(dst, ',')
 		}
 		o = o[1:]
+>>>>>>> origin/dev
 	} else if len(dst) > 1 {
 		dst = append(dst, ',')
 	}

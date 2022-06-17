@@ -177,6 +177,8 @@ func Write(fd int, p []byte) (n int, err error) {
 	return
 }
 
+<<<<<<< HEAD
+=======
 func Pread(fd int, p []byte, offset int64) (n int, err error) {
 	n, err = pread(fd, p, offset)
 	if raceenabled {
@@ -201,6 +203,7 @@ func Pwrite(fd int, p []byte, offset int64) (n int, err error) {
 	return
 }
 
+>>>>>>> origin/dev
 // For testing: clients can set this flag to force
 // creation of IPv6 sockets to return EAFNOSUPPORT.
 var SocketDisableIPv6 bool
@@ -337,6 +340,8 @@ func Recvfrom(fd int, p []byte, flags int) (n int, from Sockaddr, err error) {
 	return
 }
 
+<<<<<<< HEAD
+=======
 func Recvmsg(fd int, p, oob []byte, flags int) (n, oobn int, recvflags int, from Sockaddr, err error) {
 	var rsa RawSockaddrAny
 	n, oobn, recvflags, err = recvmsgRaw(fd, p, oob, flags, &rsa)
@@ -364,6 +369,7 @@ func SendmsgN(fd int, p, oob []byte, to Sockaddr, flags int) (n int, err error) 
 	return sendmsgN(fd, p, oob, ptr, salen, flags)
 }
 
+>>>>>>> origin/dev
 func Send(s int, buf []byte, flags int) (err error) {
 	return sendto(s, buf, flags, nil, 0)
 }

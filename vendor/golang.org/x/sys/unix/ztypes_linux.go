@@ -754,6 +754,8 @@ const (
 	AT_SYMLINK_NOFOLLOW = 0x100
 
 	AT_EACCESS = 0x200
+<<<<<<< HEAD
+=======
 
 	OPEN_TREE_CLONE = 0x1
 
@@ -773,6 +775,7 @@ const (
 	FSPICK_EMPTY_PATH       = 0x8
 
 	FSMOUNT_CLOEXEC = 0x1
+>>>>>>> origin/dev
 )
 
 type OpenHow struct {
@@ -3638,7 +3641,11 @@ const (
 	ETHTOOL_A_RINGS_RX_MINI                   = 0x7
 	ETHTOOL_A_RINGS_RX_JUMBO                  = 0x8
 	ETHTOOL_A_RINGS_TX                        = 0x9
+<<<<<<< HEAD
+	ETHTOOL_A_RINGS_MAX                       = 0x9
+=======
 	ETHTOOL_A_RINGS_MAX                       = 0xa
+>>>>>>> origin/dev
 	ETHTOOL_A_CHANNELS_UNSPEC                 = 0x0
 	ETHTOOL_A_CHANNELS_HEADER                 = 0x1
 	ETHTOOL_A_CHANNELS_RX_MAX                 = 0x2
@@ -4179,6 +4186,8 @@ type KCMUnattach struct {
 type KCMClone struct {
 	Fd int32
 }
+<<<<<<< HEAD
+=======
 
 const (
 	NL80211_AC_BE                                           = 0x2
@@ -5588,3 +5597,4 @@ const (
 	FR_ACT_UNREACHABLE     = 0x7
 	FR_ACT_PROHIBIT        = 0x8
 )
+>>>>>>> origin/dev
