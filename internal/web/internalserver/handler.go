@@ -5,25 +5,17 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func initInternalRouter() *gin.Engine {
-	router := gin.Default()
-	router.GET("/helth", helth)
-	router.GET("/readiness", readiness)
-	router.GET("/metrics", metrics)
-	return router
-}
-
-func helth(c *gin.Context) {
+func (i *internalHttpServer) Helth(c *gin.Context) {
 	c.Writer.WriteHeader(200)
 	c.Writer.WriteHeaderNow()
 
 }
 
-func readiness(c *gin.Context) {
+func (i *internalHttpServer) Readiness(c *gin.Context) {
 	c.Writer.WriteHeader(200)
 	c.Writer.WriteHeaderNow()
 }
 
-func metrics(c *gin.Context) {
+func (i *internalHttpServer) Metrics(c *gin.Context) {
 	promhttp.Handler().ServeHTTP(c.Writer, c.Request)
 }

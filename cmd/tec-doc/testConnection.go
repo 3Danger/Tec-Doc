@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func main() {
+func testConnection() {
 	//Init
 	conf := new(config.Config)
 	if err := envconfig.Process("TEC_DOC", conf); err != nil {
@@ -27,7 +27,7 @@ func main() {
 	}()
 
 	// Stop server
-	ctx, closer := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, closer := context.WithTimeout(context.Background(), time.Second*2500)
 	defer closer()
 	go func(ctxgo context.Context) {
 		<-ctxgo.Done()

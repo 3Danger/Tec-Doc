@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	testConnection()
 	var (
 		err    error
 		conf   *config.Config

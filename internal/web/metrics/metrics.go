@@ -1,8 +1,6 @@
-package internalserver
+package metrics
 
-import (
-	"github.com/prometheus/client_golang/prometheus"
-)
+import "github.com/prometheus/client_golang/prometheus"
 
 type Metrics struct {
 	Collector   *prometheus.CounterVec
@@ -12,16 +10,27 @@ type Metrics struct {
 }
 
 const (
+	//MainComponent           = "main"
+	//ServiceComponent        = "service"
+	//StoreComponent          = "store"
+	//NatsComponent           = "nats"
+	//ProviderComponent       = "provider"
+	//WatcherComponent        = "watcher"
 	ExternalServerComponent = "external server"
 	InternalServerComponent = "internal server"
 
+	//StatusSuccess  = "success"
+	//StatusError    = "error"
+	//StatusLeadTime = "lead time"
+	//StatusHttp     = "http request"
+
 	Component = "component"
-	Struct    = "struct"
 	Method    = "method"
 	Status    = "status"
+	Path      = "path"
 )
 
-func NewMetric(namespace, subsystem string) *Metrics {
+func NewMetrics(namespace, subsystem string) *Metrics {
 	var (
 		collector = prometheus.NewCounterVec(
 			prometheus.CounterOpts{
@@ -30,7 +39,7 @@ func NewMetric(namespace, subsystem string) *Metrics {
 				Name:      "collector",
 				Help:      "The total number of err/success/events/http",
 			},
-			[]string{Component, Struct, Method, Status},
+			[]string{Component, Method, Path, Status},
 		)
 
 		leadTime = prometheus.NewHistogramVec(
@@ -40,7 +49,7 @@ func NewMetric(namespace, subsystem string) *Metrics {
 				Name:      "lead_time",
 				Help:      "Execution time of something",
 			},
-			[]string{Component, Struct, Method, Status},
+			[]string{Component, Method, Path, Status},
 		)
 
 		rating = prometheus.NewGaugeVec(
@@ -50,7 +59,7 @@ func NewMetric(namespace, subsystem string) *Metrics {
 				Name:      "rating",
 				Help:      "Current indicator of something",
 			},
-			[]string{Component, Struct, Method, Status},
+			[]string{Component, Method, Path, Status},
 		)
 
 		leadTimeQua = prometheus.NewSummaryVec(
@@ -60,9 +69,10 @@ func NewMetric(namespace, subsystem string) *Metrics {
 				Name:      "lead_time_qua",
 				Help:      "Execution time of something and quantiles",
 			},
-			[]string{Component, Struct, Method, Status},
+			[]string{Component, Method, Path, Status},
 		)
 	)
+
 	prometheus.MustRegister(collector)
 	prometheus.MustRegister(leadTime)
 	prometheus.MustRegister(rating)
@@ -75,9 +85,3 @@ func NewMetric(namespace, subsystem string) *Metrics {
 		LeadTimeQua: leadTimeQua,
 	}
 }
-
-//func (m *Metric) Metrics(next http.Handler) http.Handler {
-//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//		wi := &http.ResponseWriter()
-//	})
-//}
