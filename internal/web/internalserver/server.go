@@ -8,15 +8,17 @@ import (
 )
 
 type internalHttpServer struct {
-	router *gin.Engine
-	server http.Server
+	router  *gin.Engine
+	server  *http.Server
+	metrics *Metrics
 }
 
 func NewInternalServer(bindingAddress string) web.Server {
 	router := initInternalRouter()
 	return &internalHttpServer{
-		router: router,
-		server: http.Server{
+		router:  router,
+		metrics: NewMetric("Server", "Internal"),
+		server: &http.Server{
 			Addr:    bindingAddress,
 			Handler: router,
 		},

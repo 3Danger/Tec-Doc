@@ -1,6 +1,9 @@
 package internalserver
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+)
 
 func initInternalRouter() *gin.Engine {
 	router := gin.Default()
@@ -22,6 +25,5 @@ func readiness(c *gin.Context) {
 }
 
 func metrics(c *gin.Context) {
-	// TODO узнать где брать метрики контейнера
-	c.String(200, "METRICS")
+	promhttp.Handler().ServeHTTP(c.Writer, c.Request)
 }
