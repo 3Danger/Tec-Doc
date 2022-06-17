@@ -1,21 +1,14 @@
 package cbor
 
-<<<<<<< HEAD
-=======
 import "fmt"
 
->>>>>>> origin/dev
 // AppendStrings encodes and adds an array of strings to the dst byte array.
 func (e Encoder) AppendStrings(dst []byte, vals []string) []byte {
 	major := majorTypeArray
 	l := len(vals)
 	if l <= additionalMax {
 		lb := byte(l)
-<<<<<<< HEAD
-		dst = append(dst, byte(major|lb))
-=======
 		dst = append(dst, major|lb)
->>>>>>> origin/dev
 	} else {
 		dst = appendCborTypePrefix(dst, major, uint64(l))
 	}
@@ -32,19 +25,13 @@ func (Encoder) AppendString(dst []byte, s string) []byte {
 	l := len(s)
 	if l <= additionalMax {
 		lb := byte(l)
-<<<<<<< HEAD
-		dst = append(dst, byte(major|lb))
-=======
 		dst = append(dst, major|lb)
->>>>>>> origin/dev
 	} else {
 		dst = appendCborTypePrefix(dst, majorTypeUtf8String, uint64(l))
 	}
 	return append(dst, s...)
 }
 
-<<<<<<< HEAD
-=======
 // AppendStringers encodes and adds an array of Stringer values
 // to the dst byte array.
 func (e Encoder) AppendStringers(dst []byte, vals []fmt.Stringer) []byte {
@@ -70,7 +57,6 @@ func (e Encoder) AppendStringer(dst []byte, val fmt.Stringer) []byte {
 	return e.AppendString(dst, val.String())
 }
 
->>>>>>> origin/dev
 // AppendBytes encodes and adds an array of bytes to the dst byte array.
 func (Encoder) AppendBytes(dst, s []byte) []byte {
 	major := majorTypeByteString
@@ -78,11 +64,7 @@ func (Encoder) AppendBytes(dst, s []byte) []byte {
 	l := len(s)
 	if l <= additionalMax {
 		lb := byte(l)
-<<<<<<< HEAD
-		dst = append(dst, byte(major|lb))
-=======
 		dst = append(dst, major|lb)
->>>>>>> origin/dev
 	} else {
 		dst = appendCborTypePrefix(dst, major, uint64(l))
 	}
@@ -95,11 +77,7 @@ func AppendEmbeddedJSON(dst, s []byte) []byte {
 	minor := additionalTypeEmbeddedJSON
 
 	// Append the TAG to indicate this is Embedded JSON.
-<<<<<<< HEAD
-	dst = append(dst, byte(major|additionalTypeIntUint16))
-=======
 	dst = append(dst, major|additionalTypeIntUint16)
->>>>>>> origin/dev
 	dst = append(dst, byte(minor>>8))
 	dst = append(dst, byte(minor&0xff))
 
@@ -109,11 +87,7 @@ func AppendEmbeddedJSON(dst, s []byte) []byte {
 	l := len(s)
 	if l <= additionalMax {
 		lb := byte(l)
-<<<<<<< HEAD
-		dst = append(dst, byte(major|lb))
-=======
 		dst = append(dst, major|lb)
->>>>>>> origin/dev
 	} else {
 		dst = appendCborTypePrefix(dst, major, uint64(l))
 	}

@@ -7,10 +7,7 @@ import (
 var disabledLogger *Logger
 
 func init() {
-<<<<<<< HEAD
-=======
 	SetGlobalLevel(TraceLevel)
->>>>>>> origin/dev
 	l := Nop()
 	disabledLogger = &l
 }
@@ -28,15 +25,9 @@ type ctxKey struct{}
 //     l.UpdateContext(func(c Context) Context {
 //         return c.Str("bar", "baz")
 //     })
-<<<<<<< HEAD
-func (l *Logger) WithContext(ctx context.Context) context.Context {
-	if lp, ok := ctx.Value(ctxKey{}).(*Logger); ok {
-		if lp == l {
-=======
 func (l Logger) WithContext(ctx context.Context) context.Context {
 	if lp, ok := ctx.Value(ctxKey{}).(*Logger); ok {
 		if lp == &l {
->>>>>>> origin/dev
 			// Do not store same logger.
 			return ctx
 		}
@@ -44,16 +35,6 @@ func (l Logger) WithContext(ctx context.Context) context.Context {
 		// Do not store disabled logger.
 		return ctx
 	}
-<<<<<<< HEAD
-	return context.WithValue(ctx, ctxKey{}, l)
-}
-
-// Ctx returns the Logger associated with the ctx. If no logger
-// is associated, a disabled logger is returned.
-func Ctx(ctx context.Context) *Logger {
-	if l, ok := ctx.Value(ctxKey{}).(*Logger); ok {
-		return l
-=======
 	return context.WithValue(ctx, ctxKey{}, &l)
 }
 
@@ -65,7 +46,6 @@ func Ctx(ctx context.Context) *Logger {
 		return l
 	} else if l = DefaultContextLogger; l != nil {
 		return l
->>>>>>> origin/dev
 	}
 	return disabledLogger
 }

@@ -1,7 +1,5 @@
 package json
 
-<<<<<<< HEAD
-=======
 // JSONMarshalFunc is used to marshal interface to JSON encoded byte slice.
 // Making it package level instead of embedded in Encoder brings
 // some extra efforts at importing, but avoids value copy when the functions
@@ -10,22 +8,12 @@ package json
 // you might get a nil pointer dereference panic at runtime.
 var JSONMarshalFunc func(v interface{}) ([]byte, error)
 
->>>>>>> origin/dev
 type Encoder struct{}
 
 // AppendKey appends a new key to the output JSON.
 func (e Encoder) AppendKey(dst []byte, key string) []byte {
-<<<<<<< HEAD
-	if len(dst) > 1 && dst[len(dst)-1] != '{' {
-		dst = append(dst, ',')
-	}
-	dst = e.AppendString(dst, key)
-	return append(dst, ':')
-}
-=======
 	if dst[len(dst)-1] != '{' {
 		dst = append(dst, ',')
 	}
 	return append(e.AppendString(dst, key), ':')
 }
->>>>>>> origin/dev

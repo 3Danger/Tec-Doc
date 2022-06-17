@@ -1,22 +1,6 @@
 package zerolog
 
 import (
-<<<<<<< HEAD
-	"net"
-	"sort"
-	"time"
-)
-
-func appendFields(dst []byte, fields map[string]interface{}) []byte {
-	keys := make([]string, 0, len(fields))
-	for key := range fields {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	for _, key := range keys {
-		dst = enc.AppendKey(dst, key)
-		val := fields[key]
-=======
 	"encoding/json"
 	"net"
 	"sort"
@@ -58,7 +42,6 @@ func appendFieldList(dst []byte, kvList []interface{}) []byte {
 		} else {
 			continue
 		}
->>>>>>> origin/dev
 		if val, ok := val.(LogObjectMarshaler); ok {
 			e := newEvent(nil, 0)
 			e.buf = e.buf[:0]
@@ -73,12 +56,7 @@ func appendFieldList(dst []byte, kvList []interface{}) []byte {
 		case []byte:
 			dst = enc.AppendBytes(dst, val)
 		case error:
-<<<<<<< HEAD
-			marshaled := ErrorMarshalFunc(val)
-			switch m := marshaled.(type) {
-=======
 			switch m := ErrorMarshalFunc(val).(type) {
->>>>>>> origin/dev
 			case LogObjectMarshaler:
 				e := newEvent(nil, 0)
 				e.buf = e.buf[:0]
@@ -86,15 +64,11 @@ func appendFieldList(dst []byte, kvList []interface{}) []byte {
 				dst = append(dst, e.buf...)
 				putEvent(e)
 			case error:
-<<<<<<< HEAD
-				dst = enc.AppendString(dst, m.Error())
-=======
 				if m == nil || isNilValue(m) {
 					dst = enc.AppendNil(dst)
 				} else {
 					dst = enc.AppendString(dst, m.Error())
 				}
->>>>>>> origin/dev
 			case string:
 				dst = enc.AppendString(dst, m)
 			default:
@@ -103,12 +77,7 @@ func appendFieldList(dst []byte, kvList []interface{}) []byte {
 		case []error:
 			dst = enc.AppendArrayStart(dst)
 			for i, err := range val {
-<<<<<<< HEAD
-				marshaled := ErrorMarshalFunc(err)
-				switch m := marshaled.(type) {
-=======
 				switch m := ErrorMarshalFunc(err).(type) {
->>>>>>> origin/dev
 				case LogObjectMarshaler:
 					e := newEvent(nil, 0)
 					e.buf = e.buf[:0]
@@ -116,15 +85,11 @@ func appendFieldList(dst []byte, kvList []interface{}) []byte {
 					dst = append(dst, e.buf...)
 					putEvent(e)
 				case error:
-<<<<<<< HEAD
-					dst = enc.AppendString(dst, m.Error())
-=======
 					if m == nil || isNilValue(m) {
 						dst = enc.AppendNil(dst)
 					} else {
 						dst = enc.AppendString(dst, m.Error())
 					}
->>>>>>> origin/dev
 				case string:
 					dst = enc.AppendString(dst, m)
 				default:
@@ -302,11 +267,8 @@ func appendFieldList(dst []byte, kvList []interface{}) []byte {
 			dst = enc.AppendIPPrefix(dst, val)
 		case net.HardwareAddr:
 			dst = enc.AppendMACAddr(dst, val)
-<<<<<<< HEAD
-=======
 		case json.RawMessage:
 			dst = appendJSON(dst, val)
->>>>>>> origin/dev
 		default:
 			dst = enc.AppendInterface(dst, val)
 		}
