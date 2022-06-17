@@ -1,4 +1,4 @@
-package internalserver
+package externalserver
 
 import (
 	"context"
@@ -7,14 +7,14 @@ import (
 	"tec-doc/internal/web"
 )
 
-type Server struct {
+type externalHttpServer struct {
 	router *gin.Engine
 	server http.Server
 }
 
-func NewInternalServer(bindingAddress string) web.Server {
-	router := initRouter()
-	return &Server{
+func NewExternalServer(bindingAddress string) web.Server {
+	router := initExternalRouter()
+	return &externalHttpServer{
 		router: router,
 		server: http.Server{
 			Addr:    bindingAddress,
@@ -23,10 +23,10 @@ func NewInternalServer(bindingAddress string) web.Server {
 	}
 }
 
-func (s *Server) Start() error {
+func (s *externalHttpServer) Start() error {
 	return s.server.ListenAndServe()
 }
 
-func (s *Server) Stop() error {
+func (s *externalHttpServer) Stop() error {
 	return s.server.Shutdown(context.Background())
 }
