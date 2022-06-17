@@ -67,11 +67,7 @@ const (
 var IntegerTimeFieldFormat = time.RFC3339
 
 // NanoTimeFieldFormat indicates the format of timestamp decoded
-<<<<<<< HEAD
-// from a float value (time in seconds and nano seconds).
-=======
 // from a float value (time in seconds and nanoseconds).
->>>>>>> origin/dev
 var NanoTimeFieldFormat = time.RFC3339Nano
 
 func appendCborTypePrefix(dst []byte, major byte, number uint64) []byte {
@@ -95,12 +91,8 @@ func appendCborTypePrefix(dst []byte, major byte, number uint64) []byte {
 		minor = additionalTypeIntUint64
 
 	}
-<<<<<<< HEAD
-	dst = append(dst, byte(major|minor))
-=======
 
 	dst = append(dst, major|minor)
->>>>>>> origin/dev
 	byteCount--
 	for ; byteCount >= 0; byteCount-- {
 		dst = append(dst, byte(number>>(uint(byteCount)*8)))

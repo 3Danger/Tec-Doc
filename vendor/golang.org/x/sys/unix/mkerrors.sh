@@ -215,10 +215,6 @@ struct ltchars {
 #include <linux/ethtool_netlink.h>
 #include <linux/falloc.h>
 #include <linux/fanotify.h>
-<<<<<<< HEAD
-=======
-#include <linux/fib_rules.h>
->>>>>>> origin/dev
 #include <linux/filter.h>
 #include <linux/fs.h>
 #include <linux/fscrypt.h>
@@ -607,10 +603,6 @@ ccflags="$@"
 		$2 ~ /^ITIMER_/ ||
 		$2 !~ "WMESGLEN" &&
 		$2 ~ /^W[A-Z0-9]+$/ ||
-<<<<<<< HEAD
-=======
-		$2 ~ /^P_/ ||
->>>>>>> origin/dev
 		$2 ~/^PPPIOC/ ||
 		$2 ~ /^FAN_|FANOTIFY_/ ||
 		$2 == "HID_MAX_DESCRIPTOR_SIZE" ||
@@ -620,10 +612,6 @@ ccflags="$@"
 		$2 ~ /^OTP/ ||
 		$2 ~ /^MEM/ ||
 		$2 ~ /^WG/ ||
-<<<<<<< HEAD
-=======
-		$2 ~ /^FIB_RULE_/ ||
->>>>>>> origin/dev
 		$2 ~ /^BLK[A-Z]*(GET$|SET$|BUF$|PART$|SIZE)/ {printf("\t%s = C.%s\n", $2, $2)}
 		$2 ~ /^__WCOREFLAG$/ {next}
 		$2 ~ /^__W[A-Z0-9]+$/ {printf("\t%s = C.%s\n", substr($2,3), $2)}

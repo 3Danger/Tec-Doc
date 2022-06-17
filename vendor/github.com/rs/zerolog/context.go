@@ -1,10 +1,7 @@
 package zerolog
 
 import (
-<<<<<<< HEAD
-=======
 	"fmt"
->>>>>>> origin/dev
 	"io/ioutil"
 	"math"
 	"net"
@@ -21,15 +18,10 @@ func (c Context) Logger() Logger {
 	return c.l
 }
 
-<<<<<<< HEAD
-// Fields is a helper function to use a map to set fields using type assertion.
-func (c Context) Fields(fields map[string]interface{}) Context {
-=======
 // Fields is a helper function to use a map or slice to set fields using type assertion.
 // Only map[string]interface{} and []interface{} are accepted. []interface{} must
 // alternate string keys and arbitrary values, and extraneous ones are ignored.
 func (c Context) Fields(fields interface{}) Context {
->>>>>>> origin/dev
 	c.l.context = appendFields(c.l.context, fields)
 	return c
 }
@@ -92,8 +84,6 @@ func (c Context) Strs(key string, vals []string) Context {
 	return c
 }
 
-<<<<<<< HEAD
-=======
 // Stringer adds the field key with val.String() (or null if val is nil) to the logger context.
 func (c Context) Stringer(key string, val fmt.Stringer) Context {
 	if val != nil {
@@ -105,7 +95,6 @@ func (c Context) Stringer(key string, val fmt.Stringer) Context {
 	return c
 }
 
->>>>>>> origin/dev
 // Bytes adds the field key with val as a []byte to the logger context.
 func (c Context) Bytes(key string, val []byte) Context {
 	c.l.context = enc.AppendBytes(enc.AppendKey(c.l.context, key), val)
@@ -129,26 +118,17 @@ func (c Context) RawJSON(key string, b []byte) Context {
 
 // AnErr adds the field key with serialized err to the logger context.
 func (c Context) AnErr(key string, err error) Context {
-<<<<<<< HEAD
-	marshaled := ErrorMarshalFunc(err)
-	switch m := marshaled.(type) {
-=======
 	switch m := ErrorMarshalFunc(err).(type) {
->>>>>>> origin/dev
 	case nil:
 		return c
 	case LogObjectMarshaler:
 		return c.Object(key, m)
 	case error:
-<<<<<<< HEAD
-		return c.Str(key, m.Error())
-=======
 		if m == nil || isNilValue(m) {
 			return c
 		} else {
 			return c.Str(key, m.Error())
 		}
->>>>>>> origin/dev
 	case string:
 		return c.Str(key, m)
 	default:
@@ -161,14 +141,6 @@ func (c Context) AnErr(key string, err error) Context {
 func (c Context) Errs(key string, errs []error) Context {
 	arr := Arr()
 	for _, err := range errs {
-<<<<<<< HEAD
-		marshaled := ErrorMarshalFunc(err)
-		switch m := marshaled.(type) {
-		case LogObjectMarshaler:
-			arr = arr.Object(m)
-		case error:
-			arr = arr.Str(m.Error())
-=======
 		switch m := ErrorMarshalFunc(err).(type) {
 		case LogObjectMarshaler:
 			arr = arr.Object(m)
@@ -178,7 +150,6 @@ func (c Context) Errs(key string, errs []error) Context {
 			} else {
 				arr = arr.Str(m.Error())
 			}
->>>>>>> origin/dev
 		case string:
 			arr = arr.Str(m)
 		default:
@@ -437,23 +408,9 @@ func (c Context) CallerWithSkipFrameCount(skipFrameCount int) Context {
 	return c
 }
 
-<<<<<<< HEAD
-type stackTraceHook struct{}
-
-func (sh stackTraceHook) Run(e *Event, level Level, msg string) {
-	e.Stack()
-}
-
-var sh = stackTraceHook{}
-
-// Stack enables stack trace printing for the error passed to Err().
-func (c Context) Stack() Context {
-	c.l = c.l.Hook(sh)
-=======
 // Stack enables stack trace printing for the error passed to Err().
 func (c Context) Stack() Context {
 	c.l.stack = true
->>>>>>> origin/dev
 	return c
 }
 

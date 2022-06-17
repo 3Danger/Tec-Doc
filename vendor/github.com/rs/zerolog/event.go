@@ -20,14 +20,6 @@ var eventPool = &sync.Pool{
 // Event represents a log event. It is instanced by one of the level method of
 // Logger and finalized by the Msg or Msgf method.
 type Event struct {
-<<<<<<< HEAD
-	buf   []byte
-	w     LevelWriter
-	level Level
-	done  func(msg string)
-	stack bool   // enable error stack trace
-	ch    []Hook // hooks from context
-=======
 	buf       []byte
 	w         LevelWriter
 	level     Level
@@ -35,7 +27,6 @@ type Event struct {
 	stack     bool   // enable error stack trace
 	ch        []Hook // hooks from context
 	skipFrame int    // The number of additional frames to skip when printing the caller.
->>>>>>> origin/dev
 }
 
 func putEvent(e *Event) {
@@ -71,11 +62,8 @@ func newEvent(w LevelWriter, level Level) *Event {
 	e.buf = enc.AppendBeginMarker(e.buf)
 	e.w = w
 	e.level = level
-<<<<<<< HEAD
-=======
 	e.stack = false
 	e.skipFrame = 0
->>>>>>> origin/dev
 	return e
 }
 
@@ -141,8 +129,6 @@ func (e *Event) Msgf(format string, v ...interface{}) {
 	e.msg(fmt.Sprintf(format, v...))
 }
 
-<<<<<<< HEAD
-=======
 func (e *Event) MsgFunc(createMsg func() string) {
 	if e == nil {
 		return
@@ -150,7 +136,6 @@ func (e *Event) MsgFunc(createMsg func() string) {
 	e.msg(createMsg())
 }
 
->>>>>>> origin/dev
 func (e *Event) msg(msg string) {
 	for _, hook := range e.ch {
 		hook.Run(e, e.level, msg)
@@ -170,15 +155,10 @@ func (e *Event) msg(msg string) {
 	}
 }
 
-<<<<<<< HEAD
-// Fields is a helper function to use a map to set fields using type assertion.
-func (e *Event) Fields(fields map[string]interface{}) *Event {
-=======
 // Fields is a helper function to use a map or slice to set fields using type assertion.
 // Only map[string]interface{} and []interface{} are accepted. []interface{} must
 // alternate string keys and arbitrary values, and extraneous ones are ignored.
 func (e *Event) Fields(fields interface{}) *Event {
->>>>>>> origin/dev
 	if e == nil {
 		return e
 	}
@@ -236,22 +216,16 @@ func (e *Event) Object(key string, obj LogObjectMarshaler) *Event {
 		return e
 	}
 	e.buf = enc.AppendKey(e.buf, key)
-<<<<<<< HEAD
-=======
 	if obj == nil {
 		e.buf = enc.AppendNil(e.buf)
 
 		return e
 	}
 
->>>>>>> origin/dev
 	e.appendObject(obj)
 	return e
 }
 
-<<<<<<< HEAD
-// Object marshals an object that implement the LogObjectMarshaler interface.
-=======
 // Func allows an anonymous func to run only if the event is enabled.
 func (e *Event) Func(f func(e *Event)) *Event {
 	if e != nil && e.Enabled() {
@@ -261,17 +235,13 @@ func (e *Event) Func(f func(e *Event)) *Event {
 }
 
 // EmbedObject marshals an object that implement the LogObjectMarshaler interface.
->>>>>>> origin/dev
 func (e *Event) EmbedObject(obj LogObjectMarshaler) *Event {
 	if e == nil {
 		return e
 	}
-<<<<<<< HEAD
-=======
 	if obj == nil {
 		return e
 	}
->>>>>>> origin/dev
 	obj.MarshalZerologObject(e)
 	return e
 }
@@ -294,8 +264,6 @@ func (e *Event) Strs(key string, vals []string) *Event {
 	return e
 }
 
-<<<<<<< HEAD
-=======
 // Stringer adds the field key with val.String() (or null if val is nil)
 // to the *Event context.
 func (e *Event) Stringer(key string, val fmt.Stringer) *Event {
@@ -317,7 +285,6 @@ func (e *Event) Stringers(key string, vals []fmt.Stringer) *Event {
 	return e
 }
 
->>>>>>> origin/dev
 // Bytes adds the field key with val as a string to the *Event context.
 //
 // Runes outside of normal ASCII ranges will be hex-encoded in the resulting
@@ -363,15 +330,11 @@ func (e *Event) AnErr(key string, err error) *Event {
 	case LogObjectMarshaler:
 		return e.Object(key, m)
 	case error:
-<<<<<<< HEAD
-		return e.Str(key, m.Error())
-=======
 		if m == nil || isNilValue(m) {
 			return e
 		} else {
 			return e.Str(key, m.Error())
 		}
->>>>>>> origin/dev
 	case string:
 		return e.Str(key, m)
 	default:
@@ -404,10 +367,6 @@ func (e *Event) Errs(key string, errs []error) *Event {
 
 // Err adds the field "error" with serialized err to the *Event context.
 // If err is nil, no field is added.
-<<<<<<< HEAD
-// To customize the key name, change zerolog.ErrorFieldName.
-=======
->>>>>>> origin/dev
 //
 // To customize the key name, change zerolog.ErrorFieldName.
 //
@@ -424,13 +383,9 @@ func (e *Event) Err(err error) *Event {
 		case LogObjectMarshaler:
 			e.Object(ErrorStackFieldName, m)
 		case error:
-<<<<<<< HEAD
-			e.Str(ErrorStackFieldName, m.Error())
-=======
 			if m != nil && !isNilValue(m) {
 				e.Str(ErrorStackFieldName, m.Error())
 			}
->>>>>>> origin/dev
 		case string:
 			e.Str(ErrorStackFieldName, m)
 		default:
@@ -697,11 +652,7 @@ func (e *Event) Timestamp() *Event {
 	return e
 }
 
-<<<<<<< HEAD
-// Time adds the field key with t formated as string using zerolog.TimeFieldFormat.
-=======
 // Time adds the field key with t formatted as string using zerolog.TimeFieldFormat.
->>>>>>> origin/dev
 func (e *Event) Time(key string, t time.Time) *Event {
 	if e == nil {
 		return e
@@ -710,11 +661,7 @@ func (e *Event) Time(key string, t time.Time) *Event {
 	return e
 }
 
-<<<<<<< HEAD
-// Times adds the field key with t formated as string using zerolog.TimeFieldFormat.
-=======
 // Times adds the field key with t formatted as string using zerolog.TimeFieldFormat.
->>>>>>> origin/dev
 func (e *Event) Times(key string, t []time.Time) *Event {
 	if e == nil {
 		return e
@@ -772,11 +719,6 @@ func (e *Event) Interface(key string, i interface{}) *Event {
 	return e
 }
 
-<<<<<<< HEAD
-// Caller adds the file:line of the caller with the zerolog.CallerFieldName key.
-func (e *Event) Caller() *Event {
-	return e.caller(CallerSkipFrameCount)
-=======
 // CallerSkipFrame instructs any future Caller calls to skip the specified number of frames.
 // This includes those added via hooks from the context.
 func (e *Event) CallerSkipFrame(skip int) *Event {
@@ -796,18 +738,13 @@ func (e *Event) Caller(skip ...int) *Event {
 		sk = skip[0] + CallerSkipFrameCount
 	}
 	return e.caller(sk)
->>>>>>> origin/dev
 }
 
 func (e *Event) caller(skip int) *Event {
 	if e == nil {
 		return e
 	}
-<<<<<<< HEAD
-	_, file, line, ok := runtime.Caller(skip)
-=======
 	_, file, line, ok := runtime.Caller(skip + e.skipFrame)
->>>>>>> origin/dev
 	if !ok {
 		return e
 	}

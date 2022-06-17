@@ -6,7 +6,9 @@ require (
 	github.com/gofiber/fiber/v2 v2.34.1
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.16.1
-	github.com/rs/zerolog v1.15.0
+	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/rs/zerolog v1.27.0
+	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 )
 
 require (
@@ -20,7 +22,8 @@ require (
 	github.com/jackc/pgtype v1.11.0 // indirect
 	github.com/jackc/puddle v1.2.1 // indirect
 	github.com/klauspost/compress v1.15.0 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
