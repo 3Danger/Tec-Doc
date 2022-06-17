@@ -28,6 +28,7 @@ const (
 	Method    = "method"
 	Status    = "status"
 	Path      = "path"
+	TimeMs    = "ms"
 )
 
 func NewMetrics(namespace, subsystem string) *Metrics {
@@ -49,7 +50,7 @@ func NewMetrics(namespace, subsystem string) *Metrics {
 				Name:      "lead_time",
 				Help:      "Execution time of something",
 			},
-			[]string{Component, Method, Path, Status},
+			[]string{Component, Method, Path, TimeMs},
 		)
 
 		rating = prometheus.NewGaugeVec(
@@ -69,7 +70,7 @@ func NewMetrics(namespace, subsystem string) *Metrics {
 				Name:      "lead_time_qua",
 				Help:      "Execution time of something and quantiles",
 			},
-			[]string{Component, Method, Path, Status},
+			[]string{Component, Method, Path, TimeMs},
 		)
 	)
 

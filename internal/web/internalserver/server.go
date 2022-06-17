@@ -2,7 +2,6 @@ package internalserver
 
 import (
 	"context"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -48,11 +47,12 @@ func (i *internalHttpServer) Stop() error {
 func (i *internalHttpServer) MiddleWareMetric(c *gin.Context) {
 	t := time.Now()
 	c.Next()
+	status := strconv.Itoa(c.Writer.Status())
 	i.metrics.Collector.WithLabelValues(
 		m.InternalServerComponent,
 		c.Request.Method,
 		c.Request.URL.Path,
-		fmt.Sprint(c.Writer.Status()),
+		status,
 	).Inc()
 
 	defer func() {
@@ -77,8 +77,6 @@ func (i *internalHttpServer) MiddleWareMetric(c *gin.Context) {
 		m.InternalServerComponent,
 		c.Request.Method,
 		c.Request.URL.Path,
-		fmt.Sprint(c.Writer.Status()),
+		status,
 	).Inc()
-
-	c.Writer.Status()
 }
