@@ -1,6 +1,10 @@
 package config
 
-import "time"
+import (
+	"time"
+
+	_ "github.com/kelseyhightower/envconfig"
+)
 
 type Config struct {
 	LogLevel            string `envconfig:"LOG_LEVEL" default:"debug"`

@@ -49,7 +49,11 @@ func (*Array) MarshalZerologArray(*Array) {
 func (a *Array) write(dst []byte) []byte {
 	dst = enc.AppendArrayStart(dst)
 	if len(a.buf) > 0 {
+<<<<<<< HEAD
 		dst = append(append(dst, a.buf...))
+=======
+		dst = append(dst, a.buf...)
+>>>>>>> origin/dev
 	}
 	dst = enc.AppendArrayEnd(dst)
 	putArray(a)
@@ -85,10 +89,22 @@ func (a *Array) Hex(val []byte) *Array {
 	return a
 }
 
+<<<<<<< HEAD
 // Err serializes and appends the err to the array.
 func (a *Array) Err(err error) *Array {
 	marshaled := ErrorMarshalFunc(err)
 	switch m := marshaled.(type) {
+=======
+// RawJSON adds already encoded JSON to the array.
+func (a *Array) RawJSON(val []byte) *Array {
+	a.buf = appendJSON(enc.AppendArrayDelim(a.buf), val)
+	return a
+}
+
+// Err serializes and appends the err to the array.
+func (a *Array) Err(err error) *Array {
+	switch m := ErrorMarshalFunc(err).(type) {
+>>>>>>> origin/dev
 	case LogObjectMarshaler:
 		e := newEvent(nil, 0)
 		e.buf = e.buf[:0]
@@ -96,7 +112,15 @@ func (a *Array) Err(err error) *Array {
 		a.buf = append(enc.AppendArrayDelim(a.buf), e.buf...)
 		putEvent(e)
 	case error:
+<<<<<<< HEAD
 		a.buf = enc.AppendString(enc.AppendArrayDelim(a.buf), m.Error())
+=======
+		if m == nil || isNilValue(m) {
+			a.buf = enc.AppendNil(enc.AppendArrayDelim(a.buf))
+		} else {
+			a.buf = enc.AppendString(enc.AppendArrayDelim(a.buf), m.Error())
+		}
+>>>>>>> origin/dev
 	case string:
 		a.buf = enc.AppendString(enc.AppendArrayDelim(a.buf), m)
 	default:
@@ -184,7 +208,11 @@ func (a *Array) Float64(f float64) *Array {
 	return a
 }
 
+<<<<<<< HEAD
 // Time append append t formated as string using zerolog.TimeFieldFormat.
+=======
+// Time append append t formatted as string using zerolog.TimeFieldFormat.
+>>>>>>> origin/dev
 func (a *Array) Time(t time.Time) *Array {
 	a.buf = enc.AppendTime(enc.AppendArrayDelim(a.buf), t, TimeFieldFormat)
 	return a
@@ -222,3 +250,13 @@ func (a *Array) MACAddr(ha net.HardwareAddr) *Array {
 	a.buf = enc.AppendMACAddr(enc.AppendArrayDelim(a.buf), ha)
 	return a
 }
+<<<<<<< HEAD
+=======
+
+// Dict adds the dict Event to the array
+func (a *Array) Dict(dict *Event) *Array {
+	dict.buf = enc.AppendEndMarker(dict.buf)
+	a.buf = append(enc.AppendArrayDelim(a.buf), dict.buf...)
+	return a
+}
+>>>>>>> origin/dev

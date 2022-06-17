@@ -141,6 +141,7 @@ func direntNamlen(buf []byte) (uint64, bool) {
 func PtraceAttach(pid int) (err error) { return ptrace(PT_ATTACH, pid, 0, 0) }
 func PtraceDetach(pid int) (err error) { return ptrace(PT_DETACH, pid, 0, 0) }
 
+<<<<<<< HEAD
 type attrList struct {
 	bitmapCount uint16
 	_           uint16
@@ -151,6 +152,8 @@ type attrList struct {
 	Forkattr    uint32
 }
 
+=======
+>>>>>>> origin/dev
 //sysnb	pipe(p *[2]int32) (err error)
 
 func Pipe(p []int) (err error) {
@@ -282,6 +285,7 @@ func Flistxattr(fd int, dest []byte) (sz int, err error) {
 	return flistxattr(fd, xattrPointer(dest), len(dest), 0)
 }
 
+<<<<<<< HEAD
 func setattrlistTimes(path string, times []Timespec, flags int) error {
 	_p0, err := BytePtrFromString(path)
 	if err != nil {
@@ -312,6 +316,9 @@ func utimensat(dirfd int, path string, times *[2]Timespec, flags int) error {
 	// Darwin doesn't support SYS_UTIMENSAT
 	return ENOSYS
 }
+=======
+//sys	utimensat(dirfd int, path string, times *[2]Timespec, flags int) (err error)
+>>>>>>> origin/dev
 
 /*
  * Wrapped
@@ -543,11 +550,20 @@ func SysctlKinfoProcSlice(name string, args ...int) ([]KinfoProc, error) {
 //sys	Mkdirat(dirfd int, path string, mode uint32) (err error)
 //sys	Mkfifo(path string, mode uint32) (err error)
 //sys	Mknod(path string, mode uint32, dev int) (err error)
+<<<<<<< HEAD
 //sys	Open(path string, mode int, perm uint32) (fd int, err error)
 //sys	Openat(dirfd int, path string, mode int, perm uint32) (fd int, err error)
 //sys	Pathconf(path string, name int) (val int, err error)
 //sys	Pread(fd int, p []byte, offset int64) (n int, err error)
 //sys	Pwrite(fd int, p []byte, offset int64) (n int, err error)
+=======
+//sys	Mount(fsType string, dir string, flags int, data unsafe.Pointer) (err error)
+//sys	Open(path string, mode int, perm uint32) (fd int, err error)
+//sys	Openat(dirfd int, path string, mode int, perm uint32) (fd int, err error)
+//sys	Pathconf(path string, name int) (val int, err error)
+//sys	pread(fd int, p []byte, offset int64) (n int, err error)
+//sys	pwrite(fd int, p []byte, offset int64) (n int, err error)
+>>>>>>> origin/dev
 //sys	read(fd int, p []byte) (n int, err error)
 //sys	Readlink(path string, buf []byte) (n int, err error)
 //sys	Readlinkat(dirfd int, path string, buf []byte) (n int, err error)
@@ -611,7 +627,10 @@ func SysctlKinfoProcSlice(name string, args ...int) ([]KinfoProc, error) {
 // Nfssvc
 // Getfh
 // Quotactl
+<<<<<<< HEAD
 // Mount
+=======
+>>>>>>> origin/dev
 // Csops
 // Waitid
 // Add_profil

@@ -1,19 +1,37 @@
 package zerolog
 
 import (
+<<<<<<< HEAD
 	"strconv"
 	"time"
 )
 import "sync/atomic"
+=======
+	"encoding/json"
+	"strconv"
+	"sync/atomic"
+	"time"
+)
+>>>>>>> origin/dev
 
 const (
 	// TimeFormatUnix defines a time format that makes time fields to be
 	// serialized as Unix timestamp integers.
 	TimeFormatUnix = ""
 
+<<<<<<< HEAD
 	// TimeFormatUnix defines a time format that makes time fields to be
 	// serialized as Unix timestamp integers in milliseconds.
 	TimeFormatUnixMs = "UNIXMS"
+=======
+	// TimeFormatUnixMs defines a time format that makes time fields to be
+	// serialized as Unix timestamp integers in milliseconds.
+	TimeFormatUnixMs = "UNIXMS"
+
+	// TimeFormatUnixMicro defines a time format that makes time fields to be
+	// serialized as Unix timestamp integers in microseconds.
+	TimeFormatUnixMicro = "UNIXMICRO"
+>>>>>>> origin/dev
 )
 
 var (
@@ -23,7 +41,26 @@ var (
 	// LevelFieldName is the field name used for the level field.
 	LevelFieldName = "level"
 
+<<<<<<< HEAD
 	// LevelFieldMarshalFunc allows customization of global level field marshaling
+=======
+	// LevelTraceValue is the value used for the trace level field.
+	LevelTraceValue = "trace"
+	// LevelDebugValue is the value used for the debug level field.
+	LevelDebugValue = "debug"
+	// LevelInfoValue is the value used for the info level field.
+	LevelInfoValue = "info"
+	// LevelWarnValue is the value used for the warn level field.
+	LevelWarnValue = "warn"
+	// LevelErrorValue is the value used for the error level field.
+	LevelErrorValue = "error"
+	// LevelFatalValue is the value used for the fatal level field.
+	LevelFatalValue = "fatal"
+	// LevelPanicValue is the value used for the panic level field.
+	LevelPanicValue = "panic"
+
+	// LevelFieldMarshalFunc allows customization of global level field marshaling.
+>>>>>>> origin/dev
 	LevelFieldMarshalFunc = func(l Level) string {
 		return l.String()
 	}
@@ -56,8 +93,17 @@ var (
 		return err
 	}
 
+<<<<<<< HEAD
 	// TimeFieldFormat defines the time format of the Time field type. If set to
 	// TimeFormatUnix or TimeFormatUnixMs, the time is formatted as an UNIX
+=======
+	// InterfaceMarshalFunc allows customization of interface marshaling.
+	// Default: "encoding/json.Marshal"
+	InterfaceMarshalFunc = json.Marshal
+
+	// TimeFieldFormat defines the time format of the Time field type. If set to
+	// TimeFormatUnix, TimeFormatUnixMs or TimeFormatUnixMicro, the time is formatted as a UNIX
+>>>>>>> origin/dev
 	// timestamp as integer.
 	TimeFieldFormat = time.RFC3339
 
@@ -76,11 +122,23 @@ var (
 	// output. If not set, an error is printed on the stderr. This handler must
 	// be thread safe and non-blocking.
 	ErrorHandler func(err error)
+<<<<<<< HEAD
 )
 
 var (
 	gLevel          = new(uint32)
 	disableSampling = new(uint32)
+=======
+
+	// DefaultContextLogger is returned from Ctx() if there is no logger associated
+	// with the context.
+	DefaultContextLogger *Logger
+)
+
+var (
+	gLevel          = new(int32)
+	disableSampling = new(int32)
+>>>>>>> origin/dev
 )
 
 // SetGlobalLevel sets the global override for log level. If this
@@ -88,16 +146,25 @@ var (
 //
 // To globally disable logs, set GlobalLevel to Disabled.
 func SetGlobalLevel(l Level) {
+<<<<<<< HEAD
 	atomic.StoreUint32(gLevel, uint32(l))
+=======
+	atomic.StoreInt32(gLevel, int32(l))
+>>>>>>> origin/dev
 }
 
 // GlobalLevel returns the current global log level
 func GlobalLevel() Level {
+<<<<<<< HEAD
 	return Level(atomic.LoadUint32(gLevel))
+=======
+	return Level(atomic.LoadInt32(gLevel))
+>>>>>>> origin/dev
 }
 
 // DisableSampling will disable sampling in all Loggers if true.
 func DisableSampling(v bool) {
+<<<<<<< HEAD
 	var i uint32
 	if v {
 		i = 1
@@ -107,4 +174,15 @@ func DisableSampling(v bool) {
 
 func samplingDisabled() bool {
 	return atomic.LoadUint32(disableSampling) == 1
+=======
+	var i int32
+	if v {
+		i = 1
+	}
+	atomic.StoreInt32(disableSampling, i)
+}
+
+func samplingDisabled() bool {
+	return atomic.LoadInt32(disableSampling) == 1
+>>>>>>> origin/dev
 }
