@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -10,10 +11,11 @@ import (
 	"tec-doc/internal/config"
 	l "tec-doc/internal/logger"
 	s "tec-doc/internal/service"
+	"tec-doc/internal/web/internalserver"
+	"time"
 )
 
 func main() {
-	testConnection()
 	var (
 		err    error
 		conf   *config.Config
@@ -61,4 +63,37 @@ func initConfig() (*config.Config, *zerolog.Logger, error) {
 		return nil, nil, err
 	}
 	return conf, &logger, nil
+}
+
+func TestConnection() {
+	//Init
+	conf := new(config.Config)
+	if err := envconfig.Process("TEC_DOC", conf); err != nil {
+		log.Err(err).Send()
+	}
+
+	//Start server
+	serv := internalserver.NewInternalServer(conf.InternalServAddress)
+	go func() {
+		err := serv.Start()
+		if err != nil {
+			log.Error().Err(err).Send()
+		}
+	}()
+
+	// Stop server
+	ctx, closer := context.WithTimeout(context.Background(), time.Second*2500)
+	defer closer()
+	go func(ctxgo context.Context) {
+		<-ctxgo.Done()
+		err := serv.Stop()
+		if err != nil {
+			log.Error().Err(err).Send()
+		}
+	}(ctx)
+	<-ctx.Done()
+
+	// When Done
+	time.Sleep(time.Second)
+	fmt.Println("Done!")
 }

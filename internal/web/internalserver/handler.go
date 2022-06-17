@@ -6,14 +6,11 @@ import (
 )
 
 func (i *internalHttpServer) Helth(c *gin.Context) {
-	c.Writer.WriteHeader(200)
-	c.Writer.WriteHeaderNow()
-
+	c.Status(200)
 }
 
 func (i *internalHttpServer) Readiness(c *gin.Context) {
-	c.Writer.WriteHeader(200)
-	c.Writer.WriteHeaderNow()
+	c.Status(200)
 }
 
 func (i *internalHttpServer) Metrics(c *gin.Context) {
