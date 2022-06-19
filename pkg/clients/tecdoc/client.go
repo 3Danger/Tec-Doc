@@ -12,10 +12,9 @@ import (
 	"time"
 )
 
-//Client интерфейс с методами для получения запчастей с TecDoc
 type TecDocClient interface {
 	GetArticles(ctx *context.Context, tecDocCfg config.TecDocConfig, mfrName string) ([]model.Article, error)
-	GetBrand(ctx *context.Context, tecDocCfg config.TecDocConfig, mfrName string) (model.Brand, error)
+	GetBrand(ctx *context.Context, tecDocCfg config.TecDocConfig, mfrName string) (*model.Brand, error)
 }
 
 type tecDocClient struct {
@@ -74,7 +73,6 @@ func (c *tecDocClient) GetBrand(ctx *context.Context, tecDocCfg config.TecDocCon
 	}
 
 	return nil, fmt.Errorf("no brand found")
-
 }
 
 func (c *tecDocClient) GetArticles(ctx *context.Context, tecDocCfg config.TecDocConfig, dataSupplierId int, article string) ([]model.Article, error) {
