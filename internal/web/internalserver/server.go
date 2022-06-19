@@ -16,7 +16,7 @@ type internalHttpServer struct {
 	metrics *m.Metrics
 }
 
-func NewInternalServer(bindingAddress string) web.Server {
+func New(bindingAddress string) web.Server {
 	serv := new(internalHttpServer)
 	serv.metrics = m.NewMetrics("internal", "HttpServer")
 

@@ -12,7 +12,7 @@ type externalHttpServer struct {
 	server http.Server
 }
 
-func NewExternalServer(bindingAddress string) web.Server {
+func New(bindingAddress string) web.Server {
 	router := initExternalRouter()
 	return &externalHttpServer{
 		router: router,

@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
+	"os"
 	"strings"
 	"tec-doc/internal/config"
 	l "tec-doc/internal/logger"
@@ -16,6 +17,7 @@ import (
 )
 
 func main() {
+	TestConnection()
 	var (
 		err    error
 		conf   *config.Config
@@ -73,7 +75,7 @@ func TestConnection() {
 	}
 
 	//Start server
-	serv := internalserver.NewInternalServer(conf.InternalServAddress)
+	serv := internalserver.New(conf.InternalServAddress)
 	go func() {
 		err := serv.Start()
 		if err != nil {
@@ -84,8 +86,8 @@ func TestConnection() {
 	// Stop server
 	ctx, closer := context.WithTimeout(context.Background(), time.Second*2500)
 	defer closer()
-	go func(ctxgo context.Context) {
-		<-ctxgo.Done()
+	go func(ctx context.Context) {
+		<-ctx.Done()
 		err := serv.Stop()
 		if err != nil {
 			log.Error().Err(err).Send()
@@ -96,4 +98,5 @@ func TestConnection() {
 	// When Done
 	time.Sleep(time.Second)
 	fmt.Println("Done!")
+	os.Exit(0)
 }
