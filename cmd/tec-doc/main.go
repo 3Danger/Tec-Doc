@@ -7,7 +7,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
-	"os"
 	"strings"
 	"tec-doc/internal/config"
 	l "tec-doc/internal/logger"
@@ -16,7 +15,33 @@ import (
 	"time"
 )
 
-func TestExcelling() {
+func initConfig() (*config.Config, *zerolog.Logger, error) {
+	var (
+		conf   *config.Config
+		logger zerolog.Logger
+		err    error
+	)
+	// Init Config
+	conf = new(config.Config)
+	if err = envconfig.Process("TEC_DOC", conf); err != nil {
+		return nil, nil, err
+	}
+
+	// Init Logger
+	logger, err = l.InitLogger(strings.ToLower(conf.LogLevel))
+	if err != nil {
+		return nil, nil, err
+	}
+	return conf, &logger, nil
+}
+
+func main() {
+	TestExcelConvert()
+	//TestServer()
+	//TestService()
+}
+
+func TestExcelConvert() {
 	array := []s.DummyXLSX{
 		{"1", "John", 792853.37833},
 		{"2", "Mitchel", 10202.13123},
@@ -27,12 +52,9 @@ func TestExcelling() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	os.Exit(0)
 }
 
-func main() {
-	TestExcelling()
-	TestConnection()
+func TestService() {
 	var (
 		err    error
 		conf   *config.Config
@@ -62,27 +84,7 @@ func main() {
 	svc.Stop()
 }
 
-func initConfig() (*config.Config, *zerolog.Logger, error) {
-	var (
-		conf   *config.Config
-		logger zerolog.Logger
-		err    error
-	)
-	// Init Config
-	conf = new(config.Config)
-	if err = envconfig.Process("TEC_DOC", conf); err != nil {
-		return nil, nil, err
-	}
-
-	// Init Logger
-	logger, err = l.InitLogger(strings.ToLower(conf.LogLevel))
-	if err != nil {
-		return nil, nil, err
-	}
-	return conf, &logger, nil
-}
-
-func TestConnection() {
+func TestServer() {
 	//Init
 	conf := new(config.Config)
 	if err := envconfig.Process("TEC_DOC", conf); err != nil {
@@ -113,5 +115,4 @@ func TestConnection() {
 	// When Done
 	time.Sleep(time.Second)
 	fmt.Println("Done!")
-	os.Exit(0)
 }
