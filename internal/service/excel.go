@@ -27,10 +27,11 @@ func ToExcel(filepath string, nameSheet string, data []DummyXLSX) (err error) {
 	_ = f.SetCellValue(nameSheet, "A1", "Id")
 	_ = f.SetCellValue(nameSheet, "B1", "Name")
 	_ = f.SetCellValue(nameSheet, "C1", "Price")
-	for i, v := range data {
-		_ = f.SetCellValue(nameSheet, "A"+strconv.Itoa(i+2), v.ID)
-		_ = f.SetCellValue(nameSheet, "B"+strconv.Itoa(i+2), v.Name)
-		_ = f.SetCellFloat(nameSheet, "C"+strconv.Itoa(i+2), v.Price, 20, 64)
+	for row, v := range data {
+		row += 2
+		_ = f.SetCellValue(nameSheet, "A"+strconv.Itoa(row), v.ID)
+		_ = f.SetCellValue(nameSheet, "B"+strconv.Itoa(row), v.Name)
+		_ = f.SetCellFloat(nameSheet, "C"+strconv.Itoa(row), v.Price, 20, 64)
 	}
 	f.SetActiveSheet(index)
 	return f.SaveAs(filepath + ".xlsx")
