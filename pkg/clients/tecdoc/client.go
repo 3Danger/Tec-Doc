@@ -40,7 +40,6 @@ func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConf
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Api-Key", tecDocCfg.XApiKey)
-	//Language code????
 
 	resp, err := c.Do(req)
 	if err != nil {
@@ -67,10 +66,10 @@ func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConf
 		return nil, fmt.Errorf("can't unmarshal body: %v", err)
 	}
 
-	if r.Status != 	http.StatusOK {
+	if r.Status != http.StatusOK {
 		return nil, fmt.Errorf("request failed with status code: %d", r.Status)
 	}
-	
+
 	for _, brand := range r.Data.Array {
 		if brand.MfrName == mfrName {
 			return &brand, nil
@@ -99,7 +98,6 @@ func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocC
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Api-Key", tecDocCfg.XApiKey)
-	//Language code????
 
 	resp, err := c.Do(req)
 	if err != nil {
@@ -126,8 +124,7 @@ func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocC
 		return nil, fmt.Errorf("can't unmarshal body: %v", err)
 	}
 
-
-	if r.Status != 	http.StatusOK {
+	if r.Status != http.StatusOK {
 		return nil, fmt.Errorf("request failed with status code: %d", r.Status)
 	}
 
