@@ -16,7 +16,22 @@ import (
 	"time"
 )
 
+func TestExcelling() {
+	array := []s.DummyXLSX{
+		{"1", "John", 792853.37833},
+		{"2", "Mitchel", 10202.13123},
+		{"3", "Superman", +777.7777},
+		{"4", "Dummy", 0101010.10110},
+	}
+	err := s.ToExcel("someExcelFile", "", array)
+	if err != nil {
+		log.Fatal().Err(err).Send()
+	}
+	os.Exit(0)
+}
+
 func main() {
+	TestExcelling()
 	TestConnection()
 	var (
 		err    error
