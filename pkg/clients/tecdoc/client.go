@@ -1,4 +1,4 @@
-package tecdoc
+package main
 
 import (
 	"bytes"
@@ -13,8 +13,8 @@ import (
 )
 
 type TecDocClient interface {
-	GetArticles(ctx *context.Context, tecDocCfg config.TecDocConfig, mfrName string) ([]model.Article, error)
-	GetBrand(ctx *context.Context, tecDocCfg config.TecDocConfig, mfrName string) (*model.Brand, error)
+	GetArticles(ctx context.Context, tecDocCfg config.TecDocConfig, mfrName string) ([]model.Article, error)
+	GetBrand(ctx context.Context, tecDocCfg config.TecDocConfig, mfrName string) (*model.Brand, error)
 }
 
 type tecDocClient struct {
@@ -29,7 +29,7 @@ func NewClient(baseURL string, timeout time.Duration) (*tecDocClient, error) {
 	}, nil
 }
 
-func (c *tecDocClient) GetBrand(ctx *context.Context, tecDocCfg config.TecDocConfig, mfrName string) (*model.Brand, error) {
+func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConfig, mfrName string) (*model.Brand, error) {
 	reqBodyReader := bytes.NewReader([]byte(fmt.Sprintf(
 		`{"getBrands":{"articleCountry":"ru", "lang":"ru", "provider":%s}}`, tecDocCfg.ProviderId)))
 
@@ -51,6 +51,7 @@ func (c *tecDocClient) GetBrand(ctx *context.Context, tecDocCfg config.TecDocCon
 	if err != nil {
 		return nil, fmt.Errorf("can't read response")
 	}
+	defer resp.Body.Close()
 
 	type respStruct struct {
 		Data struct {
@@ -66,6 +67,10 @@ func (c *tecDocClient) GetBrand(ctx *context.Context, tecDocCfg config.TecDocCon
 		return nil, fmt.Errorf("can't unmarshal body: %v", err)
 	}
 
+	if r.Status != 	http.StatusOK {
+		return nil, fmt.Errorf("request failed with status code: %d", r.Status)
+	}
+	
 	for _, brand := range r.Data.Array {
 		if brand.MfrName == mfrName {
 			return &brand, nil
@@ -75,7 +80,7 @@ func (c *tecDocClient) GetBrand(ctx *context.Context, tecDocCfg config.TecDocCon
 	return nil, fmt.Errorf("no brand found")
 }
 
-func (c *tecDocClient) GetArticles(ctx *context.Context, tecDocCfg config.TecDocConfig, dataSupplierId int, article string) ([]model.Article, error) {
+func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocConfig, dataSupplierID int, article string) ([]model.Article, error) {
 	reqBodyReader := bytes.NewReader([]byte(fmt.Sprintf(
 		`{
 			"getArticles": {
@@ -85,7 +90,7 @@ func (c *tecDocClient) GetArticles(ctx *context.Context, tecDocCfg config.TecDoc
 				"dataSupplierIds": %d,
 				"lang":"ru"
 			}
-		}`, article, dataSupplierId)))
+		}`, article, dataSupplierID)))
 
 	req, err := http.NewRequest(http.MethodPost, tecDocCfg.URL, reqBodyReader)
 	if err != nil {
@@ -105,6 +110,7 @@ func (c *tecDocClient) GetArticles(ctx *context.Context, tecDocCfg config.TecDoc
 	if err != nil {
 		return nil, fmt.Errorf("can't read response")
 	}
+	defer resp.Body.Close()
 
 	type respStruct struct {
 		TotalMatchingArticles int             `json:"totalMatchingArticles"`
@@ -118,6 +124,11 @@ func (c *tecDocClient) GetArticles(ctx *context.Context, tecDocCfg config.TecDoc
 	err = json.Unmarshal(body, &r)
 	if err != nil {
 		return nil, fmt.Errorf("can't unmarshal body: %v", err)
+	}
+
+
+	if r.Status != 	http.StatusOK {
+		return nil, fmt.Errorf("request failed with status code: %d", r.Status)
 	}
 
 	if len(r.Articles) == 0 {
