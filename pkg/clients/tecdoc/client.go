@@ -116,7 +116,7 @@ func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocC
 		Articles              []model.Article `json:"articles"`
 		Status                int             `json:"status"`
 	}
-
+	//Language code????
 	var r respStruct
 
 	err = json.Unmarshal(body, &r)
