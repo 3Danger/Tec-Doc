@@ -42,18 +42,12 @@ func main() {
 }
 
 func TestExcelConvert() {
-	array := []s.DummyXLSX{
-		{"1", "John", 792853.37833},
-		{"2", "Mitchel", 10202.13123},
-		{"3", "Superman", +777.7777},
-		{"4", "Dummy", 0101010.10110},
-	}
 	conf, logger, err := initConfig()
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
 	service := s.NewService(conf, logger)
-	BytesOfExcelFile, err := service.ToExcel("", array)
+	BytesOfExcelFile, err := service.ExcelTemplateForCLient("")
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}

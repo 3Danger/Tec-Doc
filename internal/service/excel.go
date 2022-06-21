@@ -2,37 +2,22 @@ package service
 
 import (
 	exl "github.com/xuri/excelize/v2"
-	"strconv"
 )
 
-type DummyXLSX struct {
-	ID    string  `json:"id"`
-	Name  string  `json:"name"`
-	Price float64 `json:"price"`
-}
-
-func (s *Service) ToExcel(nameSheet string, data []DummyXLSX) ([]byte, error) {
-	if data == nil || len(data) == 0 {
-		return nil, nil
-	}
-
+func (s *Service) ExcelTemplateForCLient(nameSheet string) ([]byte, error) {
 	f := exl.NewFile()
 	defer func() { _ = f.Close() }()
-
 	if nameSheet == "" {
 		nameSheet = "Layer1"
 	}
-
 	index := f.NewSheet(nameSheet)
-	_ = f.SetCellValue(nameSheet, "A1", "Id")
-	_ = f.SetCellValue(nameSheet, "B1", "Name")
-	_ = f.SetCellValue(nameSheet, "C1", "Price")
-	for row, v := range data {
-		row += 2
-		_ = f.SetCellValue(nameSheet, "A"+strconv.Itoa(row), v.ID)
-		_ = f.SetCellValue(nameSheet, "B"+strconv.Itoa(row), v.Name)
-		_ = f.SetCellFloat(nameSheet, "C"+strconv.Itoa(row), v.Price, 20, 64)
-	}
+	_ = f.SetCellValue(nameSheet, "A1", "Номер карточки")
+	_ = f.SetCellValue(nameSheet, "B1", "Артикул поставщика (уникальный артикул)")
+	_ = f.SetCellValue(nameSheet, "C1", "Артикул производителя")
+	_ = f.SetCellValue(nameSheet, "D1", "Бренд")
+	_ = f.SetCellValue(nameSheet, "E1", "SKU")
+	_ = f.SetCellValue(nameSheet, "F1", "Категория товара")
+	_ = f.SetCellValue(nameSheet, "G1", "Цена товара")
 	f.SetActiveSheet(index)
 	buffer, err := f.WriteToBuffer()
 	if err != nil {
