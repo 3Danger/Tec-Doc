@@ -18,8 +18,10 @@ const (
 )
 
 const (
-	createSupplierQuery = `INSERT INTO $1 (supplier_id, user_id, upload_date, updated_date, status)
-							VALUES ($2, $3, $4, $5, $6)`
+	createSupplierQuery = `INSERT INTO suppliers (supplier_id, user_id, upload_date, updated_date, status)
+							VALUES ($1, $2, $3, $4, $5)`
+	supplierTaskHistoryQuery = `SELECT INTO suppliers (supplier_id, user_id, upload_date, updated_date, status)
+							VALUES ($1, $2, $3, $4, $5)`
 )
 
 //Store интерфейс описывающий методы для работы с БД
@@ -49,7 +51,7 @@ func NewStore(cfg *config.PostgresConfig) (*store, error) {
 }
 
 func (s *store) CreateSupplier(ctx context.Context, supplierID int, userID int, ip string) error {
-	res, err := s.pool.Exec(ctx, createSupplierQuery, s.cfg.DbName, supplierID, userID,
+	res, err := s.pool.Exec(ctx, createSupplierQuery, supplierID, userID,
 		time.Now().UTC(), time.Now().UTC(), supplierStatusNew)
 
 	if err != nil {
