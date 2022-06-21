@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	s "tec-doc/internal/service"
 	"tec-doc/internal/web"
 	m "tec-doc/internal/web/metrics"
 	"time"
@@ -14,9 +15,10 @@ type internalHttpServer struct {
 	router  *gin.Engine
 	server  *http.Server
 	metrics *m.Metrics
+	service *s.Service
 }
 
-func New(bindingAddress string) web.Server {
+func New(bindingAddress string, service *s.Service) web.Server {
 	serv := new(internalHttpServer)
 	serv.metrics = m.NewMetrics("internal", "HttpServer")
 
@@ -28,6 +30,10 @@ func New(bindingAddress string) web.Server {
 	serv.router.GET("/helth", serv.Helth)
 	serv.router.GET("/readiness", serv.Readiness)
 	serv.router.GET("/metrics", serv.Metrics)
+	serv.router.GET("/excel_template", serv.ExcelTemplate)
+	serv.router.GET("/load_from_excel", serv.LoadFromExcel)
+
+	serv.service = service
 
 	serv.server = &http.Server{
 		Addr:    bindingAddress,
