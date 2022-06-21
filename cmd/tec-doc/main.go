@@ -48,10 +48,16 @@ func TestExcelConvert() {
 		{"3", "Superman", +777.7777},
 		{"4", "Dummy", 0101010.10110},
 	}
-	err := s.ToExcel("someExcelFile", "", array)
+	conf, logger, err := initConfig()
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
+	service := s.NewService(conf, logger)
+	BytesOfExcelFile, err := service.ToExcel("", array)
+	if err != nil {
+		log.Fatal().Err(err).Send()
+	}
+	_ = BytesOfExcelFile //результат
 }
 
 func TestService() {

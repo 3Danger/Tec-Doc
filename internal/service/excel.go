@@ -11,9 +11,9 @@ type DummyXLSX struct {
 	Price float64 `json:"price"`
 }
 
-func ToExcel(filepath string, nameSheet string, data []DummyXLSX) (err error) {
+func (s *Service) ToExcel(nameSheet string, data []DummyXLSX) ([]byte, error) {
 	if data == nil || len(data) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	f := exl.NewFile()
@@ -34,5 +34,9 @@ func ToExcel(filepath string, nameSheet string, data []DummyXLSX) (err error) {
 		_ = f.SetCellFloat(nameSheet, "C"+strconv.Itoa(row), v.Price, 20, 64)
 	}
 	f.SetActiveSheet(index)
-	return f.SaveAs(filepath + ".xlsx")
+	buffer, err := f.WriteToBuffer()
+	if err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
 }
