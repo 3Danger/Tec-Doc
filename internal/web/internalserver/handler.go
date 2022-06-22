@@ -7,6 +7,8 @@ import (
 	"net/http"
 )
 
+const ContentTypeExcel = "application/vnd.ms-excel"
+
 func (i *internalHttpServer) Helth(c *gin.Context) {
 	defer func() { _ = c.Request.Body.Close() }()
 	c.Status(200)
@@ -26,31 +28,24 @@ func (i *internalHttpServer) ExcelTemplate(c *gin.Context) {
 	defer func() { _ = c.Request.Body.Close() }()
 	excelTemplate, err := i.service.ExcelTemplateForClient("")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		jsonError(err, http.StatusInternalServerError, c)
 	} else {
-		c.Data(200, "application/vnd.ms-excel", excelTemplate)
+		c.Data(200, ContentTypeExcel, excelTemplate)
 	}
 }
 
 func (i *internalHttpServer) LoadFromExcel(c *gin.Context) {
 	defer func() { _ = c.Request.Body.Close() }()
-	file, header, err := c.Request.FormFile("excel_file")
+	rawXls, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
-		return
-	}
-	defer func() { _ = file.Close() }()
-	_ = header
-	rawXls, err := ioutil.ReadAll(file)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
-		return
-	}
-	products, err := i.service.LoadFromExcel(rawXls)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+		jsonError(err, http.StatusBadRequest, c)
 	} else {
-		c.JSON(http.StatusOK, gin.H{"Message": "success"})
+		products, err := i.service.LoadFromExcel(rawXls)
+		if err != nil {
+			jsonError(err, http.StatusInternalServerError, c)
+		} else {
+			jsonMessage("success", http.StatusOK, c)
+		}
+		_ = products
 	}
-	_ = products
 }

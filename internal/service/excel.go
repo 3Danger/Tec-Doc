@@ -70,6 +70,9 @@ func (s *Service) LoadFromExcel(rawData []byte) (products []Product, err error) 
 	if err != nil {
 		return nil, err
 	}
+	if len(rows) < 2 {
+		return nil, errors.New("empty data")
+	}
 	products = make([]Product, len(rows[1:]))
 	for i := range products {
 		err = parseExcelRow(&products[i], rows[i+1])

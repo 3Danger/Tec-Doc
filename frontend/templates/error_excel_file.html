@@ -2,9 +2,9 @@
 
 <div>
     <div>
-        <h3> {{ .Error }} </h3>
+        <h3> Ошибка: {{ .error }} </h3>
     </div>
-    <form enctype="multipart/form-data" method="get" action="/load_from_excel">
+    <form enctype="multipart/form-data" method="get" action="{{ .redirect }}">
         <div><input type="submit"  value="повторить"></div>
     </form>
 </div>

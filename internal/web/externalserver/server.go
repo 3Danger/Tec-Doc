@@ -13,7 +13,8 @@ type externalHttpServer struct {
 }
 
 func New(bindingAddress string) web.Server {
-	router := initExternalRouter()
+	router := gin.Default()
+	// TODO init router
 	return &externalHttpServer{
 		router: router,
 		server: http.Server{
