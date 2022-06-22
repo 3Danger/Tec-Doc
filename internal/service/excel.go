@@ -70,9 +70,9 @@ func (s *Service) LoadFromExcel(rawData []byte) (products []Product, err error) 
 	if err != nil {
 		return nil, err
 	}
-	products = make([]Product, len(rows))
+	products = make([]Product, len(rows[1:]))
 	for i := range products {
-		err = parseExcelRow(&products[i], rows[i])
+		err = parseExcelRow(&products[i], rows[i+1])
 		if err != nil {
 			return nil, err
 		}
