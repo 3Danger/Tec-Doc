@@ -19,15 +19,15 @@ const (
 
 const (
 	createSupplierQuery = `INSERT INTO suppliers (supplier_id, user_id, upload_date, updated_date, status)
-							VALUES ($1, $2, $3, $4, $5)`
+										VALUES ($1, $2, $3, $4, $5)`
 	saveIntoBufferQuery = `INSERT INTO products_buffer
-							(upload_id, article, brand, status, errorResponse, description)
-							VALUES
-    						($1, $2, $3, $4, $5);`
+										(upload_id, article, brand, status, errorResponse, description)
+									VALUES
+    									($1, $2, $3, $4, $5);`
 	moveFromBufferToHistoryQuery = `INSERT INTO products_history (id, upload_id, article, brand, status, errorResponse, description)
 									SELECT id, upload_id, article, brand, status, errorResponse, description FROM products_buffer
 									WHERE products_buffer.id NOT IN  (SELECT  id from products_history) 
-											AND products_buffer.status = $1 AND products_buffer.upload_id = $2;`
+									AND products_buffer.status = $1 AND products_buffer.upload_id = $2;`
 	deleteFromBufferQuery       = `DELETE FROM products_buffer WHERE status = $1 AND products_buffer.upload_id = $2;`
 	getSupplierHistoryQuery     = `SELECT * FROM tasks WHERE supplier_id = $1 LIMIT $2 OFFSET $3;`
 	getProductsFromHistoryQuery = `SELECT * FROM products_history WHERE upload_id = $1;`
