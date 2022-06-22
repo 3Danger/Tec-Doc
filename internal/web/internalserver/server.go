@@ -26,14 +26,21 @@ func New(bindingAddress string, service *s.Service) web.Server {
 
 	serv.router.Use(gin.Recovery())
 	serv.router.Use(serv.MiddleWareMetric)
-
-	apiRouter := serv.router.Group("/api")
+	//serv.router.Static("/css","internal/web/templates/css")
+	serv.router.LoadHTMLGlob("internal/web/templates/*.html")
+	apiRoutes := serv.router.Group("/api")
 	{
-		apiRouter.GET("/helth", serv.Helth)
-		apiRouter.GET("/readiness", serv.Readiness)
-		apiRouter.GET("/metrics", serv.Metrics)
-		apiRouter.GET("/excel_template", serv.ExcelTemplate)
-		apiRouter.POST("/load_from_excel", serv.LoadFromExcel)
+		apiRoutes.GET("/helth", serv.Helth)
+		apiRoutes.GET("/readiness", serv.Readiness)
+		apiRoutes.GET("/metrics", serv.Metrics)
+		apiRoutes.GET("/excel_template", serv.ExcelTemplate)
+		apiRoutes.POST("/load_from_excel", serv.LoadFromExcel)
+	}
+
+	viewRoutes := serv.router.Group("/")
+	{
+		viewRoutes.GET("/load_from_excel", serv.LoadFromExcelFile)
+		viewRoutes.POST("/load_from_excel", serv.LoadFromExcelFile)
 	}
 
 	serv.service = service

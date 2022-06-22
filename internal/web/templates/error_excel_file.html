@@ -1,0 +1,12 @@
+{{ template "header.html" }}
+
+<div>
+    <div>
+        <h3> {{ .Error }} </h3>
+    </div>
+    <form enctype="multipart/form-data" method="get" action="/load_from_excel">
+        <div><input type="submit"  value="повторить"></div>
+    </form>
+</div>
+
+{{ template "footer.html" }}

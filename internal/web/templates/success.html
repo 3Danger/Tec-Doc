@@ -1,0 +1,8 @@
+{{ template "header.html" }}
+<div>
+    <form enctype="multipart/form-data" action="/load_from_excel" method="get">
+        <div><h3>{{ .Message }}</h3></div>
+        <div><input type="submit" value="Выгрузить еще"></div>
+    </form>
+</div>
+{{ template "footer.html" }}

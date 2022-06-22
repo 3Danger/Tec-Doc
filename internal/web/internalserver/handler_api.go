@@ -34,15 +34,23 @@ func (i *internalHttpServer) ExcelTemplate(c *gin.Context) {
 
 func (i *internalHttpServer) LoadFromExcel(c *gin.Context) {
 	defer func() { _ = c.Request.Body.Close() }()
-	rawXls, err := ioutil.ReadAll(c.Request.Body)
+	file, header, err := c.Request.FormFile("excel_file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+	defer func() { _ = file.Close() }()
+	_ = header
+	rawXls, err := ioutil.ReadAll(file)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
 	}
 	products, err := i.service.LoadFromExcel(rawXls)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"msg": "success"})
+		c.JSON(http.StatusOK, gin.H{"Message": "success"})
 	}
 	_ = products
 }
