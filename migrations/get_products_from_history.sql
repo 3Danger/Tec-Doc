@@ -1,0 +1,1 @@
+SELECT * FROM products_history WHERE upload_id = 1;

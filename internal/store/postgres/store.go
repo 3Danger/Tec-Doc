@@ -21,14 +21,16 @@ const (
 	createSupplierQuery = `INSERT INTO suppliers (supplier_id, user_id, upload_date, updated_date, status)
 							VALUES ($1, $2, $3, $4, $5)`
 	saveIntoBufferQuery = `INSERT INTO products_buffer
-							(task_id, article, brand, status, errorResponse, description)
+							(upload_id, article, brand, status, errorResponse, description)
 							VALUES
     						($1, $2, $3, $4, $5);`
-	moveFromBufferToHistoryQuery = `INSERT INTO products_history (id, task_id, article, brand, status, errorResponse, description)
-									SELECT id, task_id, article, brand, status, errorResponse, description FROM products_buffer
+	moveFromBufferToHistoryQuery = `INSERT INTO products_history (id, upload_id, article, brand, status, errorResponse, description)
+									SELECT id, upload_id, article, brand, status, errorResponse, description FROM products_buffer
 									WHERE products_buffer.id NOT IN  (SELECT  id from products_history) 
-											AND products_buffer.status = $1 AND products_buffer.task_id = $2;`
-	deleteFromBufferQuery = `DELETE FROM products_buffer WHERE status = $1 AND products_buffer.task_id = $2;`
+											AND products_buffer.status = $1 AND products_buffer.upload_id = $2;`
+	deleteFromBufferQuery       = `DELETE FROM products_buffer WHERE status = $1 AND products_buffer.upload_id = $2;`
+	getSupplierHistoryQuery     = `SELECT * FROM tasks WHERE supplier_id = $1 LIMIT $2 OFFSET $3;`
+	getProductsFromHistoryQuery = `SELECT * FROM products_history WHERE upload_id = $1;`
 )
 
 //Store интерфейс описывающий методы для работы с БД
@@ -36,6 +38,8 @@ type Store interface {
 	CreateSupplier(ctx context.Context, supplierID int, userID int, ip string) error
 	SaveIntoBuffer(ctx context.Context, uploadID int, article string, brand string, status int, errResponse string) error
 	MoveFromBufferToHistory(ctx context.Context, status int, uploadID int) error
+	GetSupplierHistory(ctx context.Context, supplierID int, limit int, offset int) ([]model.Task, error)
+	GetProductsHistory(ctx context.Context, uploadID int) ([]model.Product, error)
 	InsertContent(ctx context.Context) error
 	UpdateContent(ctx context.Context) error
 	GetContent(ctx context.Context) (model.Content, error)
@@ -72,6 +76,30 @@ func (s *store) CreateSupplier(ctx context.Context, supplierID int, userID int, 
 	}
 
 	return nil
+}
+
+func (s *store) GetSupplierHistory(ctx context.Context, supplierID int, limit int, offset int) ([]model.Task, error) {
+	rows, err := s.pool.Query(ctx, getSupplierHistoryQuery, supplierID, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("can't exec getSupplierHistory query: %v", err)
+	}
+	defer rows.Close()
+
+	taskHistory := make([]model.Task, 0)
+	for rows.Next() {
+		var t model.Task
+		err := rows.Scan(&t.ID, &t.SupplierID, &t.UserID, &t.Description)
+		if err != nil {
+			return nil, fmt.Errorf("can't get task from tasks table: %w", err)
+		}
+		taskHistory = append(taskHistory, t)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error when receive tasks: %w", err)
+	}
+
+	return taskHistory, nil
 }
 
 func (s *store) SaveIntoBuffer(ctx context.Context, uploadID int, article string, brand string, status int, errResponse string) error {
@@ -119,6 +147,30 @@ func (s *store) MoveFromBufferToHistory(ctx context.Context, status int, uploadI
 	}
 
 	return nil
+}
+
+func (s *store) GetProductsHistory(ctx context.Context, uploadID int) ([]model.Product, error) {
+	rows, err := s.pool.Query(ctx, getProductsFromHistoryQuery, uploadID)
+	if err != nil {
+		return nil, fmt.Errorf("can't exec getProductsFromHistory query: %v", err)
+	}
+	defer rows.Close()
+
+	productsHistory := make([]model.Product, 0)
+	for rows.Next() {
+		var p model.Product
+		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.Brand, &p.Status, &p.ErrorResponse, &p.Description)
+		if err != nil {
+			return nil, fmt.Errorf("can't get products from products_history table: %w", err)
+		}
+		productsHistory = append(productsHistory, p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error when receive products: %w", err)
+	}
+
+	return productsHistory, nil
 }
 
 func (s *store) InsertContent(ctx context.Context) error {

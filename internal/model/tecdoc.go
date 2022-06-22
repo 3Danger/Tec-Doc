@@ -20,3 +20,20 @@ type QueryMatch struct {
 	MfrID       int    `json:"mfrId,omitempty"`
 	MfrName     string `json:"mfrName,omitempty"`
 }
+
+type Task struct {
+	ID          int64
+	SupplierID  int64
+	UserID      int64
+	Description string
+}
+
+type Product struct {
+	ID            int64
+	UploadID      int64
+	Article       string
+	Brand         string
+	Status        int
+	ErrorResponse string
+	Description   string
+}

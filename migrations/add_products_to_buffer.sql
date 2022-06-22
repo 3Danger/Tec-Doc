@@ -1,5 +1,5 @@
 INSERT INTO products_buffer
-    (task_id, article, brand, status, errorresponse, description)
+    (upload_id, article, brand, status, errorresponse, description)
 VALUES
     ((SELECT id from tasks where description = 'UPLOAD NEW CATALOGUE FOR CANDYSHOP_COMPANY'),
      '010001N',
@@ -9,7 +9,7 @@ VALUES
      'Радиатор, охлаждение двигателя');
 
 INSERT INTO products_buffer
-(task_id, article, brand, status, errorresponse, description)
+(upload_id, article, brand, status, errorresponse, description)
 VALUES
     ((SELECT id from tasks where description = 'UPLOAD NEW CATALOGUE FOR CANDYSHOP_COMPANY'),
      '0092L40270',
@@ -19,7 +19,7 @@ VALUES
      'Стартерная аккумуляторная батарея');
 
 INSERT INTO products_buffer
-(task_id, article, brand, status, errorresponse, description)
+(upload_id, article, brand, status, errorresponse, description)
 VALUES
     ((SELECT id from tasks where description = 'UPLOAD NEW CATALOGUE FOR CANDYSHOP_COMPANY'),
      '000.001-00A',
@@ -29,7 +29,7 @@ VALUES
      'Брызговик');
 
 INSERT INTO products_buffer
-(task_id, article, brand, status, errorresponse, description)
+(upload_id, article, brand, status, errorresponse, description)
 VALUES
     ((SELECT id from tasks where description = 'UPLOAD NEW CATALOGUE FOR CANDYSHOP_COMPANY'),
      '10-3011',
@@ -39,7 +39,7 @@ VALUES
      'Компрессор, кондиционер');
 
 INSERT INTO products_buffer
-(task_id, article, brand, status, errorresponse, description)
+(upload_id, article, brand, status, errorresponse, description)
 VALUES
     ((SELECT id from tasks where description = 'UPLOAD NEW CATALOGUE FOR CANDYSHOP_COMPANY'),
      '103011',
@@ -49,7 +49,7 @@ VALUES
      'Интеркулер');
 
 INSERT INTO products_buffer
-(task_id, article, brand, status, errorresponse, description)
+(upload_id, article, brand, status, errorresponse, description)
 VALUES
     ((SELECT id from tasks where description = 'UPLOAD NEW CATALOGUE FOR AUTOPARTS_COMPANY'),
      '103002',
@@ -59,7 +59,7 @@ VALUES
      'Стартер');
 
 INSERT INTO products_buffer
-(task_id, article, brand, status, errorresponse, description)
+(upload_id, article, brand, status, errorresponse, description)
 VALUES
     ((SELECT id from tasks where description = 'UPLOAD NEW CATALOGUE FOR AUTOPARTS_COMPANY'),
      '0451103274',
