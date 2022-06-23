@@ -29,9 +29,13 @@ func New(bindingAddress string, service *s.Service) *externalHttpServer {
 			Handler: router,
 		},
 	}
-	serv.router.GET("/excel_template", serv.ExcelTemplate)
-	serv.router.POST("/load_from_excel", serv.LoadFromExcel)
+	serv.configureRouter()
 	return serv
+}
+
+func (e *externalHttpServer) configureRouter() {
+	e.router.GET("/excel_template", e.ExcelTemplate)
+	e.router.POST("/load_from_excel", e.LoadFromExcel)
 }
 
 func (e *externalHttpServer) Start() error {

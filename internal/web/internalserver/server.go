@@ -26,18 +26,20 @@ func New(bindingAddress string) *internalHttpServer {
 	serv.metrics = m.NewMetrics("internal", "HttpServer")
 
 	serv.router = gin.Default()
-
-	serv.router.Use(gin.Recovery())
-	serv.router.Use(serv.MiddleWareMetric)
-	serv.router.GET("/health", serv.Health)
-	serv.router.GET("/readiness", serv.Readiness)
-	serv.router.GET("/metrics", serv.Metrics)
-
+	serv.configureRouter()
 	serv.server = &http.Server{
 		Addr:    bindingAddress,
 		Handler: serv.router,
 	}
 	return serv
+}
+
+func (i *internalHttpServer) configureRouter() {
+	i.router.Use(gin.Recovery())
+	i.router.Use(i.MiddleWareMetric)
+	i.router.GET("/health", i.Health)
+	i.router.GET("/readiness", i.Readiness)
+	i.router.GET("/metrics", i.Metrics)
 }
 
 func (i *internalHttpServer) Start() error {
