@@ -1,13 +1,14 @@
 {{ template "header.html" }}
-<div>
-    <form enctype="multipart/form-data" action="{{ .redirect }}" method="get">
-        <div><input type="submit" value="Скачать шаблон"></div>
+<div class="main_form">
+    <form enctype="multipart/form-data" action="{{ .redirect }}" target="_blank" method="get">
+        <div><input class="button" type="submit" value="Скачать шаблон"></div>
     </form>
-</div>
-<div>
     <form enctype="multipart/form-data" method="post">
-        <div><input type="file" name="excel_file"></div>
-        <div><input type="submit" value="Отправить"></div>
+        <label for="file-upload" class="button">
+            <p>Выбрать файл</p>
+        </label>
+        <input id="file-upload" type="file" name="excel_file"/>
+        <div><input class="button" type="submit" value="Отправить"></div>
     </form>
 </div>
 {{ template "footer.html" }}

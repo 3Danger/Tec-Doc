@@ -28,6 +28,7 @@ func init() {
 
 func main() {
 	router := gin.Default()
+	router.Static("/css", "./frontend/templates/css")
 	router.LoadHTMLGlob("./frontend/templates/*.html")
 
 	router.GET("/", indexPage)
@@ -65,7 +66,7 @@ func indexPage(c *gin.Context) {
 			if post.StatusCode > 299 {
 				data := new(gin.H)
 				readAll, _ := ioutil.ReadAll(post.Body)
-				err = json.Unmarshal(readAll, data)
+				json.Unmarshal(readAll, data)
 				c.HTML(post.StatusCode, "error_excel_file.html", data)
 				return
 			}
