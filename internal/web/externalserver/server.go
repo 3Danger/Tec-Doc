@@ -3,31 +3,42 @@ package externalserver
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"net/http"
-	"tec-doc/internal/web"
+	s "tec-doc/internal/service"
 )
 
-type externalHttpServer struct {
-	router *gin.Engine
-	server http.Server
+type Server interface {
+	Start() error
+	Stop() error
 }
 
-func New(bindingAddress string) web.Server {
+type externalHttpServer struct {
+	router  *gin.Engine
+	server  http.Server
+	service *s.Service
+}
+
+func New(bindingAddress string, service *s.Service) *externalHttpServer {
 	router := gin.Default()
-	// TODO init router
-	return &externalHttpServer{
-		router: router,
+	serv := &externalHttpServer{
+		router:  router,
+		service: service,
 		server: http.Server{
 			Addr:    bindingAddress,
 			Handler: router,
 		},
 	}
+	serv.router.GET("/excel_template", serv.ExcelTemplate)
+	serv.router.POST("/load_from_excel", serv.LoadFromExcel)
+	return serv
 }
 
-func (s *externalHttpServer) Start() error {
-	return s.server.ListenAndServe()
+func (e *externalHttpServer) Start() error {
+	log.Info().Msg("start external server on " + e.server.Addr)
+	return e.server.ListenAndServe()
 }
 
-func (s *externalHttpServer) Stop() error {
-	return s.server.Shutdown(context.Background())
+func (e *externalHttpServer) Stop() error {
+	return e.server.Shutdown(context.Background())
 }

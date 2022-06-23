@@ -1,14 +1,18 @@
 package main
 
 import (
+	"context"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/sync/errgroup"
 	"strings"
 	"tec-doc/internal/config"
 	l "tec-doc/internal/logger"
 	"tec-doc/internal/service"
+	"tec-doc/internal/web/externalserver"
 	"tec-doc/internal/web/internalserver"
+	"tec-doc/pkg/sig"
 )
 
 func initConfig() (*config.Config, *zerolog.Logger, error) {
@@ -36,15 +40,24 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
+	egroup, ctx := errgroup.WithContext(context.Background())
+	egroup.Go(func() error {
+		return sig.Listen(ctx)
+	})
 
-	srvc := service.NewService(conf, logger)
-	srvr := internalserver.New(conf.InternalServAddress, srvc)
+	srvc := service.New(conf, logger)
 
-	if err = srvr.Start(); err != nil {
+	internalServ := internalserver.New(conf.InternalServAddress)
+	externalServ := externalserver.New(conf.ExternalServAddress, srvc)
+
+	srvc.SetInternalServer(internalServ)
+	srvc.SetExternalServer(externalServ)
+
+	egroup.Go(func() error {
+		return srvc.Start(ctx)
+	})
+	if err = egroup.Wait(); err != nil {
 		logger.Error().Err(err).Send()
 	}
-	if err = srvr.Stop(); err != nil {
-		logger.Error().Err(err).Send()
-	}
-
+	srvc.Stop()
 }
