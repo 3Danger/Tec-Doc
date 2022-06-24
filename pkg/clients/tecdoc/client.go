@@ -31,7 +31,7 @@ func NewClient(baseURL string, timeout time.Duration) (*tecDocClient, error) {
 
 func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConfig, brandName string) (*model.Brand, error) {
 	reqBodyReader := bytes.NewReader([]byte(fmt.Sprintf(
-		`{"getBrands":{"articleCountry":"ru", "lang":"ru", "provider":%s}}`, tecDocCfg.ProviderId)))
+		`{"getBrands":{"articleCountry":"ru", "lang":"ru", "provider":%d}}`, tecDocCfg.ProviderId)))
 
 	req, err := http.NewRequest(http.MethodPost, tecDocCfg.URL, reqBodyReader)
 	if err != nil {
