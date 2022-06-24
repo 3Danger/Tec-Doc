@@ -29,7 +29,7 @@ func NewClient(baseURL string, timeout time.Duration) (*tecDocClient, error) {
 	}, nil
 }
 
-func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConfig, mfrName string) (*model.Brand, error) {
+func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConfig, brandName string) (*model.Brand, error) {
 	reqBodyReader := bytes.NewReader([]byte(fmt.Sprintf(
 		`{"getBrands":{"articleCountry":"ru", "lang":"ru", "provider":%s}}`, tecDocCfg.ProviderId)))
 
@@ -71,7 +71,7 @@ func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConf
 	}
 
 	for _, brand := range r.Data.Array {
-		if brand.MfrName == mfrName {
+		if brand.Brand == brandName {
 			return &brand, nil
 		}
 	}
@@ -84,12 +84,19 @@ func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocC
 		`{
 			"getArticles": {
 				"articleCountry":"ru", 
+    			"provider": "%d",
 				"searchQuery": "%s",
 				"searchType": 10,
 				"dataSupplierIds": %d,
-				"lang":"ru"
+				"lang":"ru",
+				"includeGenericArticles": true,
+				"includeGTINs": true,
+				"includeOEMNumbers": true,
+				"includeReplacedByArticles": true,
+				"includeArticleCriteria": true,
+    			"includeImages": true
 			}
-		}`, article, dataSupplierID)))
+		}`, tecDocCfg.ProviderId, article, dataSupplierID)))
 
 	req, err := http.NewRequest(http.MethodPost, tecDocCfg.URL, reqBodyReader)
 	if err != nil {
@@ -111,12 +118,10 @@ func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocC
 	defer resp.Body.Close()
 
 	type respStruct struct {
-		TotalMatchingArticles int             `json:"totalMatchingArticles"`
-		MaxAllowedPage        int             `json:"maxAllowedPage"`
-		Articles              []model.Article `json:"articles"`
-		Status                int             `json:"status"`
+		TotalMatchingArticles int                `json:"totalMatchingArticles"`
+		Articles              []model.ArticleRaw `json:"articles"`
+		Status                int                `json:"status"`
 	}
-	//Language code????
 	var r respStruct
 
 	err = json.Unmarshal(body, &r)
@@ -132,5 +137,59 @@ func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocC
 		return nil, fmt.Errorf("no articles found")
 	}
 
-	return r.Articles, nil
+	return ConvertArticleFromRaw(r.Articles), nil
+}
+
+func ConvertArticleFromRaw(rawArticles []model.ArticleRaw) []model.Article {
+	articles := make([]model.Article, 0)
+	for _, rawArticle := range rawArticles {
+		var a model.Article
+		a.Brand = rawArticle.MfrName
+		a.ArticleNumber = rawArticle.ArticleNumber
+
+		a.ProductGroups = make([]string, 0)
+		for _, gr := range rawArticle.GenericArticles {
+			a.ProductGroups = append(a.ProductGroups, gr.GenericArticleDescription)
+		}
+
+		a.ReplacedByArticles = make([]string, 0)
+		for _, rp := range rawArticle.ReplacedByArticles {
+			a.ReplacedByArticles = append(a.ReplacedByArticles, rp.ArticleNumber)
+		}
+
+		a.Pictures = make([]model.Image, 0)
+		a.PanoramicImages = make([]model.Image, 0)
+		for _, img := range rawArticle.Images {
+			if img.HeaderDescription == "Рисунок" {
+				a.Pictures = append(a.Pictures, img)
+			} else if img.HeaderDescription == "Панорамное изображение изделия" {
+				a.PanoramicImages = append(a.PanoramicImages, img)
+			}
+		}
+
+		a.EAN = rawArticle.Gtins
+
+		for _, cr := range rawArticle.ArticleCriterias {
+			switch cr.CriteriaID {
+			case 212:
+				a.Weight = cr
+			case 1622:
+				a.PackageHeight = cr
+			case 1621:
+				a.PackageWidth = cr
+			case 1620:
+				a.PackageLength = cr
+			}
+		}
+
+		a.OEMnumbers = make([]string, 0)
+		for _, oem := range rawArticle.OemNumbers {
+			a.OEMnumbers = append(a.OEMnumbers, oem.ArticleNumber)
+		}
+
+		a.Country = "RU"
+		articles = append(articles, a)
+	}
+
+	return articles
 }
