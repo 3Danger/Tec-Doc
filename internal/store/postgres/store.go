@@ -139,7 +139,6 @@ func (s *store) MoveFromBufferToHistory(ctx context.Context, uploadID int) error
 		return fmt.Errorf("error when receive products from buffer: %w", err)
 	}
 
-	fmt.Println(productsBuffer)
 	rowsBuf := make([][]interface{}, len(productsBuffer))
 	for i, pr := range productsBuffer {
 		r := make([]interface{}, 0)
