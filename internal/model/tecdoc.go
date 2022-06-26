@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type Brand struct {
 	SupplierId int    `json:"dataSupplierId"`
 	Brand      string `json:"mfrName"`
@@ -83,10 +85,16 @@ type Image struct {
 }
 
 type Task struct {
-	ID          int64
-	SupplierID  int64
-	UserID      int64
-	Description string
+	ID                int64
+	SupplierID        int64
+	UserID            int64
+	UploadDate        time.Time
+	UpdateDate        time.Time
+	IP                string
+	Status            int
+	ProductsProcessed int
+	ProductsFailed    int
+	ProductsTotal     int
 }
 
 type Product struct {
@@ -94,7 +102,8 @@ type Product struct {
 	UploadID      int64
 	Article       string
 	Brand         string
+	UploadDate    time.Time
+	UpdateDate    time.Time
 	Status        int
 	ErrorResponse string
-	Description   string
 }
