@@ -54,7 +54,7 @@ func (s *store) CreateTask(ctx context.Context, supplierID int, userID int, ip s
 		createdAt, createdAt, ip, supplierStatusNew)
 
 	if err != nil {
-		return time.Time{}, fmt.Errorf("can't exec createTask query: %v", err)
+		return time.Time{}, fmt.Errorf("can't create task: %v", err)
 	}
 
 	if res.RowsAffected() == 0 {
@@ -80,7 +80,7 @@ func (s *store) SaveIntoBuffer(ctx context.Context, products []model.Product) er
 	)
 
 	if err != nil {
-		return fmt.Errorf("can't exec saveIntoBuffer query: %v", err)
+		return fmt.Errorf("can't save into buffer: %v", err)
 	}
 
 	if copyCount == 0 {
@@ -94,7 +94,7 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, supplierID int, limi
 	getSupplierTaskHistoryQuery := `SELECT * FROM tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`
 	rows, err := s.pool.Query(ctx, getSupplierTaskHistoryQuery, supplierID, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("can't exec getSupplierTaskHistory query: %v", err)
+		return nil, fmt.Errorf("can't get supplier task history: %v", err)
 	}
 	defer rows.Close()
 
@@ -104,13 +104,13 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, supplierID int, limi
 		err := rows.Scan(&t.ID, &t.SupplierID, &t.UserID, &t.UploadDate,
 			&t.UpdateDate, &t.IP, &t.Status, &t.ProductsProcessed, &t.ProductsFailed, &t.ProductsFailed)
 		if err != nil {
-			return nil, fmt.Errorf("can't get task from tasks table: %w", err)
+			return nil, fmt.Errorf("can't get tasks from history: %w", err)
 		}
 		taskHistory = append(taskHistory, t)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("can't get task from tasks table: %w", err)
+		return nil, fmt.Errorf("can't get tasks from history: %w", err)
 	}
 
 	return taskHistory, nil
@@ -120,7 +120,7 @@ func (s *store) MoveFromBufferToHistory(ctx context.Context, uploadID int) error
 	getProductsBufferQuery := `SELECT * FROM products_buffer WHERE upload_id = $1 ORDER BY upload_date;`
 	rows, err := s.pool.Query(ctx, getProductsBufferQuery, uploadID)
 	if err != nil {
-		return fmt.Errorf("can't exec getProductsBuffer query: %v", err)
+		return fmt.Errorf("can't get products from buffer: %v", err)
 	}
 	defer rows.Close()
 
@@ -130,13 +130,13 @@ func (s *store) MoveFromBufferToHistory(ctx context.Context, uploadID int) error
 		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.Brand,
 			&p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
 		if err != nil {
-			return fmt.Errorf("can't get products from products_buffer: %w", err)
+			return fmt.Errorf("can't get products from buffer: %w", err)
 		}
 		productsBuffer = append(productsBuffer, p)
 	}
 
 	if err := rows.Err(); err != nil {
-		return fmt.Errorf("can't get products from products_buffer: %w", err)
+		return fmt.Errorf("can't get products from buffer: %w", err)
 	}
 
 	rowsBuf := make([][]interface{}, len(productsBuffer))
@@ -154,11 +154,11 @@ func (s *store) MoveFromBufferToHistory(ctx context.Context, uploadID int) error
 	)
 
 	if err != nil {
-		return fmt.Errorf("can't exec saveIntoHistory query: %v", err)
+		return fmt.Errorf("can't save products into history: %v", err)
 	}
 
 	if copyCount == 0 {
-		return fmt.Errorf("no products saved into products_history")
+		return fmt.Errorf("no products saved into history")
 	}
 
 	return nil
@@ -169,11 +169,11 @@ func (s *store) DeleteFromBuffer(ctx context.Context, uploadID int) error {
 	res, err := s.pool.Exec(ctx, deleteFromBufferQuery, uploadID)
 
 	if err != nil {
-		return fmt.Errorf("can't exec deleteFromBuffer query: %v", err)
+		return fmt.Errorf("can't delete from buffer: %v", err)
 	}
 
 	if res.RowsAffected() == 0 {
-		return fmt.Errorf("no new products deleted from products_buffer")
+		return fmt.Errorf("no products deleted from buffer")
 	}
 
 	return nil
@@ -183,7 +183,7 @@ func (s *store) GetProductsHistory(ctx context.Context, uploadID int) ([]model.P
 	getProductsFromHistoryQuery := `SELECT * FROM products_history WHERE upload_id = $1 ORDER BY upload_date;`
 	rows, err := s.pool.Query(ctx, getProductsFromHistoryQuery, uploadID)
 	if err != nil {
-		return nil, fmt.Errorf("can't exec getProductsHistory query: %v", err)
+		return nil, fmt.Errorf("can't get products from history: %v", err)
 	}
 	defer rows.Close()
 
@@ -193,13 +193,13 @@ func (s *store) GetProductsHistory(ctx context.Context, uploadID int) ([]model.P
 		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.Brand,
 			&p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
 		if err != nil {
-			return nil, fmt.Errorf("can't get products from products_history: %w", err)
+			return nil, fmt.Errorf("can't get products from history: %w", err)
 		}
 		productsHistory = append(productsHistory, p)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("can't get products from products_history: %w", err)
+		return nil, fmt.Errorf("can't get products from history: %w", err)
 	}
 
 	return productsHistory, nil
