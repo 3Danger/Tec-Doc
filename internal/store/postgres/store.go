@@ -224,4 +224,3 @@ func NewPool(cfg *config.PostgresConfig) (*pgxpool.Pool, error) {
 
 	return pool, nil
 }
-
