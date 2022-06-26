@@ -84,7 +84,7 @@ func (s *store) SaveIntoBuffer(ctx context.Context, products []model.Product) er
 	}
 
 	if copyCount == 0 {
-		return fmt.Errorf("no products saved into buffer table")
+		return fmt.Errorf("no products saved into products_buffer")
 	}
 
 	return nil
@@ -110,7 +110,7 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, supplierID int, limi
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error when receive tasks: %w", err)
+		return nil, fmt.Errorf("can't get task from tasks table: %w", err)
 	}
 
 	return taskHistory, nil
@@ -136,7 +136,7 @@ func (s *store) MoveFromBufferToHistory(ctx context.Context, uploadID int) error
 	}
 
 	if err := rows.Err(); err != nil {
-		return fmt.Errorf("error when receive products from buffer: %w", err)
+		return fmt.Errorf("can't get products from products_buffer: %w", err)
 	}
 
 	rowsBuf := make([][]interface{}, len(productsBuffer))
@@ -158,7 +158,7 @@ func (s *store) MoveFromBufferToHistory(ctx context.Context, uploadID int) error
 	}
 
 	if copyCount == 0 {
-		return fmt.Errorf("no products saved into history table")
+		return fmt.Errorf("no products saved into products_history")
 	}
 
 	return nil
@@ -173,7 +173,7 @@ func (s *store) DeleteFromBuffer(ctx context.Context, uploadID int) error {
 	}
 
 	if res.RowsAffected() == 0 {
-		return fmt.Errorf("no new products deleted from buffer")
+		return fmt.Errorf("no new products deleted from products_buffer")
 	}
 
 	return nil
@@ -193,13 +193,13 @@ func (s *store) GetProductsHistory(ctx context.Context, uploadID int) ([]model.P
 		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.Brand,
 			&p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
 		if err != nil {
-			return nil, fmt.Errorf("can't get products from products_buffer: %w", err)
+			return nil, fmt.Errorf("can't get products from products_history: %w", err)
 		}
 		productsHistory = append(productsHistory, p)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error when get products from history: %w", err)
+		return nil, fmt.Errorf("can't get products from products_history: %w", err)
 	}
 
 	return productsHistory, nil
