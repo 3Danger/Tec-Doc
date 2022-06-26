@@ -225,7 +225,7 @@ func NewPool(cfg *config.PostgresConfig) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-//const connstr = "postgres://alexzanser:Paraben21070707@localhost:5432/tecdoc"
+//const connstr = "postgres://alexzanser:PASSWORD@localhost:5432/tecdoc"
 //
 //func main() {
 //	conf, err := pgxpool.ParseConfig(connstr)
