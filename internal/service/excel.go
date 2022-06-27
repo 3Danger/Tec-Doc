@@ -123,6 +123,10 @@ func (s *Service) AddFromExcel(bodyData io.Reader, ctx *gin.Context) error {
 	//}
 	//defer func() { _ = tx.Rollback() }()
 
+	//TODO don't forget take fields from ctx *gin.Context,
+	// a supplierID and userID,
+	// that getting from middleware:
+	// Authorize(next *gin.Context)
 	uploaderId, err := s.database.CreateTask(ctx, 1, 1, "sd", time.Now().UTC())
 	if err != nil {
 		return err

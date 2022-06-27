@@ -47,7 +47,7 @@ func NewStore(cfg *config.PostgresConfig) (*store, error) {
 }
 
 func (s *store) CreateTask(ctx context.Context, supplierID int, userID int, ip string, uploadDate time.Time) (int64, error) {
-	createTaskQuery := `INSERT INTO tasks (supplier_id, user_id, upload_date, updated_date, IP, status)
+	createTaskQuery := `INSERT INTO tasks (supplier_id, user_id, upload_date, update_date, IP, status)
 							VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;`
 
 	row := s.pool.QueryRow(ctx, createTaskQuery, supplierID, userID,
@@ -214,9 +214,9 @@ func (s *store) GetProductsHistory(ctx context.Context, uploadID int, limit int,
 }
 
 func NewPool(cfg *config.PostgresConfig) (*pgxpool.Pool, error) {
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?connect_timeout=%d", cfg.Username,
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", cfg.Username,
 		cfg.Password, cfg.Host, cfg.Port,
-		cfg.DbName, cfg.Timeout)
+		cfg.DbName /*, cfg.Timeout*/)
 
 	connConf, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
@@ -229,6 +229,5 @@ func NewPool(cfg *config.PostgresConfig) (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return pool, nil
 }

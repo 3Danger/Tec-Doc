@@ -26,6 +26,9 @@ func initConfig() (*config.Config, *zerolog.Logger, error) {
 	if err = envconfig.Process("TEC_DOC", conf); err != nil {
 		return nil, nil, err
 	}
+	if err = envconfig.Process("TEC_DOC", &conf.PostgresConfig); err != nil {
+		return nil, nil, err
+	}
 
 	// Init Logger
 	logger, err = l.InitLogger(strings.ToLower(conf.LogLevel))

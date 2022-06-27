@@ -19,7 +19,7 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 }
 
 func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
-	err := e.service.AddFromExcel(c.Request.Body)
+	err := e.service.AddFromExcel(c.Request.Body, c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
