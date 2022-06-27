@@ -45,12 +45,12 @@ func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConf
 	if err != nil {
 		return nil, fmt.Errorf("can't get response: %v", err)
 	}
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("can't read response")
 	}
-	defer resp.Body.Close()
 
 	type respStruct struct {
 		Data struct {
@@ -110,12 +110,12 @@ func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocC
 	if err != nil {
 		return nil, fmt.Errorf("can't get response: %v", err)
 	}
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("can't read response")
 	}
-	defer resp.Body.Close()
 
 	type respStruct struct {
 		TotalMatchingArticles int                `json:"totalMatchingArticles"`
