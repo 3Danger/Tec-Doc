@@ -184,11 +184,11 @@ func (s *store) DeleteFromBuffer(ctx context.Context, uploadID int) error {
 	return nil
 }
 
-func (s *store) GetProductsHistory(ctx context.Context, uploadID int, limit int) ([]model.Product, error) {
+func (s *store) GetProductsHistory(ctx context.Context, uploadID int, limit int, offset int) ([]model.Product, error) {
 	getProductsFromHistoryQuery := `SELECT upload_id, article, brand, sku, category, price,
-	upload_date, update_date, status, errorresponse FROM products_history WHERE upload_id = $1 LIMIT $2;`
+	upload_date, update_date, status, errorresponse FROM products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 
-	rows, err := s.pool.Query(ctx, getProductsFromHistoryQuery, uploadID, limit)
+	rows, err := s.pool.Query(ctx, getProductsFromHistoryQuery, uploadID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("can't get products from history: %v", err)
 	}
