@@ -102,9 +102,9 @@ type Product struct {
 	UploadID int64
 	Article  string
 
-	NumberOfCard       int    //номер карточки
-	ProviderArticle    string //Артикул поставщика
-	ManufactureArticle string //Артикул
+	CardNumber          int    //номер карточки
+	ProviderArticle     string //Артикул поставщика
+	ManufacturerArticle string //Артикул
 
 	Brand         string
 	SKU           string
