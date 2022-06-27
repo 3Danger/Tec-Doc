@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"tec-doc/internal/web/externalserver/middleware"
 	m "tec-doc/internal/web/metrics"
 	"time"
 )
@@ -47,6 +48,7 @@ func New(bindingAddress string, service Service) *externalHttpServer {
 func (e *externalHttpServer) configureRouter() {
 	e.router.Use(gin.Recovery())
 	e.router.Use(e.MiddleWareMetric)
+	e.router.Use(middleware.Authorize)
 	e.router.GET("/excel_template", e.ExcelTemplate)
 	e.router.POST("/load_from_excel", e.LoadFromExcel)
 }

@@ -98,9 +98,14 @@ type Task struct {
 }
 
 type Product struct {
-	ID            int64
-	UploadID      int64
-	Article       string
+	ID       int64
+	UploadID int64
+	Article  string
+
+	NumberOfCard       int    //номер карточки
+	ProviderArticle    string //Артикул поставщика
+	ManufactureArticle string //Артикул
+
 	Brand         string
 	SKU           string
 	Category      string

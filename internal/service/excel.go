@@ -1,22 +1,14 @@
 package service
 
 import (
-	"database/sql"
 	"errors"
+	"github.com/gin-gonic/gin"
 	exl "github.com/xuri/excelize/v2"
 	"io"
 	"strconv"
+	"tec-doc/internal/model"
+	"time"
 )
-
-type Product struct {
-	NumberOfCard       int
-	ProviderArticle    string
-	ManufactureArticle string
-	Brand              string
-	SKU                string
-	ProductCategory    string
-	ProductPrice       float64
-}
 
 var styleExcelHeader = &exl.Style{
 	Fill: exl.Fill{},
@@ -75,7 +67,7 @@ func (s *Service) ExcelTemplateForClient() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func (s *Service) loadFromExcel(bodyData io.Reader) (products []*Product, err error) {
+func (s *Service) loadFromExcel(bodyData io.Reader) (products []model.Product, err error) {
 	f, err := exl.OpenReader(bodyData)
 	if err != nil {
 		return nil, err
@@ -91,17 +83,16 @@ func (s *Service) loadFromExcel(bodyData io.Reader) (products []*Product, err er
 	if len(rows) < 2 {
 		return nil, errors.New("empty data")
 	}
-	products = make([]*Product, len(rows[1:]))
+	products = make([]model.Product, len(rows[1:]))
 	for i := range products {
-		products[i] = new(Product)
-		if err = parseExcelRow(products[i], rows[i+1]); err != nil {
+		if err = parseExcelRow(&products[i], rows[i+1]); err != nil {
 			return nil, err
 		}
 	}
 	return products, nil
 }
 
-func parseExcelRow(p *Product, row []string) (err error) {
+func parseExcelRow(p *model.Product, row []string) (err error) {
 	if len(row) < 7 {
 		return errors.New("row is invalid")
 	}
@@ -112,66 +103,36 @@ func parseExcelRow(p *Product, row []string) (err error) {
 	p.ManufactureArticle = row[2]
 	p.Brand = row[3]
 	p.SKU = row[4]
-	p.ProductCategory = row[5]
-	if p.ProductPrice, err = strconv.ParseFloat(row[6], 64); err != nil {
+	p.Category = row[5]
+	if p.Price, err = strconv.Atoi(row[6]); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Service) AddFromExcel(bodyData io.Reader) error {
+func (s *Service) AddFromExcel(bodyData io.Reader, ctx *gin.Context) error {
 	products, err := s.loadFromExcel(bodyData)
 	if err != nil {
 		return err
 	}
-	//TODO will be implement it when be initialized database
-	_ = products
-	/*
-		tx, err := s.database.Begin()
-		if err != nil {
-			return err
-		}
-		defer func() { _ = tx.Rollback() }()
 
-		if err = s.createTasks(products); err != nil {
-			return err
-		}
-		if err = s.addToBuffer(products); err != nil {
-			return err
-		}
-		if err = s.addToDatabase(tx, products); err != nil {
-			return err
-		}
-		if err = tx.Commit(); err != nil {
-			return err
-		}
-	*/
-	return nil
-}
-
-func (s *Service) createTasks(products []*Product) error {
-	// TODO что она будет делать ?
-	return nil
-}
-
-func (s *Service) addToBuffer(products []*Product) error {
-	// TODO узнать, явзяется ли номер карточки уникальным !?
-	// TODO надо ли проверять наличие ?
-	//for _, v := range products {
-	//	if _, isExist := s.products[v.NumberOfCard]; isExist {
-	//		return fmt.Errorf("error: product %d exist", v.NumberOfCard)
-	//	}
+	// TODO TRANSACTION!!
+	//tx, err := s.database.Transaction()
+	//if err != nil {
+	//	return err
 	//}
-	for _, v := range products {
-		s.products[v.NumberOfCard] = v
+	//defer func() { _ = tx.Rollback() }()
+
+	uploaderId, err := s.database.CreateTask(ctx, 1, 1, "sd", time.Now().UTC())
+	if err != nil {
+		return err
 	}
-	return nil
-}
-
-func (s *Service) createTransaction() (*sql.Tx, error) {
-	return nil, nil
-}
-
-func (s *Service) addToDatabase(tx *sql.Tx, products []*Product) error {
+	for i := 0; i < len(products); i++ {
+		products[i].UploadID = uploaderId
+	}
+	if err = s.database.SaveIntoBuffer(ctx, products); err != nil {
+		return err
+	}
+	// TODO TX COMMIT()!!
 	return nil
 }

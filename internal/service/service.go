@@ -2,10 +2,22 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"github.com/rs/zerolog"
 	"tec-doc/internal/config"
+	"tec-doc/internal/model"
+	"tec-doc/internal/store/postgres"
+	"time"
 )
+
+type Store interface {
+	CreateTask(ctx context.Context, supplierID int, userID int, ip string, uploadDate time.Time) (int64, error)
+	SaveIntoBuffer(ctx context.Context, products []model.Product) error
+	GetSupplierTaskHistory(ctx context.Context, supplierID int, limit int, offset int) ([]model.Task, error)
+	GetProductsFromBuffer(ctx context.Context, uploadID int) ([]model.Product, error)
+	SaveProductsToHistory(ctx context.Context, products []model.Product) error
+	DeleteFromBuffer(ctx context.Context, uploadID int) error
+	GetProductsHistory(ctx context.Context, uploadID int, limit int, offset int) ([]model.Product, error)
+}
 
 type Server interface {
 	Start() error
@@ -17,18 +29,22 @@ type Service struct {
 	log            *zerolog.Logger
 	externalServer Server
 	internalServer Server
-	products       map[int]*Product
-
-	//TODO initialise it
-	database *sql.DB
+	database       Store
+	//tec_doc_client Client
 }
 
 func New(conf *config.Config, log *zerolog.Logger) *Service {
+	store, err := postgres.NewStore(&conf.PostgresConfig)
+	if err != nil {
+		log.Error().Err(err).Send()
+		return nil
+	}
 	log.Info().Msg("create service")
 	return &Service{
 		conf:     conf,
 		log:      log,
-		products: make(map[int]*Product),
+		database: store,
+		//tec_doc_client Client,
 	}
 }
 
