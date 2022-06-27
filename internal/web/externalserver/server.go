@@ -14,7 +14,7 @@ import (
 
 type Service interface {
 	ExcelTemplateForClient() ([]byte, error)
-	AddFromExcel(bodyData io.Reader) error
+	AddFromExcel(bodyData io.Reader, ctx *gin.Context) error
 	//...
 }
 
