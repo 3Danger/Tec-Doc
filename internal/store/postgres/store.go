@@ -20,12 +20,13 @@ const (
 
 //Store интерфейс описывающий методы для работы с БД
 type Store interface {
-	CreateTask(ctx context.Context, supplierID int, userID int, ip string) (time.Time, error)
+	CreateTask(ctx context.Context, supplierID int, userID int, ip string, uploadDate time.Time) (int64, error)
 	SaveIntoBuffer(ctx context.Context, products []model.Product) error
 	GetSupplierTaskHistory(ctx context.Context, supplierID int, limit int, offset int) ([]model.Task, error)
-	MoveFromBufferToHistory(ctx context.Context, uploadID int) error
+	GetProductsFromBuffer(ctx context.Context, uploadID int) ([]model.Product, error)
+	SaveProductsToHistory(ctx context.Context, products []model.Product) error
 	DeleteFromBuffer(ctx context.Context, uploadID int) error
-	GetProductsHistory(ctx context.Context, uploadID int) ([]model.Product, error)
+	GetProductsHistory(ctx context.Context, uploadID int, limit int, offset int) ([]model.Product, error)
 }
 
 type store struct {
