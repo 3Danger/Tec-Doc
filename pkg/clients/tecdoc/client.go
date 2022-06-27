@@ -13,8 +13,8 @@ import (
 )
 
 type TecDocClient interface {
-	GetArticles(ctx context.Context, tecDocCfg config.TecDocConfig, mfrName string) ([]model.Article, error)
-	GetBrand(ctx context.Context, tecDocCfg config.TecDocConfig, mfrName string) (*model.Brand, error)
+	GetArticles(ctx context.Context, tecDocCfg config.TecDocConfig, brandName string) ([]model.Article, error)
+	GetBrand(ctx context.Context, tecDocCfg config.TecDocConfig, brandName string) (*model.Brand, error)
 }
 
 type tecDocClient struct {
