@@ -31,6 +31,8 @@ type ContentClientConfig struct {
 }
 
 type TecDocConfig struct {
-	URL     string        `envconfig:"TECDOC_URL"`
-	Timeout time.Duration `envconfig:"TECDOC_TIMEOUT" default:"30s"`
+	URL        string        `envconfig:"TECDOC_URL"`
+	Timeout    time.Duration `envconfig:"TECDOC_TIMEOUT" default:"30s"`
+	XApiKey    string        `envconfig:"TECDOC_API_KEY"`
+	ProviderId int           `envconfig:"TECDOC_PROVIDER_ID"`
 }
