@@ -45,37 +45,35 @@ func NewStore(cfg *config.PostgresConfig) (*store, error) {
 	}, nil
 }
 
-func (s *store) CreateTask(ctx context.Context, supplierID int, userID int, ip string) (time.Time, error) {
+func (s *store) CreateTask(ctx context.Context, supplierID int, userID int, ip string, uploadDate time.Time) (int64, error) {
 	createTaskQuery := `INSERT INTO tasks (supplier_id, user_id, upload_date, updated_date, IP, status)
-							VALUES ($1, $2, $3, $4, $5, $6)`
+							VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;`
 
-	createdAt := time.Now().UTC()
-	res, err := s.pool.Exec(ctx, createTaskQuery, supplierID, userID,
-		createdAt, createdAt, ip, supplierStatusNew)
+	row := s.pool.QueryRow(ctx, createTaskQuery, supplierID, userID,
+		uploadDate, uploadDate, ip, supplierStatusNew)
 
-	if err != nil {
-		return time.Time{}, fmt.Errorf("can't create task: %v", err)
+	var taskID int64
+	if err := row.Scan(&taskID); err != nil {
+		return 0, fmt.Errorf("can't create task:: %w", err)
 	}
 
-	if res.RowsAffected() == 0 {
-		return time.Time{}, fmt.Errorf("no new tasks created")
-	}
-
-	return createdAt, nil
+	return taskID, nil
 }
 
 func (s *store) SaveIntoBuffer(ctx context.Context, products []model.Product) error {
 	rows := make([][]interface{}, len(products))
 	for i, pr := range products {
 		r := make([]interface{}, 0)
-		r = append(r, pr.UploadID, pr.Article, pr.Brand, time.Now().UTC(), time.Now().UTC(), pr.Status, pr.ErrorResponse)
+		r = append(r, pr.UploadID, pr.Article, pr.Brand, pr.SKU, pr.Category, pr.Price,
+			time.Now().UTC(), time.Now().UTC(), pr.Status, pr.ErrorResponse)
 		rows[i] = r
 	}
 
 	copyCount, err := s.pool.CopyFrom(
 		ctx,
 		pgx.Identifier{"products_buffer"},
-		[]string{"upload_id", "article", "brand", "upload_date", "update_date", "status", "errorresponse"},
+		[]string{"upload_id", "article", "brand", "sku", "category", "price",
+			"upload_date", "update_date", "status", "errorresponse"},
 		pgx.CopyFromRows(rows),
 	)
 
@@ -91,7 +89,8 @@ func (s *store) SaveIntoBuffer(ctx context.Context, products []model.Product) er
 }
 
 func (s *store) GetSupplierTaskHistory(ctx context.Context, supplierID int, limit int, offset int) ([]model.Task, error) {
-	getSupplierTaskHistoryQuery := `SELECT * FROM tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`
+	getSupplierTaskHistoryQuery := `SELECT id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total
+								FROM tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`
 	rows, err := s.pool.Query(ctx, getSupplierTaskHistoryQuery, supplierID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("can't get supplier task history: %v", err)
@@ -101,8 +100,8 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, supplierID int, limi
 	taskHistory := make([]model.Task, 0)
 	for rows.Next() {
 		var t model.Task
-		err := rows.Scan(&t.ID, &t.SupplierID, &t.UserID, &t.UploadDate,
-			&t.UpdateDate, &t.IP, &t.Status, &t.ProductsProcessed, &t.ProductsFailed, &t.ProductsFailed)
+		err := rows.Scan(&t.ID, &t.SupplierID, &t.UserID, &t.IP, &t.UploadDate,
+			&t.UpdateDate, &t.Status, &t.ProductsProcessed, &t.ProductsFailed, &t.ProductsFailed)
 		if err != nil {
 			return nil, fmt.Errorf("can't get tasks from history: %w", err)
 		}
@@ -116,31 +115,37 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, supplierID int, limi
 	return taskHistory, nil
 }
 
-func (s *store) MoveFromBufferToHistory(ctx context.Context, uploadID int) error {
-	getProductsBufferQuery := `SELECT * FROM products_buffer WHERE upload_id = $1 ORDER BY upload_date;`
+func (s *store) GetProductsFromBuffer(ctx context.Context, uploadID int) ([]model.Product, error) {
+	getProductsBufferQuery := `SELECT upload_id, article, brand, sku, category, price,
+	upload_date, update_date, status, errorresponse FROM products_buffer WHERE upload_id = $1;`
+
 	rows, err := s.pool.Query(ctx, getProductsBufferQuery, uploadID)
 	if err != nil {
-		return fmt.Errorf("can't get products from buffer: %v", err)
+		return nil, fmt.Errorf("can't get products from buffer: %v", err)
 	}
 	defer rows.Close()
 
 	productsBuffer := make([]model.Product, 0)
 	for rows.Next() {
 		var p model.Product
-		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.Brand,
+		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.Brand, &p.SKU, &p.Category, &p.Price,
 			&p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
 		if err != nil {
-			return fmt.Errorf("can't get products from buffer: %w", err)
+			return nil, fmt.Errorf("can't get products from buffer: %w", err)
 		}
 		productsBuffer = append(productsBuffer, p)
 	}
 
 	if err := rows.Err(); err != nil {
-		return fmt.Errorf("can't get products from buffer: %w", err)
+		return nil, fmt.Errorf("can't get products from buffer: %w", err)
 	}
 
-	rowsBuf := make([][]interface{}, len(productsBuffer))
-	for i, pr := range productsBuffer {
+	return productsBuffer, nil
+}
+
+func (s *store) SaveProductsToHistory(ctx context.Context, products []model.Product) error {
+	rowsBuf := make([][]interface{}, len(products))
+	for i, pr := range products {
 		r := make([]interface{}, 0)
 		r = append(r, pr.UploadID, pr.Article, pr.Brand, pr.UploadDate, pr.UpdateDate, pr.Status, pr.ErrorResponse)
 		rowsBuf[i] = r
@@ -179,9 +184,11 @@ func (s *store) DeleteFromBuffer(ctx context.Context, uploadID int) error {
 	return nil
 }
 
-func (s *store) GetProductsHistory(ctx context.Context, uploadID int) ([]model.Product, error) {
-	getProductsFromHistoryQuery := `SELECT * FROM products_history WHERE upload_id = $1 ORDER BY upload_date;`
-	rows, err := s.pool.Query(ctx, getProductsFromHistoryQuery, uploadID)
+func (s *store) GetProductsHistory(ctx context.Context, uploadID int, limit int) ([]model.Product, error) {
+	getProductsFromHistoryQuery := `SELECT upload_id, article, brand, sku, category, price,
+	upload_date, update_date, status, errorresponse FROM products_history WHERE upload_id = $1 LIMIT $2;`
+
+	rows, err := s.pool.Query(ctx, getProductsFromHistoryQuery, uploadID, limit)
 	if err != nil {
 		return nil, fmt.Errorf("can't get products from history: %v", err)
 	}
@@ -190,7 +197,7 @@ func (s *store) GetProductsHistory(ctx context.Context, uploadID int) ([]model.P
 	productsHistory := make([]model.Product, 0)
 	for rows.Next() {
 		var p model.Product
-		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.Brand,
+		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.Brand, &p.SKU, &p.Category, &p.Price,
 			&p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
 		if err != nil {
 			return nil, fmt.Errorf("can't get products from history: %w", err)

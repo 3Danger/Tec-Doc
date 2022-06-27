@@ -102,6 +102,9 @@ type Product struct {
 	UploadID      int64
 	Article       string
 	Brand         string
+	SKU           string
+	Category      string
+	Price         int
 	UploadDate    time.Time
 	UpdateDate    time.Time
 	Status        int
