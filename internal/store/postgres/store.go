@@ -37,7 +37,7 @@ type Transaction interface {
 }
 
 type transaction struct {
-	tx *pgx.Tx
+	tx pgx.Tx
 }
 
 func (s *store) NewTransaction(ctx context.Context) (*transaction, error) {
@@ -45,7 +45,19 @@ func (s *store) NewTransaction(ctx context.Context) (*transaction, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't create tx: %v", err)
 	}
-	return &transaction{tx: &tx}, nil
+	return &transaction{tx: tx}, nil
+}
+
+func (t *transaction) Rollback(ctx context.Context) error {
+	return t.tx.Rollback(ctx)
+}
+
+func (t *transaction) Commit(ctx context.Context) error {
+	return t.tx.Commit(ctx)
+}
+
+func (t *transaction) Querry(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
+	return t.tx.Query(ctx, sql, args)
 }
 
 type store struct {
