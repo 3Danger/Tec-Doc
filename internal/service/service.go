@@ -6,17 +6,23 @@ import (
 	"tec-doc/internal/config"
 	"tec-doc/internal/model"
 	"tec-doc/internal/store/postgres"
+	"tec-doc/pkg/clients/tecdoc"
 	"time"
 )
 
 type Store interface {
-	CreateTask(ctx context.Context, supplierID int, userID int, ip string, uploadDate time.Time) (int64, error)
+	CreateTask(ctx context.Context, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error)
 	SaveIntoBuffer(ctx context.Context, products []model.Product) error
-	GetSupplierTaskHistory(ctx context.Context, supplierID int, limit int, offset int) ([]model.Task, error)
-	GetProductsFromBuffer(ctx context.Context, uploadID int) ([]model.Product, error)
+	GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error)
+	GetProductsFromBuffer(ctx context.Context, uploadID int64) ([]model.Product, error)
 	SaveProductsToHistory(ctx context.Context, products []model.Product) error
-	DeleteFromBuffer(ctx context.Context, uploadID int) error
-	GetProductsHistory(ctx context.Context, uploadID int, limit int, offset int) ([]model.Product, error)
+	DeleteFromBuffer(ctx context.Context, uploadID int64) error
+	GetProductsHistory(ctx context.Context, uploadID int64, limit int, offset int) ([]model.Product, error)
+}
+
+type TecDocClient interface {
+	GetArticles(ctx context.Context, tecDocCfg config.TecDocConfig, dataSupplierID int, article string) ([]model.Article, error)
+	GetBrand(ctx context.Context, tecDocCfg config.TecDocConfig, brandName string) (*model.Brand, error)
 }
 
 type Server interface {
@@ -30,7 +36,7 @@ type Service struct {
 	externalServer Server
 	internalServer Server
 	database       Store
-	//tec_doc_client Client
+	tecDocClient   TecDocClient
 }
 
 func New(conf *config.Config, log *zerolog.Logger) *Service {
@@ -41,10 +47,10 @@ func New(conf *config.Config, log *zerolog.Logger) *Service {
 	}
 	log.Info().Msg("create service")
 	return &Service{
-		conf:     conf,
-		log:      log,
-		database: store,
-		//tec_doc_client Client,
+		conf:         conf,
+		log:          log,
+		database:     store,
+		tecDocClient: tecdoc.NewClient(conf.TecDocConfig.URL, conf.TecDocConfig.Timeout),
 	}
 }
 

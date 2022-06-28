@@ -1,4 +1,4 @@
-package main
+package tecdoc
 
 import (
 	"bytes"
@@ -12,8 +12,8 @@ import (
 	"time"
 )
 
-type TecDocClient interface {
-	GetArticles(ctx context.Context, tecDocCfg config.TecDocConfig, brandName string) ([]model.Article, error)
+type Client interface {
+	GetArticles(ctx context.Context, tecDocCfg config.TecDocConfig, dataSupplierID int, article string) ([]model.Article, error)
 	GetBrand(ctx context.Context, tecDocCfg config.TecDocConfig, brandName string) (*model.Brand, error)
 }
 
@@ -22,11 +22,11 @@ type tecDocClient struct {
 	baseURL string
 }
 
-func NewClient(baseURL string, timeout time.Duration) (*tecDocClient, error) {
+func NewClient(baseURL string, timeout time.Duration) *tecDocClient {
 	return &tecDocClient{
 		Client:  http.Client{Timeout: timeout},
 		baseURL: baseURL,
-	}, nil
+	}
 }
 
 func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConfig, brandName string) (*model.Brand, error) {

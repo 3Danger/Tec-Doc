@@ -20,13 +20,13 @@ const (
 
 //Store интерфейс описывающий методы для работы с БД
 type Store interface {
-	CreateTask(ctx context.Context, supplierID int, userID int, ip string, uploadDate time.Time) (int64, error)
+	CreateTask(ctx context.Context, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error)
 	SaveIntoBuffer(ctx context.Context, products []model.Product) error
-	GetSupplierTaskHistory(ctx context.Context, supplierID int, limit int, offset int) ([]model.Task, error)
-	GetProductsFromBuffer(ctx context.Context, uploadID int) ([]model.Product, error)
+	GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error)
+	GetProductsFromBuffer(ctx context.Context, uploadID int64) ([]model.Product, error)
 	SaveProductsToHistory(ctx context.Context, products []model.Product) error
-	DeleteFromBuffer(ctx context.Context, uploadID int) error
-	GetProductsHistory(ctx context.Context, uploadID int, limit int, offset int) ([]model.Product, error)
+	DeleteFromBuffer(ctx context.Context, uploadID int64) error
+	GetProductsHistory(ctx context.Context, uploadID int64, limit int, offset int) ([]model.Product, error)
 }
 
 type store struct {
@@ -46,7 +46,7 @@ func NewStore(cfg *config.PostgresConfig) (*store, error) {
 	}, nil
 }
 
-func (s *store) CreateTask(ctx context.Context, supplierID int, userID int, ip string, uploadDate time.Time) (int64, error) {
+func (s *store) CreateTask(ctx context.Context, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error) {
 	createTaskQuery := `INSERT INTO tasks (supplier_id, user_id, upload_date, update_date, IP, status)
 							VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;`
 
@@ -65,7 +65,8 @@ func (s *store) SaveIntoBuffer(ctx context.Context, products []model.Product) er
 	rows := make([][]interface{}, len(products))
 	for i, pr := range products {
 		r := make([]interface{}, 0)
-		r = append(r, pr.UploadID, pr.Article, pr.Brand, pr.SKU, pr.Category, pr.Price,
+		r = append(r, pr.UploadID, pr.Article, pr.CardNumber, pr.ProviderArticle,
+			pr.ManufacturerArticle, pr.Brand, pr.SKU, pr.Category, pr.Price,
 			time.Now().UTC(), time.Now().UTC(), pr.Status, pr.ErrorResponse)
 		rows[i] = r
 	}
@@ -73,8 +74,8 @@ func (s *store) SaveIntoBuffer(ctx context.Context, products []model.Product) er
 	copyCount, err := s.pool.CopyFrom(
 		ctx,
 		pgx.Identifier{"products_buffer"},
-		[]string{"upload_id", "article", "brand", "sku", "category", "price",
-			"upload_date", "update_date", "status", "errorresponse"},
+		[]string{"upload_id", "article", "card_number", "provider_article", "manufacturer_article",
+			"brand", "sku", "category", "price", "upload_date", "update_date", "status", "errorresponse"},
 		pgx.CopyFromRows(rows),
 	)
 
@@ -89,7 +90,7 @@ func (s *store) SaveIntoBuffer(ctx context.Context, products []model.Product) er
 	return nil
 }
 
-func (s *store) GetSupplierTaskHistory(ctx context.Context, supplierID int, limit int, offset int) ([]model.Task, error) {
+func (s *store) GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error) {
 	getSupplierTaskHistoryQuery := `SELECT id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total
 								FROM tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`
 	rows, err := s.pool.Query(ctx, getSupplierTaskHistoryQuery, supplierID, limit, offset)
@@ -116,8 +117,8 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, supplierID int, limi
 	return taskHistory, nil
 }
 
-func (s *store) GetProductsFromBuffer(ctx context.Context, uploadID int) ([]model.Product, error) {
-	getProductsBufferQuery := `SELECT upload_id, article, brand, sku, category, price,
+func (s *store) GetProductsFromBuffer(ctx context.Context, uploadID int64) ([]model.Product, error) {
+	getProductsBufferQuery := `SELECT id, upload_id, article, card_number, provider_article, manufacturer_article, brand, sku, category, price,
 	upload_date, update_date, status, errorresponse FROM products_buffer WHERE upload_id = $1;`
 
 	rows, err := s.pool.Query(ctx, getProductsBufferQuery, uploadID)
@@ -129,8 +130,8 @@ func (s *store) GetProductsFromBuffer(ctx context.Context, uploadID int) ([]mode
 	productsBuffer := make([]model.Product, 0)
 	for rows.Next() {
 		var p model.Product
-		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.Brand, &p.SKU, &p.Category, &p.Price,
-			&p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
+		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.CardNumber, &p.ProviderArticle, &p.ManufacturerArticle, &p.Brand,
+			&p.SKU, &p.Category, &p.Price, &p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
 		if err != nil {
 			return nil, fmt.Errorf("can't get products from buffer: %w", err)
 		}
@@ -148,14 +149,17 @@ func (s *store) SaveProductsToHistory(ctx context.Context, products []model.Prod
 	rowsBuf := make([][]interface{}, len(products))
 	for i, pr := range products {
 		r := make([]interface{}, 0)
-		r = append(r, pr.UploadID, pr.Article, pr.Brand, pr.UploadDate, pr.UpdateDate, pr.Status, pr.ErrorResponse)
+		r = append(r, pr.UploadID, pr.Article, pr.CardNumber, pr.ProviderArticle,
+			pr.ManufacturerArticle, pr.Brand, pr.SKU, pr.Category, pr.Price,
+			pr.UploadDate, pr.UpdateDate, pr.Status, pr.ErrorResponse)
 		rowsBuf[i] = r
 	}
 
 	copyCount, err := s.pool.CopyFrom(
 		ctx,
 		pgx.Identifier{"products_history"},
-		[]string{"upload_id", "article", "brand", "upload_date", "update_date", "status", "errorresponse"},
+		[]string{"upload_id", "article", "card_number", "provider_article", "manufacturer_article",
+			"brand", "sku", "category", "price", "upload_date", "update_date", "status", "errorresponse"},
 		pgx.CopyFromRows(rowsBuf),
 	)
 
@@ -170,7 +174,7 @@ func (s *store) SaveProductsToHistory(ctx context.Context, products []model.Prod
 	return nil
 }
 
-func (s *store) DeleteFromBuffer(ctx context.Context, uploadID int) error {
+func (s *store) DeleteFromBuffer(ctx context.Context, uploadID int64) error {
 	deleteFromBufferQuery := `DELETE FROM products_buffer WHERE upload_id=$1;`
 	res, err := s.pool.Exec(ctx, deleteFromBufferQuery, uploadID)
 
@@ -185,8 +189,8 @@ func (s *store) DeleteFromBuffer(ctx context.Context, uploadID int) error {
 	return nil
 }
 
-func (s *store) GetProductsHistory(ctx context.Context, uploadID int, limit int, offset int) ([]model.Product, error) {
-	getProductsFromHistoryQuery := `SELECT upload_id, article, brand, sku, category, price,
+func (s *store) GetProductsHistory(ctx context.Context, uploadID int64, limit int, offset int) ([]model.Product, error) {
+	getProductsFromHistoryQuery := `SELECT id, upload_id, article, card_number, provider_article, manufacturer_article, brand, sku, category, price,
 	upload_date, update_date, status, errorresponse FROM products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 
 	rows, err := s.pool.Query(ctx, getProductsFromHistoryQuery, uploadID, limit, offset)
@@ -198,8 +202,8 @@ func (s *store) GetProductsHistory(ctx context.Context, uploadID int, limit int,
 	productsHistory := make([]model.Product, 0)
 	for rows.Next() {
 		var p model.Product
-		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.Brand, &p.SKU, &p.Category, &p.Price,
-			&p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
+		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.CardNumber, &p.ProviderArticle, &p.ManufacturerArticle, &p.Brand,
+			&p.SKU, &p.Category, &p.Price, &p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
 		if err != nil {
 			return nil, fmt.Errorf("can't get products from history: %w", err)
 		}

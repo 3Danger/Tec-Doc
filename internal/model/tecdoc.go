@@ -98,20 +98,18 @@ type Task struct {
 }
 
 type Product struct {
-	ID       int64
-	UploadID int64
-	Article  string
-
-	NumberOfCard       int    //номер карточки
-	ProviderArticle    string //Артикул поставщика
-	ManufactureArticle string //Артикул
-
-	Brand         string
-	SKU           string
-	Category      string
-	Price         int
-	UploadDate    time.Time
-	UpdateDate    time.Time
-	Status        int
-	ErrorResponse string
+	ID                  int64
+	UploadID            int64
+	Article             string
+	CardNumber          int
+	ProviderArticle     string
+	ManufacturerArticle string
+	Brand               string
+	SKU                 string
+	Category            string
+	Price               int
+	UploadDate          time.Time
+	UpdateDate          time.Time
+	Status              int
+	ErrorResponse       string
 }
