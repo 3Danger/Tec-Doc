@@ -31,7 +31,6 @@ type Store interface {
 }
 
 type Transaction interface {
-	Begin()
 	Rollback()
 	Commit()
 }
@@ -54,10 +53,6 @@ func (t *transaction) Rollback(ctx context.Context) error {
 
 func (t *transaction) Commit(ctx context.Context) error {
 	return t.tx.Commit(ctx)
-}
-
-func (t *transaction) Querry(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
-	return t.tx.Query(ctx, sql, args)
 }
 
 type store struct {
