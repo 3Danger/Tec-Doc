@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgconn"
 	"tec-doc/internal/config"
 	"tec-doc/internal/model"
 	"time"
@@ -20,39 +21,31 @@ const (
 
 //Store интерфейс описывающий методы для работы с БД
 type Store interface {
-	CreateTask(ctx context.Context, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error)
-	SaveIntoBuffer(ctx context.Context, products []model.Product) error
-	GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error)
-	GetProductsFromBuffer(ctx context.Context, uploadID int64) ([]model.Product, error)
-	SaveProductsToHistory(ctx context.Context, products []model.Product) error
-	DeleteFromBuffer(ctx context.Context, uploadID int64) error
-	GetProductsHistory(ctx context.Context, uploadID int64, limit int, offset int) ([]model.Product, error)
-	NewTransaction(ctx context.Context) (*transaction, error)
+	CreateTask(ctx context.Context, tx Transaction, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error)
+	SaveIntoBuffer(ctx context.Context, tx Transaction, products []model.Product) error
+	GetSupplierTaskHistory(ctx context.Context, tx Transaction, supplierID int64, limit int, offset int) ([]model.Task, error)
+	GetProductsFromBuffer(ctx context.Context, tx Transaction, uploadID int64) ([]model.Product, error)
+	SaveProductsToHistory(ctx context.Context, tx Transaction, products []model.Product) error
+	DeleteFromBuffer(ctx context.Context, tx Transaction, uploadID int64) error
+	GetProductsHistory(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
+	Transaction(ctx context.Context) (Transaction, error)
 }
 
 type Transaction interface {
-	Rollback()
-	Commit()
+	Executor
+	Commit(ctx context.Context) error
+	Rollback(ctx context.Context) error
 }
 
-type transaction struct {
-	tx pgx.Tx
+func (s *store) Transaction(ctx context.Context) (Transaction, error) {
+	return s.pool.Begin(ctx)
 }
 
-func (s *store) NewTransaction(ctx context.Context) (*transaction, error) {
-	tx, err := s.pool.Begin(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("can't create tx: %v", err)
-	}
-	return &transaction{tx: tx}, nil
-}
-
-func (t *transaction) Rollback(ctx context.Context) error {
-	return t.tx.Rollback(ctx)
-}
-
-func (t *transaction) Commit(ctx context.Context) error {
-	return t.tx.Commit(ctx)
+type Executor interface {
+	Query(ctx context.Context, sql string, args ...interface{}) (rows pgx.Rows, err error)
+	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
+	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
+	CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error)
 }
 
 type store struct {
@@ -72,11 +65,16 @@ func NewStore(cfg *config.PostgresConfig) (*store, error) {
 	}, nil
 }
 
-func (s *store) CreateTask(ctx context.Context, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error) {
+func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error) {
 	createTaskQuery := `INSERT INTO tasks (supplier_id, user_id, upload_date, update_date, IP, status)
 							VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;`
+	var executor Executor
+	executor = s.pool
+	if tx != nil {
+		executor = tx
+	}
 
-	row := s.pool.QueryRow(ctx, createTaskQuery, supplierID, userID,
+	row := executor.QueryRow(ctx, createTaskQuery, supplierID, userID,
 		uploadDate, uploadDate, ip, supplierStatusNew)
 
 	var taskID int64
@@ -87,7 +85,13 @@ func (s *store) CreateTask(ctx context.Context, supplierID int64, userID int64, 
 	return taskID, nil
 }
 
-func (s *store) SaveIntoBuffer(ctx context.Context, products []model.Product) error {
+func (s *store) SaveIntoBuffer(ctx context.Context, tx Transaction, products []model.Product) error {
+	var executor Executor
+	executor = s.pool
+	if tx != nil {
+		executor = tx
+	}
+
 	rows := make([][]interface{}, len(products))
 	for i, pr := range products {
 		r := make([]interface{}, 0)
@@ -97,7 +101,7 @@ func (s *store) SaveIntoBuffer(ctx context.Context, products []model.Product) er
 		rows[i] = r
 	}
 
-	copyCount, err := s.pool.CopyFrom(
+	copyCount, err := executor.CopyFrom(
 		ctx,
 		pgx.Identifier{"products_buffer"},
 		[]string{"upload_id", "article", "card_number", "provider_article", "manufacturer_article",
@@ -116,10 +120,16 @@ func (s *store) SaveIntoBuffer(ctx context.Context, products []model.Product) er
 	return nil
 }
 
-func (s *store) GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error) {
+func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supplierID int64, limit int, offset int) ([]model.Task, error) {
 	getSupplierTaskHistoryQuery := `SELECT id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total
 								FROM tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`
-	rows, err := s.pool.Query(ctx, getSupplierTaskHistoryQuery, supplierID, limit, offset)
+	var executor Executor
+	executor = s.pool
+	if tx != nil {
+		executor = tx
+	}
+
+	rows, err := executor.Query(ctx, getSupplierTaskHistoryQuery, supplierID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("can't get supplier task history: %v", err)
 	}
@@ -143,11 +153,17 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, supplierID int64, li
 	return taskHistory, nil
 }
 
-func (s *store) GetProductsFromBuffer(ctx context.Context, uploadID int64) ([]model.Product, error) {
+func (s *store) GetProductsFromBuffer(ctx context.Context, tx Transaction, uploadID int64) ([]model.Product, error) {
 	getProductsBufferQuery := `SELECT id, upload_id, article, card_number, provider_article, manufacturer_article, brand, sku, category, price,
 	upload_date, update_date, status, errorresponse FROM products_buffer WHERE upload_id = $1;`
 
-	rows, err := s.pool.Query(ctx, getProductsBufferQuery, uploadID)
+	var executor Executor
+	executor = s.pool
+	if tx != nil {
+		executor = tx
+	}
+
+	rows, err := executor.Query(ctx, getProductsBufferQuery, uploadID)
 	if err != nil {
 		return nil, fmt.Errorf("can't get products from buffer: %v", err)
 	}
@@ -171,7 +187,13 @@ func (s *store) GetProductsFromBuffer(ctx context.Context, uploadID int64) ([]mo
 	return productsBuffer, nil
 }
 
-func (s *store) SaveProductsToHistory(ctx context.Context, products []model.Product) error {
+func (s *store) SaveProductsToHistory(ctx context.Context, tx Transaction, products []model.Product) error {
+	var executor Executor
+	executor = s.pool
+	if tx != nil {
+		executor = tx
+	}
+
 	rowsBuf := make([][]interface{}, len(products))
 	for i, pr := range products {
 		r := make([]interface{}, 0)
@@ -181,7 +203,7 @@ func (s *store) SaveProductsToHistory(ctx context.Context, products []model.Prod
 		rowsBuf[i] = r
 	}
 
-	copyCount, err := s.pool.CopyFrom(
+	copyCount, err := executor.CopyFrom(
 		ctx,
 		pgx.Identifier{"products_history"},
 		[]string{"upload_id", "article", "card_number", "provider_article", "manufacturer_article",
@@ -200,9 +222,15 @@ func (s *store) SaveProductsToHistory(ctx context.Context, products []model.Prod
 	return nil
 }
 
-func (s *store) DeleteFromBuffer(ctx context.Context, uploadID int64) error {
+func (s *store) DeleteFromBuffer(ctx context.Context, tx Transaction, uploadID int64) error {
 	deleteFromBufferQuery := `DELETE FROM products_buffer WHERE upload_id=$1;`
-	res, err := s.pool.Exec(ctx, deleteFromBufferQuery, uploadID)
+	var executor Executor
+	executor = s.pool
+	if tx != nil {
+		executor = tx
+	}
+
+	res, err := executor.Exec(ctx, deleteFromBufferQuery, uploadID)
 
 	if err != nil {
 		return fmt.Errorf("can't delete from buffer: %v", err)
@@ -215,11 +243,16 @@ func (s *store) DeleteFromBuffer(ctx context.Context, uploadID int64) error {
 	return nil
 }
 
-func (s *store) GetProductsHistory(ctx context.Context, uploadID int64, limit int, offset int) ([]model.Product, error) {
+func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int) ([]model.Product, error) {
 	getProductsFromHistoryQuery := `SELECT id, upload_id, article, card_number, provider_article, manufacturer_article, brand, sku, category, price,
 	upload_date, update_date, status, errorresponse FROM products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
+	var executor Executor
+	executor = s.pool
+	if tx != nil {
+		executor = tx
+	}
 
-	rows, err := s.pool.Query(ctx, getProductsFromHistoryQuery, uploadID, limit, offset)
+	rows, err := executor.Query(ctx, getProductsFromHistoryQuery, uploadID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("can't get products from history: %v", err)
 	}

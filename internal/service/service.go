@@ -11,13 +11,14 @@ import (
 )
 
 type Store interface {
-	CreateTask(ctx context.Context, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error)
-	SaveIntoBuffer(ctx context.Context, products []model.Product) error
-	GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error)
-	GetProductsFromBuffer(ctx context.Context, uploadID int64) ([]model.Product, error)
-	SaveProductsToHistory(ctx context.Context, products []model.Product) error
-	DeleteFromBuffer(ctx context.Context, uploadID int64) error
-	GetProductsHistory(ctx context.Context, uploadID int64, limit int, offset int) ([]model.Product, error)
+	CreateTask(ctx context.Context, tx postgres.Transaction, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error)
+	SaveIntoBuffer(ctx context.Context, tx postgres.Transaction, products []model.Product) error
+	GetSupplierTaskHistory(ctx context.Context, tx postgres.Transaction, supplierID int64, limit int, offset int) ([]model.Task, error)
+	GetProductsFromBuffer(ctx context.Context, tx postgres.Transaction, uploadID int64) ([]model.Product, error)
+	SaveProductsToHistory(ctx context.Context, tx postgres.Transaction, products []model.Product) error
+	DeleteFromBuffer(ctx context.Context, tx postgres.Transaction, uploadID int64) error
+	GetProductsHistory(ctx context.Context, tx postgres.Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
+	Transaction(ctx context.Context) (postgres.Transaction, error)
 }
 
 type TecDocClient interface {
