@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"tec-doc/internal/config"
 	"tec-doc/internal/model"
 	"time"
@@ -236,79 +235,4 @@ func NewPool(cfg *config.PostgresConfig) (*pgxpool.Pool, error) {
 	}
 
 	return pool, nil
-}
-
-const connstr = "postgres://alexzanser:Paraben21070707@localhost:5432/tecdoc"
-
-func main() {
-	conf, err := pgxpool.ParseConfig(connstr)
-	if err != nil {
-		log.Fatalf("Error connecting database: %v\n", err)
-	}
-	pool, err := pgxpool.ConnectConfig(context.Background(), conf)
-	if err != nil {
-		log.Fatalf("Error connecting database: %v\n", err)
-	}
-
-	defer pool.Close()
-
-	s := store{
-		cfg:  nil,
-		pool: pool,
-	}
-
-	//pr := model.Product{
-	//	UploadID:            1,
-	//	Article:             "123123",
-	//	CardNumber:          1,
-	//	ManufacturerArticle: "dasdq",
-	//	ProviderArticle:     "13123",
-	//	SKU:                 "31231",
-	//	Category:            "cat",
-	//	Price:               2123,
-	//	Brand:               "adidas",
-	//	UploadDate:          time.Now().UTC(),
-	//	UpdateDate:          time.Now().UTC(),
-	//	Status:              0,
-	//	ErrorResponse:       "z",
-	//}
-	//
-	//err = s.SaveIntoBuffer(context.TODO(), []model.Product{pr, pr})
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//
-	//products, err := s.GetProductsFromBuffer(context.TODO(), 1)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//err = s.SaveProductsToHistory(context.TODO(), products)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	////err = s.DeleteFromBuffer(context.TODO(), 1)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//
-	//_, err = s.CreateTask(context.TODO(), 1, 2, "", time.Now().UTC())
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//
-	//tasks, err := s.GetSupplierTaskHistory(context.TODO(), 1, 10, 0)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//fmt.Println(tasks)
-
-	//pr, err := s.GetProductsHistory(context.TODO(), 1, 10, 0)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//fmt.Println(pr)
-	//err = s.DeleteFromBuffer(context.TODO(), 1)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
 }
