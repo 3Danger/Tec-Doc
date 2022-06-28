@@ -27,6 +27,25 @@ type Store interface {
 	SaveProductsToHistory(ctx context.Context, products []model.Product) error
 	DeleteFromBuffer(ctx context.Context, uploadID int64) error
 	GetProductsHistory(ctx context.Context, uploadID int64, limit int, offset int) ([]model.Product, error)
+	NewTransaction(ctx context.Context) (*transaction, error)
+}
+
+type Transaction interface {
+	Begin()
+	Rollback()
+	Commit()
+}
+
+type transaction struct {
+	tx *pgx.Tx
+}
+
+func (s *store) NewTransaction(ctx context.Context) (*transaction, error) {
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("can't create tx: %v", err)
+	}
+	return &transaction{tx: &tx}, nil
 }
 
 type store struct {

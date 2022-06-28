@@ -52,6 +52,7 @@ func (e *externalHttpServer) configureRouter() {
 	//e.router.Use(middleware.Authorize)
 	e.router.GET("/excel_template", e.ExcelTemplate)
 	e.router.POST("/load_from_excel", e.LoadFromExcel)
+	e.router.GET("/task_history", e.GetSupplierTaskHistory)
 }
 
 func (e *externalHttpServer) Start() error {
