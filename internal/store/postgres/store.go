@@ -37,15 +37,16 @@ type Transaction interface {
 }
 
 type transaction struct {
-	tx *pgx.Tx
+	tx pgx.Tx
 }
 
 func (s *store) NewTransaction(ctx context.Context) (*transaction, error) {
 	tx, err := s.pool.Begin(ctx)
+
 	if err != nil {
 		return nil, fmt.Errorf("can't create tx: %v", err)
 	}
-	return &transaction{tx: &tx}, nil
+	return &transaction{tx: tx}, nil
 }
 
 type store struct {
