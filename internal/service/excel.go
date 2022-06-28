@@ -120,27 +120,22 @@ func (s *Service) AddFromExcel(bodyData io.Reader, ctx *gin.Context) error {
 	if err != nil {
 		return err
 	}
+	defer func() { _ = tx.Rollback(ctx) }()
 
-	//TODO don't forget take fields from ctx *gin.Context,
-	// a supplierID and userID,
-	// that getting from middleware:
-	// Authorize(next *gin.Context)
-	uploaderId, err := s.database.CreateTask(ctx, tx, 1, 1, "sd", time.Now().UTC())
+	supplierID := ctx.GetInt64("X-Supplier-Id")
+	userID := ctx.GetInt64("X-User-Id")
+
+	uploaderId, err := s.database.CreateTask(ctx, tx, supplierID, userID, ctx.ClientIP(), time.Now().UTC())
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
 	}
 	for i := 0; i < len(products); i++ {
 		products[i].UploadID = uploaderId
 	}
 	if err = s.database.SaveIntoBuffer(ctx, tx, products); err != nil {
-		_ = tx.Rollback(ctx)
 		return err
 	}
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		_ = tx.Rollback(ctx)
+	if err = tx.Commit(ctx); err != nil {
 		return err
 	}
 	return nil
