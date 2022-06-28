@@ -96,11 +96,11 @@ func parseExcelRow(p *model.Product, row []string) (err error) {
 	if len(row) < 7 {
 		return errors.New("row is invalid")
 	}
-	if p.NumberOfCard, err = strconv.Atoi(row[0]); err != nil {
+	if p.CardNumber, err = strconv.Atoi(row[0]); err != nil {
 		return err
 	}
 	p.ProviderArticle = row[1]
-	p.ManufactureArticle = row[2]
+	p.ManufacturerArticle = row[2]
 	p.Brand = row[3]
 	p.SKU = row[4]
 	p.Category = row[5]

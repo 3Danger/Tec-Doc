@@ -29,15 +29,15 @@ func Authorize(next *gin.Context) {
 	//next.ServeHTTP(w, req)
 }
 
-func СredentialsFromContext(ctx *gin.Context) (string, string, error) {
-	userID := ctx.Value("X-User-Id").(string)
-	if userID == "" {
-		return "", "", fmt.Errorf("can't get user_id from context")
+func CredentialsFromContext(ctx *gin.Context) (supplierID int64, userID int64, err error) {
+	userID = ctx.Value("X-User-Id").(int64)
+	if userID == 0 {
+		return 0, 0, fmt.Errorf("can't get user_id from context")
 	}
 
-	supplierID := ctx.Value("X-Supplier-Id").(string)
-	if userID == "" {
-		return "", "", fmt.Errorf("can't get supplier_id from context")
+	supplierID = ctx.Value("X-Supplier-Id").(int64)
+	if userID == 0 {
+		return 0, 0, fmt.Errorf("can't get supplier_id from context")
 	}
 
 	return userID, supplierID, nil
