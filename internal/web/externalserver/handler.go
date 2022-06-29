@@ -59,7 +59,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 		return
 	}
 
-	rawTasks, err := e.service.GetSupplierTaskHistory(c, supplierID, limit, offset)
+	rawTasks, err := e.service.GetSupplierTaskHistory(c, nil, supplierID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -68,4 +68,33 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, rawTasks)
+}
+
+func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
+	uploadID, err := strconv.ParseInt(c.Request.Header.Get("upload_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "can't get limit",
+		})
+		return
+	}
+
+	limit, err := strconv.Atoi(c.Request.Header.Get("limit"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "can't get limit",
+		})
+		return
+	}
+
+	offset, err := strconv.Atoi(c.Request.Header.Get("offset"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "can't get offset",
+		})
+		return
+	}
+
+	productsHistory, err := e.service.GetProductsHistory(c, nil, uploadID, limit, offset)
+	c.JSON(http.StatusOK, productsHistory)
 }
