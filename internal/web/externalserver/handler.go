@@ -34,7 +34,6 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 }
 
 func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
-
 	supplierID, _, err := middleware.CredentialsFromContext(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
