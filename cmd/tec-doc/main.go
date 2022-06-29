@@ -51,7 +51,7 @@ func main() {
 	srvc := service.New(conf, logger)
 
 	internalServ := internalserver.New(conf.InternalServAddress)
-	externalServ := externalserver.New(conf.ExternalServAddress, srvc)
+	externalServ := externalserver.New(conf.ExternalServAddress, srvc, logger)
 
 	srvc.SetInternalServer(internalServ)
 	srvc.SetExternalServer(externalServ)
