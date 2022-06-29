@@ -1,0 +1,8 @@
+{{ template "header.html" }}
+<div class="main_form">
+    <form enctype="multipart/form-data" action="{{ .redirect }}" method="get">
+        <div><h3>{{ .message }}</h3></div>
+        <div><input class="button" type="submit" value="Выгрузить еще"></div>
+    </form>
+</div>
+{{ template "footer.html" }}

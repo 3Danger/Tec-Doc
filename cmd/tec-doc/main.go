@@ -9,38 +9,11 @@ import (
 	"strings"
 	"tec-doc/internal/config"
 	l "tec-doc/internal/logger"
-	s "tec-doc/internal/service"
+	"tec-doc/internal/service"
+	"tec-doc/internal/web/externalserver"
+	"tec-doc/internal/web/internalserver"
+	"tec-doc/pkg/sig"
 )
-
-func main() {
-	var (
-		err    error
-		conf   *config.Config
-		ctxeg  context.Context
-		egroup *errgroup.Group
-		logger *zerolog.Logger
-		svc    *s.Service
-	)
-
-	// init config & logger
-	conf, logger, err = initConfig()
-	if err != nil {
-		log.Error().Err(err).Send()
-		return
-	}
-
-	svc = s.NewService(conf, logger)
-	egroup, ctxeg = errgroup.WithContext(context.Background())
-
-	egroup.Go(func() error {
-		return svc.Start(ctxeg)
-	})
-
-	if err = egroup.Wait(); err != nil {
-		log.Error().Msg(err.Error())
-	}
-	svc.Stop()
-}
 
 func initConfig() (*config.Config, *zerolog.Logger, error) {
 	var (
@@ -53,6 +26,9 @@ func initConfig() (*config.Config, *zerolog.Logger, error) {
 	if err = envconfig.Process("TEC_DOC", conf); err != nil {
 		return nil, nil, err
 	}
+	if err = envconfig.Process("TEC_DOC", &conf.PostgresConfig); err != nil {
+		return nil, nil, err
+	}
 
 	// Init Logger
 	logger, err = l.InitLogger(strings.ToLower(conf.LogLevel))
@@ -60,4 +36,31 @@ func initConfig() (*config.Config, *zerolog.Logger, error) {
 		return nil, nil, err
 	}
 	return conf, &logger, nil
+}
+
+func main() {
+	conf, logger, err := initConfig()
+	if err != nil {
+		log.Fatal().Err(err).Send()
+	}
+	egroup, ctx := errgroup.WithContext(context.Background())
+	egroup.Go(func() error {
+		return sig.Listen(ctx)
+	})
+
+	srvc := service.New(conf, logger)
+
+	internalServ := internalserver.New(conf.InternalServAddress)
+	externalServ := externalserver.New(conf.ExternalServAddress, srvc, logger)
+
+	srvc.SetInternalServer(internalServ)
+	srvc.SetExternalServer(externalServ)
+
+	egroup.Go(func() error {
+		return srvc.Start(ctx)
+	})
+	if err = egroup.Wait(); err != nil {
+		logger.Error().Err(err).Send()
+	}
+	srvc.Stop()
 }

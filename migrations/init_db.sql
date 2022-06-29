@@ -12,29 +12,35 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 
 CREATE TABLE IF NOT EXISTS products_buffer (
-   id             BIGSERIAL PRIMARY KEY,
-   upload_id      BIGINT,
-   article        TEXT,
-   brand          TEXT,
-   sku            TEXT,
-   category       TEXT,
-   price          INT,
-   upload_date    TIMESTAMPTZ,
-   update_date    TIMESTAMPTZ,
-   status         INT,
-   errorResponse  TEXT
+   id                   BIGSERIAL PRIMARY KEY,
+   upload_id            BIGINT,
+   article              TEXT,
+   card_number          INT,
+   provider_article     TEXT,
+   manufacturer_article TEXT,
+   brand                TEXT,
+   sku                  TEXT,
+   category             TEXT,
+   price                INT,
+   upload_date          TIMESTAMPTZ,
+   update_date          TIMESTAMPTZ,
+   status               INT,
+   errorResponse        TEXT
 );
 
 CREATE TABLE IF NOT EXISTS products_history (
-    id             BIGSERIAL PRIMARY KEY,
-    upload_id      BIGINT,
-    article        TEXT,
-    brand          TEXT,
-    sku            TEXT,
-    category       TEXT,
-    price          INT,
-    upload_date    TIMESTAMPTZ,
-    update_date    TIMESTAMPTZ,
-    status         INT,
-    errorResponse  TEXT
+    id                   BIGSERIAL PRIMARY KEY,
+    upload_id            BIGINT,
+    article              TEXT,
+    card_number          INT,
+    provider_article     TEXT,
+    manufacturer_article TEXT,
+    brand                TEXT,
+    sku                  TEXT,
+    category             TEXT,
+    price                INT,
+    upload_date          TIMESTAMPTZ,
+    update_date          TIMESTAMPTZ,
+    status               INT,
+    errorResponse        TEXT
 );

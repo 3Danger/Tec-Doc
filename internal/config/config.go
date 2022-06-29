@@ -7,6 +7,8 @@ import (
 )
 
 type Config struct {
+	InternalServAddress string `envconfig:"INTERNAL_SERV_ADDRESS" default:":8000"`
+	ExternalServAddress string `envconfig:"EXTERNAL_SERV_ADDRESS" default:":8050"`
 	LogLevel            string `envconfig:"LOG_LEVEL" default:"debug"`
 	ListenInternal      string `envconfig:"LISTEN_INTERNAL" default:":8000"`
 	PostgresConfig      PostgresConfig

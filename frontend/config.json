@@ -1,0 +1,4 @@
+{
+  "backend_addr": "localhost:8050",
+  "frontend_addr": "localhost:8002"
+}
