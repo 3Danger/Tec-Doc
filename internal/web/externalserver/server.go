@@ -3,6 +3,7 @@ package externalserver
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
@@ -29,13 +30,15 @@ type externalHttpServer struct {
 	server  http.Server
 	metrics *m.Metrics
 	service Service
+	logger  *zerolog.Logger
 }
 
-func New(bindingAddress string, service Service) *externalHttpServer {
+func New(bindingAddress string, service Service, logger *zerolog.Logger) *externalHttpServer {
 	router := gin.Default()
 	serv := &externalHttpServer{
 		router:  router,
 		service: service,
+		logger:  logger,
 		metrics: m.NewMetrics("external", "HttpServer"),
 		server: http.Server{
 			Addr:    bindingAddress,
