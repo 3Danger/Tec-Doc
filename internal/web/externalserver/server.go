@@ -3,12 +3,12 @@ package externalserver
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
 	"strconv"
 	"tec-doc/internal/model"
-	"tec-doc/internal/store/postgres"
 	m "tec-doc/internal/web/metrics"
 	"time"
 )
@@ -16,8 +16,8 @@ import (
 type Service interface {
 	ExcelTemplateForClient() ([]byte, error)
 	AddFromExcel(bodyData io.Reader, ctx *gin.Context) error
-	GetSupplierTaskHistory(ctx context.Context, tx postgres.Transaction, supplierID int64, limit int, offset int) ([]model.Task, error)
-	GetProductsHistory(ctx context.Context, tx postgres.Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
+	GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error)
+	GetProductHistory(ctx context.Context) ([]model.Product, error)
 	//...
 }
 
@@ -31,13 +31,15 @@ type externalHttpServer struct {
 	server  http.Server
 	metrics *m.Metrics
 	service Service
+	logger  *zerolog.Logger
 }
 
-func New(bindingAddress string, service Service) *externalHttpServer {
+func New(bindingAddress string, service Service, logger *zerolog.Logger) *externalHttpServer {
 	router := gin.Default()
 	serv := &externalHttpServer{
 		router:  router,
 		service: service,
+		logger:  logger,
 		metrics: m.NewMetrics("external", "HttpServer"),
 		server: http.Server{
 			Addr:    bindingAddress,
@@ -55,6 +57,7 @@ func (e *externalHttpServer) configureRouter() {
 	e.router.GET("/excel_template", e.ExcelTemplate)
 	e.router.POST("/load_from_excel", e.LoadFromExcel)
 	e.router.GET("/task_history", e.GetSupplierTaskHistory)
+	e.router.GET("/product_history", e.ProductHistory)
 }
 
 func (e *externalHttpServer) Start() error {
