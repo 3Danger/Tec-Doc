@@ -1,4 +1,11 @@
-{{ template "header.html" }}
+
+
+
+
+
+
+
+{{ template "header.gohtml" }}
 <div class="main_form">
     <form enctype="multipart/form-data" action="{{ .redirect }}" target="_blank" method="get">
         <div><input class="button" type="submit" value="Скачать шаблон"></div>
@@ -11,4 +18,4 @@
         <div><input class="button" type="submit" value="Отправить"></div>
     </form>
 </div>
-{{ template "footer.html" }}
+{{ template "footer.gohtml" }}

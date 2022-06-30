@@ -7,6 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 	"strings"
+	"tec-doc/frontend/client"
+	configFrontend "tec-doc/frontend/config"
 	"tec-doc/internal/config"
 	l "tec-doc/internal/logger"
 	"tec-doc/internal/service"
@@ -59,8 +61,18 @@ func main() {
 	egroup.Go(func() error {
 		return srvc.Start(ctx)
 	})
+
+	egroup.Go(func() error {
+		return frontend(ctx)
+	})
+
 	if err = egroup.Wait(); err != nil {
 		logger.Error().Err(err).Send()
 	}
 	srvc.Stop()
+}
+
+func frontend(ctx context.Context) error {
+	cl := client.New(configFrontend.Get())
+	return cl.Run(ctx)
 }

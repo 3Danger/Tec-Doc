@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-	"tec-doc/internal/web/externalserver/middleware"
 )
 
 const ContentTypeExcel = "application/vnd.ms-excel"
@@ -35,16 +34,33 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	})
 }
 
-func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
-
-	supplierID, _, err := middleware.CredentialsFromContext(c)
+func (e *externalHttpServer) ProductHistory(c *gin.Context) {
+	var t int64 = 0
+	c.Set("upload_id", t)
+	c.Set("limit", 10)
+	c.Set("offset", 0)
+	productHistory, err := e.service.GetProductHistory(c)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	c.JSON(200, productHistory)
+}
+
+func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
+
+	var supplierID int64 = 0
+	/*
+		supplierID, _, err := middleware.CredentialsFromContext(c)
+		if err != nil {
+			e.logger.Error().Err(err).Send()
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+	*/
 
 	limit, err := strconv.Atoi(c.Request.Header.Get("limit"))
 	if err != nil {
