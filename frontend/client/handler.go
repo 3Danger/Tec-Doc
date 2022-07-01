@@ -85,6 +85,8 @@ func (cl *Client) indexGet(c *gin.Context) {
 	}
 	req.Header.Set("X-User-Id", "0")
 	req.Header.Set("X-Supplier-Id", "0")
+	req.Header.Set("limit", strconv.Itoa(cl.limit))
+	req.Header.Set("offset", "0")
 	if res, err = cl.client.Do(req); err != nil {
 		responseError(err, http.StatusInternalServerError, c)
 		return

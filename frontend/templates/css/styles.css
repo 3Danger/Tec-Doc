@@ -7,8 +7,14 @@
     background-color: #d3d2ff;
     box-shadow: 2px 2px 40px rgba(0, 0, 0, 0.2);
 }
+
 input[type="file"] {
     display: none;
+}
+
+.tab{
+    border-radius: 10px;
+    box-shadow: 2px 2px 40px rgba(0, 0, 0, 0.2)
 }
 
 .button{
@@ -22,10 +28,16 @@ input[type="file"] {
     background-color: #f5e0ff;
     cursor: pointer;
     border: 0;
-    font-family: "DejaVu Sans";
+    /*font-family: "DejaVu Sans";*/
     font-size: large;
-
 }
+
+
+
+/*.table_history{*/
+/*    background: red;*/
+/*    color: blue;*/
+/*}*/
 
 .custom-file-upload {
     border: 1px solid #ccc;
