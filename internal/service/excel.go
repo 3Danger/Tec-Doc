@@ -7,6 +7,7 @@ import (
 	"io"
 	"strconv"
 	"tec-doc/internal/model"
+	"tec-doc/internal/store/postgres"
 	"time"
 )
 
@@ -111,22 +112,26 @@ func parseExcelRow(p *model.Product, row []string) (err error) {
 }
 
 func (s *Service) AddFromExcel(bodyData io.Reader, ctx *gin.Context) error {
-	products, err := s.loadFromExcel(bodyData)
-	if err != nil {
+
+	var (
+		err      error
+		products []model.Product
+		tx       postgres.Transaction
+
+		supplierID, userID, uploaderId int64
+	)
+	if products, err = s.loadFromExcel(bodyData); err != nil {
 		return err
 	}
-
-	tx, err := s.database.Transaction(ctx)
-	if err != nil {
+	if tx, err = s.database.Transaction(ctx); err != nil {
 		return err
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	supplierID := ctx.GetInt64("X-Supplier-Id")
-	userID := ctx.GetInt64("X-User-Id")
+	supplierID = ctx.GetInt64("X-Supplier-Id")
+	userID = ctx.GetInt64("X-User-Id")
 
-	uploaderId, err := s.database.CreateTask(ctx, tx, supplierID, userID, ctx.ClientIP(), time.Now().UTC())
-	if err != nil {
+	if uploaderId, err = s.database.CreateTask(ctx, tx, supplierID, userID, ctx.ClientIP(), time.Now().UTC()); err != nil {
 		return err
 	}
 	for i := 0; i < len(products); i++ {

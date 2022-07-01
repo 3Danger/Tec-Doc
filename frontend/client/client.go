@@ -73,8 +73,7 @@ func configureRouter(c *Client) {
 	c.engine.Static("/css", "./frontend/templates/css")
 	c.engine.LoadHTMLGlob("./frontend/templates/*.gohtml")
 
-	c.engine.GET("/", c.indexGet)
-	c.engine.POST("/", c.indexPost)
-
-	c.engine.GET("/download_history", c.downloadsHistory)
+	c.engine.GET(frontMainPage, c.indexGet)
+	c.engine.POST(frontMainPage, c.indexPost)
+	c.engine.GET(frontExcelTemplate, c.downloadExcel)
 }

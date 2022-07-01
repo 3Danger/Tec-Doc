@@ -1,24 +1,35 @@
 {{ template "header.gohtml" }}
-<div class="main_form">
-    <form enctype="multipart/form-data" action="{{ .redirect }}" target="_blank" method="get">
-        <div><input class="button" type="submit" value="Скачать шаблон"></div>
-    </form>
-    <form enctype="multipart/form-data" method="post">
-        <label for="file-upload" class="button">
-            <p>Выбрать файл</p>
-        </label>
-        <input id="file-upload" type="file" name="excel_file"/>
-        <div><input class="button" type="submit" value="Отправить"></div>
-    </form>
-</div>
-<div class="tab">
-    <table>
+
+
+
+    <nav>
+        <ul class="buttons_ul">
+            <li class="button_li" ><a href="/">Главная</a></li>
+            <li class="button_li" ><a href="{{ .redirect }}">Скачать шаблон</a></li>
+            <li class="button_li" >
+                <form enctype="multipart/form-data" method="post">
+                    <label for="files" class="btn">Выбрать файл</label>
+                    <input id="files"
+                           style="display: none"
+                           type="file"
+                           name="excel_file"
+                           onchange="form.submit()"/>
+                </form>
+            </li>
+        </ul>
+    </nav>
+
+<br>
+
+<div class="main_block" >
+    <table class="tab" >
         <tr>
             <th> Номер заявки </th>
             <th> Дата создания </th>
             <th> Всего артикулов </th>
             <th> Артикулов с ошибкой </th>
             <th> Статус </th>
+            <th> ... </th>
         </tr>
         {{ range $task := .tasks }}
         <tr>
@@ -27,6 +38,7 @@
             <td> {{ $task.ProductsTotal }}</td>
             <td> {{ $task.ProductsFailed }}</td>
             <td> {{ $task.Status }}</td>
+            <td> Деталиция </td>
         </tr>
         {{ end }}
     </table>

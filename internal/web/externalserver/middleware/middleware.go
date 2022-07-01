@@ -21,7 +21,6 @@ func Authorize(next *gin.Context) {
 		return
 	}
 
-	//TODO узнать как правильно добавить контексты
 	userIDN, err := strconv.ParseInt(userID, 10, 64)
 	if err != nil {
 		log.Error().Err(err).Str("Authorize", err.Error()).Send()
@@ -32,7 +31,6 @@ func Authorize(next *gin.Context) {
 	}
 	next.Set("X-User-Id", userIDN)
 	next.Set("X-Supplier-Id", supplierIDN)
-	//next.ServeHTTP(w, req)
 }
 
 func CredentialsFromContext(ctx *gin.Context) (supplierID int64, userID int64, err error) {

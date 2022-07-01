@@ -50,7 +50,6 @@ func (e *externalHttpServer) ProductHistory(c *gin.Context) {
 }
 
 func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
-
 	supplierID, _, err := middleware.CredentialsFromContext(c)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
