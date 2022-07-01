@@ -8,7 +8,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"tec-doc/frontend/models"
 )
 
@@ -24,6 +23,13 @@ const (
 	ContentTypeExcel = "application/vnd.ms-excel"
 )
 
+const (
+	keyUserID     = "X-User-Id"
+	keySupplierID = "X-Supplier-Id"
+	keyLimit      = "limit"
+	keyOffset     = "offset"
+)
+
 // <<<<<<<<<<<<< Handlers >>>>>>>>>>>>>>
 
 func (cl *Client) indexGet(c *gin.Context) {
@@ -34,20 +40,22 @@ func (cl *Client) indexGet(c *gin.Context) {
 		bts   []byte
 		tasks []models.Task
 	)
-
+	userID, supplierID, limit, offset := getParams(c)
 	if req, err = cl.createGetRequest(servTaskHistory, c, gin.H{
-		"X-User-Id":     "0",
-		"X-Supplier-Id": "0",
-		"limit":         strconv.Itoa(cl.limit),
-		"offset":        "0",
+		keyUserID:     userID,
+		keySupplierID: supplierID,
+		keyLimit:      limit,
+		keyOffset:     offset,
 	}); err != nil {
 		responseError(err, http.StatusInternalServerError, c)
 		return
 	}
+
 	if res, err = cl.client.Do(req); err != nil {
 		responseError(err, http.StatusInternalServerError, c)
 		return
-	} else if res.StatusCode > 299 {
+	}
+	if res.StatusCode > 299 {
 		if bts, err = ioutil.ReadAll(res.Body); err != nil {
 			responseError(err, http.StatusInternalServerError, c)
 			return
@@ -81,9 +89,11 @@ func (cl *Client) indexPost(ctx *gin.Context) {
 	}
 	defer func() { _ = file.Close() }()
 
+	userID, supplierID, _, _ := getParams(ctx)
+
 	if request, err = cl.createPostRequest(servLoadFromExcel, file, ctx, gin.H{
-		"X-User-Id":     "0",
-		"X-Supplier-Id": "0",
+		keyUserID:     userID,
+		keySupplierID: supplierID,
 	}); err != nil {
 		responseError(err, http.StatusInternalServerError, ctx)
 		return
@@ -124,9 +134,10 @@ func (cl *Client) downloadExcel(ctx *gin.Context) {
 		req  *http.Request
 		res  *http.Response
 	)
+	userID, supplierID, _, _ := getParams(ctx)
 	if req, err = cl.createGetRequest(servExcelTemplate, ctx, gin.H{
-		"X-User-Id":     "0",
-		"X-Supplier-Id": "0",
+		keyUserID:     userID,
+		keySupplierID: supplierID,
 	}); err != nil {
 		responseError(err, http.StatusInternalServerError, ctx)
 		return
@@ -161,6 +172,21 @@ func (cl *Client) createEndpoint(endpoint string) string {
 		return ""
 	}
 	return parse.String()
+}
+
+func getParams(c *gin.Context) (userID, supplierID, limit, offset string) {
+	w := func(key, defaultValue string) string {
+		if c.Request.URL.Query().Has(key) {
+			return c.Request.URL.Query().Get(key)
+		} else {
+			return defaultValue
+		}
+	}
+	userID = w(keyUserID, "0")
+	supplierID = w(keySupplierID, "0")
+	limit = w(keyLimit, "10")
+	offset = w(keyOffset, "0")
+	return
 }
 
 func responseError(err error, code int, c *gin.Context) {

@@ -19,8 +19,6 @@ type Client struct {
 	frontPortURL *url.URL
 	engine       *gin.Engine
 	backendURL   *url.URL
-
-	limit int // limit for downloadHistory
 }
 
 func New(config *config.Config) *Client {
@@ -28,16 +26,14 @@ func New(config *config.Config) *Client {
 		back, front *url.URL
 		err         error
 	)
-	defer func() {
-		if err != nil {
-			log.Error().Err(err).Send()
-		}
-	}()
 
 	if back, err = url.Parse("http://" + config.ServerAddress); err != nil {
+		log.Error().Err(err).Send()
 		return nil
 	}
+
 	if front, err = url.Parse("http://" + config.FrontendAddress); err != nil {
+		log.Error().Err(err).Send()
 		return nil
 	}
 
@@ -48,8 +44,6 @@ func New(config *config.Config) *Client {
 			backendURL:   back,
 			engine:       gin.Default(),
 			frontPortURL: front,
-
-			limit: 10,
 		}
 		configureRouter(client)
 	})
