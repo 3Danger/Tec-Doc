@@ -21,10 +21,10 @@ func Authorize(next *gin.Context) {
 	}
 
 	//TODO узнать как правильно добавить контексты
-	next.Request.
+	ctx := next.Request.
 		WithContext(context.WithValue(context.TODO(), "X-User-Id", userID)).
 		WithContext(context.WithValue(context.TODO(), "X-Supplier-Id", supplierID))
-
+	next.Request.WithContext(ctx.Context())
 	next.Next()
 	//next.ServeHTTP(w, req)
 }

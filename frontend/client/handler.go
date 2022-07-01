@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 	"io"
@@ -24,6 +25,7 @@ const (
 	servExcelTemplate  = "/excel_template"  // GET
 	servLoadFromExcel  = "/load_from_excel" // POST
 	servProductHistory = "/product_history" // GET
+	servTaskHistory    = "/task_history"    //GET
 
 	ContentTypeExcel = "application/vnd.ms-excel"
 )
@@ -70,8 +72,38 @@ func (cl *Client) downloadsHistory(c *gin.Context) {
 }
 
 func (cl *Client) indexGet(c *gin.Context) {
+	var (
+		err   error
+		req   *http.Request
+		res   *http.Response
+		bts   []byte
+		tasks []models.Task
+	)
+	if req, err = http.NewRequest(http.MethodGet, cl.createEndpoint(servTaskHistory), nil); err != nil {
+		responseError(err, http.StatusInternalServerError, c)
+		return
+	}
+	req.Header.Set("X-User-Id", "0")
+	req.Header.Set("X-Supplier-Id", "0")
+	if res, err = cl.client.Do(req); err != nil {
+		responseError(err, http.StatusInternalServerError, c)
+		return
+	} else if res.StatusCode > 299 {
+		if bts, err = ioutil.ReadAll(res.Body); err != nil {
+			responseError(err, http.StatusInternalServerError, c)
+			return
+		}
+		responseError(errors.New(string(bts)), res.StatusCode, c)
+		return
+	}
+	if err = json.NewDecoder(res.Body).Decode(&tasks); err != nil {
+		responseError(err, http.StatusInternalServerError, c)
+		return
+	}
+
 	c.HTML(200, "load_excel_file.gohtml", gin.H{
 		"redirect": cl.createEndpoint(servExcelTemplate),
+		"tasks":    tasks,
 	})
 }
 

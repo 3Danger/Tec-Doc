@@ -18,4 +18,24 @@
         <div><input class="button" type="submit" value="Отправить"></div>
     </form>
 </div>
+<div>
+    <table>
+        <tr>
+            <td> Номер заявки </td>
+            <td> Дата создания </td>
+            <td> Всего артикулов </td>
+            <td> Артикулов с ошибкой </td>
+            <td> Статус </td>
+        </tr>
+        {{ range $task := .tasks }}
+        <tr>
+            <td>task.ID</td>
+            <td>task.UploadDate</td>
+            <td>task.ProductsTotal</td>
+            <td>task.ProductsFailed</td>
+            <td>task.Status</td>
+        </tr>
+        {{ end }}
+    </table>
+</div>
 {{ template "footer.gohtml" }}
