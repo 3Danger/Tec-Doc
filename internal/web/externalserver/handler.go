@@ -1,6 +1,7 @@
 package externalserver
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -50,13 +51,30 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 //}
 
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
-	uploadID, err := strconv.ParseInt(c.Request.Header.Get("upload_id"), 10, 64)
-	if err != nil {
+
+	type ReqStruct struct {
+		UploadID int64 `json:"upload_id"`
+	}
+
+	dec := json.NewDecoder(c.Request.Body)
+	dec.DisallowUnknownFields()
+
+	var rs ReqStruct
+
+	if err := dec.Decode(&rs); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "can't get limit",
+			"error": "can't get upload_id",
 		})
 		return
 	}
+
+	//uploadID, err := strconv.ParseInt(c.Request.Header.Get("upload_id"), 10, 64)
+	//if err != nil {
+	//	c.JSON(http.StatusBadRequest, gin.H{
+	//		"error": "can't get limit",
+	//	})
+	//	return
+	//}
 
 	limit, err := strconv.Atoi(c.Query("limit"))
 	if err != nil {
@@ -74,7 +92,7 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 		return
 	}
 
-	productsHistory, err := e.service.GetProductsHistory(c, nil, uploadID, limit, offset)
+	productsHistory, err := e.service.GetProductsHistory(c, nil, rs.UploadID, limit, offset)
 	c.JSON(http.StatusOK, productsHistory)
 }
 
