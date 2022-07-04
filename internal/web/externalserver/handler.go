@@ -124,7 +124,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 		return
 	}
 
-	rawTasks, err := e.service.GetSupplierTaskHistory(c, supplierID, limit, offset)
+	rawTasks, err := e.service.GetSupplierTaskHistory(c, nil, supplierID, limit, offset)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusInternalServerError, gin.H{

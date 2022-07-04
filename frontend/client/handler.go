@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"tec-doc/frontend/models"
 )
 
@@ -39,17 +40,19 @@ func (cl *Client) indexGet(c *gin.Context) {
 		res   *http.Response
 		bts   []byte
 		tasks []models.Task
+		query = make(url.Values)
 	)
 	userID, supplierID, limit, offset := getParams(c)
-	if req, err = cl.createGetRequest(servTaskHistory, c, gin.H{
-		keyUserID:     userID,
-		keySupplierID: supplierID,
-		keyLimit:      limit,
-		keyOffset:     offset,
-	}); err != nil {
+	if req, err = http.NewRequest(http.MethodGet, cl.createEndpoint(servTaskHistory), nil); err != nil {
 		responseError(err, http.StatusInternalServerError, c)
 		return
 	}
+	req.Header.Add(keyUserID, userID)
+	req.Header.Add(keySupplierID, supplierID)
+
+	query.Add(keyLimit, limit)
+	query.Add(keyOffset, offset)
+	req.URL.RawQuery = query.Encode()
 
 	if res, err = cl.client.Do(req); err != nil {
 		responseError(err, http.StatusInternalServerError, c)
@@ -76,10 +79,10 @@ func (cl *Client) indexGet(c *gin.Context) {
 
 func (cl *Client) indexPost(ctx *gin.Context) {
 	var (
-		err      error
-		file     io.ReadCloser
-		request  *http.Request
-		response *http.Response
+		err  error
+		file io.ReadCloser
+		req  *http.Request
+		res  *http.Response
 	)
 
 	file, _, err = ctx.Request.FormFile("excel_file")
@@ -91,24 +94,23 @@ func (cl *Client) indexPost(ctx *gin.Context) {
 
 	userID, supplierID, _, _ := getParams(ctx)
 
-	if request, err = cl.createPostRequest(servLoadFromExcel, file, ctx, gin.H{
-		keyUserID:     userID,
-		keySupplierID: supplierID,
-	}); err != nil {
+	if req, err = http.NewRequest(http.MethodPost, cl.createEndpoint(servLoadFromExcel), file); err != nil {
 		responseError(err, http.StatusInternalServerError, ctx)
 		return
 	}
+	req.Header.Set(keyUserID, userID)
+	req.Header.Set(keySupplierID, supplierID)
 
-	if response, err = cl.client.Do(request); err != nil {
+	if res, err = cl.client.Do(req); err != nil {
 		responseError(err, http.StatusBadRequest, ctx)
 		return
 	}
-	if response.StatusCode > 299 {
+	if res.StatusCode > 299 {
 		var (
 			data      *gin.H
 			byteSlice []byte
 		)
-		if byteSlice, err = ioutil.ReadAll(response.Body); err != nil {
+		if byteSlice, err = ioutil.ReadAll(res.Body); err != nil {
 			responseError(err, http.StatusInternalServerError, ctx)
 			return
 		}
@@ -117,7 +119,7 @@ func (cl *Client) indexPost(ctx *gin.Context) {
 			ctx.HTML(http.StatusInternalServerError, "error_excel_file.gohtml", gin.H{"error": err.Error()})
 			return
 		}
-		ctx.HTML(response.StatusCode, "error_excel_file.gohtml", data)
+		ctx.HTML(res.StatusCode, "error_excel_file.gohtml", data)
 		return
 	}
 	ctx.HTML(http.StatusOK, "success.gohtml", gin.H{
@@ -135,13 +137,13 @@ func (cl *Client) downloadExcel(ctx *gin.Context) {
 		res  *http.Response
 	)
 	userID, supplierID, _, _ := getParams(ctx)
-	if req, err = cl.createGetRequest(servExcelTemplate, ctx, gin.H{
-		keyUserID:     userID,
-		keySupplierID: supplierID,
-	}); err != nil {
+	if req, err = http.NewRequest(http.MethodGet, cl.createEndpoint(servExcelTemplate), nil); err != nil {
 		responseError(err, http.StatusInternalServerError, ctx)
 		return
 	}
+	req.Header.Set(keyUserID, userID)
+	req.Header.Set(keySupplierID, supplierID)
+
 	if res, err = cl.client.Do(req); err != nil {
 		responseError(err, http.StatusInternalServerError, ctx)
 		return
@@ -194,23 +196,4 @@ func responseError(err error, code int, c *gin.Context) {
 		"error":    err.Error(),
 		"redirect": "/",
 	})
-}
-
-func (cl *Client) createPostRequest(endpoint string, body io.Reader, c *gin.Context, h gin.H) (req *http.Request, err error) {
-	return createRequest(cl, http.MethodPost, endpoint, body, c, h)
-}
-
-func (cl *Client) createGetRequest(endpoint string, c *gin.Context, h gin.H) (req *http.Request, err error) {
-	return createRequest(cl, http.MethodGet, endpoint, nil, c, h)
-}
-
-func createRequest(cl *Client, method, endpoint string, body io.Reader, c *gin.Context, H gin.H) (req *http.Request, err error) {
-	if req, err = http.NewRequest(method, cl.createEndpoint(endpoint), body); err != nil {
-		responseError(err, http.StatusInternalServerError, c)
-		return
-	}
-	for k, v := range H {
-		req.Header.Set(k, v.(string))
-	}
-	return req, err
 }

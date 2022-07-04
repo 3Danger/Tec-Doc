@@ -18,7 +18,7 @@ import (
 type Service interface {
 	ExcelTemplateForClient() ([]byte, error)
 	AddFromExcel(bodyData io.Reader, ctx *gin.Context) error
-	GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error)
+	GetSupplierTaskHistory(ctx context.Context, tx postgres.Transaction, supplierID int64, limit int, offset int) ([]model.Task, error)
 	GetProductsHistory(ctx context.Context, tx postgres.Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
 	//...
 }
@@ -59,7 +59,7 @@ func (e *externalHttpServer) configureRouter() {
 	e.router.GET("/excel_template", e.ExcelTemplate)
 	e.router.POST("/load_from_excel", e.LoadFromExcel)
 	e.router.GET("/task_history", e.GetSupplierTaskHistory)
-	e.router.GET("/product_history", e.ProductHistory)
+	e.router.GET("/product_history", e.GetProductsHistory)
 }
 
 func (e *externalHttpServer) Start() error {
