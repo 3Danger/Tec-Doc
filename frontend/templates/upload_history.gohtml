@@ -5,19 +5,20 @@
         <tr>
             <td> ID </td>
             <td> UploadID </td>
-            <td> Article </td>
-            <td> CardNumber </td>
-            <td> ProviderArticle </td>
-            <td> ManufacturerArticle </td>
-            <td> Brand </td>
+            <td> Артикуль </td>
+            <td> Номер карты </td>
+            <td> Артикуль Поставщика </td>
+            <td> Артикуль производителя </td>
+            <td> Брэнд </td>
             <td> SKU </td>
-            <td> Category </td>
-            <td> Price </td>
-            <td> UploadDate </td>
-            <td> UpdateDate </td>
-            <td> Status </td>
+            <td> Категория </td>
+            <td> Цена </td>
+            <td> Дата загрузки </td>
+            <td> Дата обновления </td>
+            <td> Текущий статус </td>
             <td> ErrorResponse </td>
         </tr>
+        <tr><td></td></tr>
         {{ range $product := . }}
             <tr>
                 <td>{{ $product.ID }} </td>
@@ -29,7 +30,7 @@
                 <td>{{ $product.Brand }} </td>
                 <td>{{ $product.SKU }} </td>
                 <td>{{ $product.Category }} </td>
-                <td>{{ $product.Price }} </td>
+                <td>{{ $product.Price }} руб</td>
                 <td>{{ $product.UploadDate }} </td>
                 <td>{{ $product.UpdateDate }} </td>
                 <td>{{ $product.Status }} </td>

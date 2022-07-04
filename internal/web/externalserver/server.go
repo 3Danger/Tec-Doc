@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"tec-doc/internal/model"
+	"tec-doc/internal/web/externalserver/middleware"
 	m "tec-doc/internal/web/metrics"
 	"time"
 )
@@ -51,9 +52,9 @@ func New(bindingAddress string, service Service, logger *zerolog.Logger) *extern
 }
 
 func (e *externalHttpServer) configureRouter() {
+	e.router.Use(middleware.Authorize)
 	e.router.Use(gin.Recovery())
 	e.router.Use(e.MiddleWareMetric)
-	//e.router.Use(middleware.Authorize)
 	e.router.GET("/excel_template", e.ExcelTemplate)
 	e.router.POST("/load_from_excel", e.LoadFromExcel)
 	e.router.GET("/task_history", e.GetSupplierTaskHistory)
