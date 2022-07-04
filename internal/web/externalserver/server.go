@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"tec-doc/internal/model"
+	"tec-doc/internal/store/postgres"
 	"tec-doc/internal/web/externalserver/middleware"
 	m "tec-doc/internal/web/metrics"
 	"time"
@@ -18,7 +19,7 @@ type Service interface {
 	ExcelTemplateForClient() ([]byte, error)
 	AddFromExcel(bodyData io.Reader, ctx *gin.Context) error
 	GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error)
-	GetProductHistory(ctx context.Context) ([]model.Product, error)
+	GetProductsHistory(ctx context.Context, tx postgres.Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
 	//...
 }
 

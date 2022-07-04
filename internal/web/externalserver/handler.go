@@ -35,18 +35,47 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	})
 }
 
-func (e *externalHttpServer) ProductHistory(c *gin.Context) {
-	var t int64 = 1
-	c.Set("upload_id", t)
-	c.Set("limit", 10)
-	c.Set("offset", 0)
-	productHistory, err := e.service.GetProductHistory(c)
+//func (e *externalHttpServer) ProductHistory(c *gin.Context) {
+//	var t int64 = 1
+//	c.Set("upload_id", t)
+//	c.Set("limit", 10)
+//	c.Set("offset", 0)
+//	productHistory, err := e.service.GetProductHistory(c)
+//	if err != nil {
+//		e.logger.Error().Err(err).Send()
+//		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+//		return
+//	}
+//	c.JSON(200, productHistory)
+//}
+
+func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
+	uploadID, err := strconv.ParseInt(c.Request.Header.Get("upload_id"), 10, 64)
 	if err != nil {
-		e.logger.Error().Err(err).Send()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "can't get limit",
+		})
 		return
 	}
-	c.JSON(200, productHistory)
+
+	limit, err := strconv.Atoi(c.Query("limit"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "can't get limit",
+		})
+		return
+	}
+
+	offset, err := strconv.Atoi(c.Query("offset"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "can't get offset",
+		})
+		return
+	}
+
+	productsHistory, err := e.service.GetProductsHistory(c, nil, uploadID, limit, offset)
+	c.JSON(http.StatusOK, productsHistory)
 }
 
 func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
@@ -59,7 +88,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.Request.Header.Get("limit"))
+	limit, err := strconv.Atoi(c.Query("limit"))
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -68,7 +97,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 		return
 	}
 
-	offset, err := strconv.Atoi(c.Request.Header.Get("offset"))
+	offset, err := strconv.Atoi(c.Query("offset"))
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusBadRequest, gin.H{
