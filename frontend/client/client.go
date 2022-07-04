@@ -65,6 +65,7 @@ func (cl *Client) Run(ctx context.Context) error {
 
 func configureRouter(c *Client) {
 	c.engine.Static("/css", "./frontend/templates/css")
+	c.engine.Static("/js", "./frontend/templates/js")
 	c.engine.LoadHTMLGlob("./frontend/templates/*.gohtml")
 
 	c.engine.GET(frontMainPage, c.indexGet)
