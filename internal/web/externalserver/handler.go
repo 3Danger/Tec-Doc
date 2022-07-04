@@ -36,7 +36,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 }
 
 func (e *externalHttpServer) ProductHistory(c *gin.Context) {
-	var t int64 = 0
+	var t int64 = 1
 	c.Set("upload_id", t)
 	c.Set("limit", 10)
 	c.Set("offset", 0)

@@ -3,10 +3,11 @@ package service
 import (
 	"context"
 	"tec-doc/internal/model"
+	"tec-doc/internal/store/postgres"
 )
 
-func (s *Service) GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error) {
-	return s.database.GetSupplierTaskHistory(ctx, nil, supplierID, limit, offset)
+func (s *Service) GetSupplierTaskHistory(ctx context.Context, tx postgres.Transaction, supplierID int64, limit int, offset int) ([]model.Task, error) {
+	return s.database.GetSupplierTaskHistory(ctx, tx, supplierID, limit, offset)
 }
 
 //GetProductHistory in ctx must be upload_id, limit and offset
