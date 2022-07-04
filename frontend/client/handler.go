@@ -66,7 +66,7 @@ func (cl *Client) downloadsHistory(c *gin.Context) {
 		responseError(err, http.StatusInternalServerError, c)
 		return
 	}
-	c.HTML(http.StatusOK, "upload_history.gohtml", pr)
+	c.HTML(http.StatusOK, "popup.gohtml", pr)
 }
 
 func (cl *Client) indexGet(c *gin.Context) {
