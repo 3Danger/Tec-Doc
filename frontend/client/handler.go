@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"tec-doc/frontend/models"
+	"tec-doc/internal/model"
 )
 
 const (
@@ -69,6 +71,50 @@ func (cl *Client) indexGet(c *gin.Context) {
 	if err = json.NewDecoder(res.Body).Decode(&tasks); err != nil {
 		responseError(err, http.StatusInternalServerError, c)
 		return
+	}
+
+	//TODO products receiving
+	for i, task := range tasks {
+		type ReqStruct struct {
+			UploadID int64 `json:"upload_id"`
+		}
+
+		rs := ReqStruct{task.ID}
+		js, err := json.Marshal(rs)
+		if err != nil {
+			responseError(err, http.StatusInternalServerError, c)
+			return
+		}
+
+		reqBodyReader := bytes.NewReader(js)
+		req, err = http.NewRequest(http.MethodGet, cl.createEndpoint(servProductHistory), reqBodyReader)
+
+		req.Header.Add(keyUserID, userID)
+		req.Header.Add(keySupplierID, supplierID)
+		query.Add(keyLimit, limit)
+		query.Add(keyOffset, offset)
+		req.URL.RawQuery = query.Encode()
+
+		if res, err = cl.client.Do(req); err != nil {
+			responseError(err, http.StatusInternalServerError, c)
+			return
+		}
+
+		if res.StatusCode > 299 {
+			if bts, err = ioutil.ReadAll(res.Body); err != nil {
+				responseError(err, http.StatusInternalServerError, c)
+				return
+			}
+			responseError(errors.New(string(bts)), res.StatusCode, c)
+			return
+		}
+
+		products := make([]model.Product, 0)
+		if err = json.NewDecoder(res.Body).Decode(&products); err != nil {
+			responseError(err, http.StatusInternalServerError, c)
+			return
+		}
+		tasks[i].Products = products
 	}
 
 	c.HTML(200, "load_excel_file.gohtml", gin.H{

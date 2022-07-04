@@ -7,7 +7,7 @@
     }
 
     .button_pop a {
-        padding: 10px 20px;
+        padding: 10px 10px;
         border-radius: 10px;
         box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         margin: 5px;
@@ -18,7 +18,7 @@
         cursor: pointer;
         border: 0;
         font-family: 'Lato', sans serif;
-        font-size: large;
+        font-size: 12px;
     }
 
     .pop_up {
@@ -42,11 +42,11 @@
         background: black;
     }
 
-    .pop_up.active {
-        transform:  translateX(0%) scale(100%);
-        background-color: rgba(0, 0, 0000, 0.7);
-        z-index: 1;
-    }
+        .pop_up.active {
+            transform:  translateX(0%) scale(100%);
+            background-color: rgba(0, 0, 0000, 0.7);
+            z-index: 1;
+        }
 
     .pop_up .pop_up_container {
         display: flex;
@@ -215,7 +215,7 @@
             <th> Всего артикулов </th>
             <th> Артикулов с ошибкой </th>
             <th> Статус </th>
-            <th> Детализация </th>
+{{/*            <th> Детализация </th>*/}}
         </tr>
         {{ range $task:= .tasks }}
         <tr>
@@ -228,42 +228,41 @@
                 <div class="button_pop">
                     <a id="open_pop_up">Детализация</a>
                 </div>
-
                 <div class="pop_up" id="pop_up">
                     <div class="pop_up_container" id="pop_up_container">
                         <div class="pop_up_body" id="pop_up_body">
                             <p class="table_header" >Детализация по заказу</p>
                             <p class="table_description" >Список товаров загруженных в рамках <a class="link" href="#">задания.</a></p>
-                                        <table class="product_table">
-                                            <tr>
-                                                <td> Номер заявки </td>
-                                                <td> Артикул </td>
-                                                <td> Номер карточки </td>
-                                                                    <td> Артикул поставщика </td>
-                                                                    <td> Артикул производителя </td>
-                                                <td> Бренд </td>
-                                                <td> SKU </td>
-                                                <td> Категория </td>
-                                                <td> Цена </td>
-                                                <td> Дата создания </td>
-                                                <td> Статус </td>
-                                            </tr>
-{{/*                                            {{ range $product := . }}*/}}
-{{/*                                                <tr class="str">*/}}
-{{/*                                                    <td>{{ $product.UploadID }} </td>*/}}
-{{/*                                                    <td>{{ $product.Article }} </td>*/}}
-{{/*                                                    <td>{{ $product.CardNumber }} </td>*/}}
-{{/*                                                                            <td>{{ $product.ProviderArticle }} </td>*/}}
-{{/*                                                                            <td>{{ $product.ManufacturerArticle }} < /td>*/}}
-{{/*                                                    <td>{{ $product.Brand }} </td>*/}}
-{{/*                                                    <td>{{ $product.SKU }} </td>*/}}
-{{/*                                                    <td>{{ $product.Category }} </td>*/}}
-{{/*                                                    <td>{{ $product.Price }} </td>*/}}
-{{/*                                                    <td>{{ $product.UploadDate }} </td>*/}}
-{{/*                                                    <td>{{ $product.Status }} </td>*/}}
-{{/*                                                </tr>*/}}
-{{/*                                            {{ end }}*/}}
-                                        </table>
+                            <table class="product_table">
+                                <tr>
+                                    <td> Номер заявки </td>
+                                    <td> Артикул </td>
+                                    <td> Номер карточки </td>
+                                    {{/*                    <td> Артикул поставщика </td>*/}}
+                                    {{/*                    <td> Артикул производителя </td>*/}}
+                                    <td> Бренд </td>
+                                    <td> SKU </td>
+                                    <td> Категория </td>
+                                    <td> Цена </td>
+                                    <td> Дата создания </td>
+                                    <td> Статус </td>
+                                </tr>
+                                {{ range $product := $task.Products }}
+                                    <tr class="str">
+                                        <td>{{ $product.UploadID }} </td>
+                                        <td>{{ $product.Article }} </td>
+                                        <td>{{ $product.CardNumber }} </td>
+{{/*                                                                <td>{{ $product.ProviderArticle }} </td>*/}}
+{{/*                                                                <td>{{ $product.ManufacturerArticle }} < /td>*/}}
+                                        <td>{{ $product.Brand }} </td>
+                                        <td>{{ $product.SKU }} </td>
+                                        <td>{{ $product.Category }} </td>
+                                        <td>{{ $product.Price }} </td>
+                                        <td>{{ $product.UploadDate }} </td>
+                                        <td>{{ $product.Status }} </td>
+                                    </tr>
+                                {{ end }}
+                            </table>
                             <div class="pop_up_close" id="pop_up_close">&#10006</div>
                         </div>
                     </div>
@@ -273,6 +272,7 @@
         {{ end }}
     </table>
 </div>
+
 
 
 <script>
