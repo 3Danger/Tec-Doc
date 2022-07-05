@@ -6,13 +6,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"net/url"
-	"sync"
 	"tec-doc/frontend/config"
 	"time"
 )
-
-var once sync.Once
-var client *Client
 
 type Client struct {
 	client       *http.Client
@@ -37,16 +33,14 @@ func New(config *config.Config) *Client {
 		return nil
 	}
 
-	once.Do(func() {
-		httpClient := &http.Client{Timeout: 10 * time.Second}
-		client = &Client{
-			client:       httpClient,
-			backendURL:   back,
-			engine:       gin.Default(),
-			frontPortURL: front,
-		}
-		configureRouter(client)
-	})
+	httpClient := &http.Client{Timeout: 10 * time.Second}
+	client := &Client{
+		client:       httpClient,
+		backendURL:   back,
+		engine:       gin.Default(),
+		frontPortURL: front,
+	}
+	configureRouter(client)
 	return client
 }
 
@@ -68,7 +62,7 @@ func configureRouter(c *Client) {
 	c.engine.Static("/js", "./frontend/templates/js")
 	c.engine.LoadHTMLGlob("./frontend/templates/*.gohtml")
 
-	c.engine.GET(frontMainPage, c.indexGet)
-	c.engine.POST(frontMainPage, c.indexPost)
-	c.engine.GET(frontExcelTemplate, c.downloadExcel)
+	c.engine.GET("/", c.indexGet)
+	c.engine.POST("/", c.indexPost)
+	c.engine.GET("/excel_template", c.downloadExcel)
 }

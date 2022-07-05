@@ -7,14 +7,14 @@ import (
 
 type Task struct {
 	ID                int64     `json:"id"`
-	SupplierID        int64     `json:"supplier_id"`
-	UserID            int64     `json:"user_id"`
-	UploadDate        time.Time `json:"upload_date"`
-	UpdateDate        time.Time `json:"update_date"`
+	SupplierID        int64     `json:"supplierID"`
+	UserID            int64     `json:"userID"`
+	UploadDate        time.Time `json:"uploadDate"`
+	UpdateDate        time.Time `json:"updateDate"`
 	IP                string    `json:"ip"`
 	Status            int       `json:"status"`
-	ProductsProcessed int       `json:"products_processed"`
-	ProductsFailed    int       `json:"products_failed"`
-	ProductsTotal     int       `json:"products_total"`
+	ProductsProcessed int       `json:"productsProcessed"`
+	ProductsFailed    int       `json:"productsFailed"`
+	ProductsTotal     int       `json:"productsTotal"`
 	Products          []model.Product
 }

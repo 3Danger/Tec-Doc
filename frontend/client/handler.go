@@ -15,18 +15,8 @@ import (
 )
 
 const (
-	frontMainPage      = "/"               // POST GET
-	frontExcelTemplate = "/excel_template" // GET
-
-	servExcelTemplate  = "/excel_template"  // GET
-	servLoadFromExcel  = "/load_from_excel" // POST
-	servProductHistory = "/product_history" // GET
-	servTaskHistory    = "/task_history"    //GET
-
 	ContentTypeExcel = "application/vnd.ms-excel"
-)
 
-const (
 	keyUserID     = "X-User-Id"
 	keySupplierID = "X-Supplier-Id"
 	keyLimit      = "limit"
@@ -45,7 +35,7 @@ func (cl *Client) indexGet(c *gin.Context) {
 		query = make(url.Values)
 	)
 	userID, supplierID, limit, offset := getParams(c)
-	if req, err = http.NewRequest(http.MethodGet, cl.createEndpoint(servTaskHistory), nil); err != nil {
+	if req, err = http.NewRequest(http.MethodGet, cl.backendUrlParse("/tasks_history"), nil); err != nil {
 		responseError(err, http.StatusInternalServerError, c)
 		return
 	}
@@ -60,7 +50,7 @@ func (cl *Client) indexGet(c *gin.Context) {
 		responseError(err, http.StatusInternalServerError, c)
 		return
 	}
-	if res.StatusCode > 299 {
+	if res.StatusCode != 200 {
 		if bts, err = ioutil.ReadAll(res.Body); err != nil {
 			responseError(err, http.StatusInternalServerError, c)
 			return
@@ -73,7 +63,6 @@ func (cl *Client) indexGet(c *gin.Context) {
 		return
 	}
 
-	//TODO products receiving
 	for i, task := range tasks {
 		type ReqStruct struct {
 			UploadID int64 `json:"upload_id"`
@@ -87,7 +76,7 @@ func (cl *Client) indexGet(c *gin.Context) {
 		}
 
 		reqBodyReader := bytes.NewReader(js)
-		req, err = http.NewRequest(http.MethodGet, cl.createEndpoint(servProductHistory), reqBodyReader)
+		req, err = http.NewRequest(http.MethodGet, cl.backendUrlParse("/products_history"), reqBodyReader)
 
 		req.Header.Add(keyUserID, userID)
 		req.Header.Add(keySupplierID, supplierID)
@@ -100,7 +89,7 @@ func (cl *Client) indexGet(c *gin.Context) {
 			return
 		}
 
-		if res.StatusCode > 299 {
+		if res.StatusCode != 200 {
 			if bts, err = ioutil.ReadAll(res.Body); err != nil {
 				responseError(err, http.StatusInternalServerError, c)
 				return
@@ -118,7 +107,7 @@ func (cl *Client) indexGet(c *gin.Context) {
 	}
 
 	c.HTML(200, "load_excel_file.gohtml", gin.H{
-		"redirect": frontExcelTemplate,
+		"redirect": "/excel_template",
 		"tasks":    tasks,
 	})
 }
@@ -140,7 +129,7 @@ func (cl *Client) indexPost(ctx *gin.Context) {
 
 	userID, supplierID, _, _ := getParams(ctx)
 
-	if req, err = http.NewRequest(http.MethodPost, cl.createEndpoint(servLoadFromExcel), file); err != nil {
+	if req, err = http.NewRequest(http.MethodPost, cl.backendUrlParse("/load_from_excel"), file); err != nil {
 		responseError(err, http.StatusInternalServerError, ctx)
 		return
 	}
@@ -151,7 +140,7 @@ func (cl *Client) indexPost(ctx *gin.Context) {
 		responseError(err, http.StatusBadRequest, ctx)
 		return
 	}
-	if res.StatusCode > 299 {
+	if res.StatusCode != 200 {
 		var (
 			data      *gin.H
 			byteSlice []byte
@@ -171,7 +160,7 @@ func (cl *Client) indexPost(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "success.gohtml", gin.H{
 		"message":    "Файл успешно загружен",
 		"btn_action": "Выгрузить еще",
-		"redirect":   frontMainPage,
+		"redirect":   "/",
 	})
 }
 
@@ -183,7 +172,7 @@ func (cl *Client) downloadExcel(ctx *gin.Context) {
 		res  *http.Response
 	)
 	userID, supplierID, _, _ := getParams(ctx)
-	if req, err = http.NewRequest(http.MethodGet, cl.createEndpoint(servExcelTemplate), nil); err != nil {
+	if req, err = http.NewRequest(http.MethodGet, cl.backendUrlParse("/excel_template"), nil); err != nil {
 		responseError(err, http.StatusInternalServerError, ctx)
 		return
 	}
@@ -199,7 +188,7 @@ func (cl *Client) downloadExcel(ctx *gin.Context) {
 		responseError(err, http.StatusInternalServerError, ctx)
 		return
 	}
-	if res.StatusCode > 299 {
+	if res.StatusCode != 200 {
 		responseError(errors.New(string(data)), res.StatusCode, ctx)
 		return
 	}
@@ -213,7 +202,7 @@ func (cl *Client) downloadExcel(ctx *gin.Context) {
 
 // <<<<<<<<<<<<< Utils >>>>>>>>>>>>>>
 
-func (cl *Client) createEndpoint(endpoint string) string {
+func (cl *Client) backendUrlParse(endpoint string) string {
 	parse, err := cl.backendURL.Parse(endpoint)
 	if err != nil {
 		log.Error().Err(err).Send()
