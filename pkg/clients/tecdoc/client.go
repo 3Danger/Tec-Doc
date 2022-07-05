@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"tec-doc/internal/config"
-	"tec-doc/internal/model"
+	"tec-doc/internal/tec-doc/config"
+	"tec-doc/internal/tec-doc/model"
 	"time"
 )
 

@@ -8,10 +8,10 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"tec-doc/internal/model"
-	"tec-doc/internal/store/postgres"
-	"tec-doc/internal/web/externalserver/middleware"
-	m "tec-doc/internal/web/metrics"
+	"tec-doc/internal/tec-doc/model"
+	"tec-doc/internal/tec-doc/store/postgres"
+	"tec-doc/internal/tec-doc/web/externalserver/middleware"
+	m "tec-doc/internal/tec-doc/web/metrics"
 	"time"
 )
 

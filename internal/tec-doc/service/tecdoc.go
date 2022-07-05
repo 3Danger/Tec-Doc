@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"tec-doc/internal/model"
+	"tec-doc/internal/tec-doc/model"
 )
 
 func (s *Service) GetArticles(ctx context.Context, dataSupplierID int, article string) ([]model.Article, error) {
