@@ -46,6 +46,7 @@ func New(conf *config.Config, log *zerolog.Logger) *Service {
 		log.Error().Err(err).Send()
 		return nil
 	}
+
 	log.Info().Msg("create service")
 	return &Service{
 		conf:         conf,
