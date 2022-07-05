@@ -26,14 +26,16 @@
             <th> Дата создания </th>
             <th> Всего артикулов </th>
             <th> Артикулов с ошибкой </th>
+            <th> Обработано артикулов </th>
             <th> Статус </th>
         </tr>
         {{ range $task:= .tasks }}
         <tr>
             <td> {{ $task.ID }}</td>
             <td> {{ $task.UploadDate }}</td>
-            <td> {{ $task.ProductsTotal }}</td>
+            <td> ProductsTotal узнать, это из counter или из БД ?</td>
             <td> {{ $task.ProductsFailed }}</td>
+            <td> {{ $task.ProductsProcessed }}</td>
             <td> {{ $task.Status }}</td>
             <td>
                 <div class="button_pop">

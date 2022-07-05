@@ -138,9 +138,7 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supp
 	taskHistory := make([]model.Task, 0)
 	for rows.Next() {
 		var t model.Task
-		// TODO потенциально может возникнуть ошибка,
-		// TODO если например в базе в какой то колонке значение nil
-		err := rows.Scan(&t.ID, &t.SupplierID, &t.UserID, &t.IP, &t.UploadDate,
+		err = rows.Scan(&t.ID, &t.SupplierID, &t.UserID, &t.IP, &t.UploadDate,
 			&t.UpdateDate, &t.Status, &t.ProductsProcessed, &t.ProductsFailed, &t.ProductsFailed)
 		if err != nil {
 			return nil, fmt.Errorf("can't get tasks from history: %w", err)
@@ -148,7 +146,7 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supp
 		taskHistory = append(taskHistory, t)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("can't get tasks from history: %w", err)
 	}
 

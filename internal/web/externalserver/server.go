@@ -58,8 +58,8 @@ func (e *externalHttpServer) configureRouter() {
 	e.router.Use(e.MiddleWareMetric)
 	e.router.GET("/excel_template", e.ExcelTemplate)
 	e.router.POST("/load_from_excel", e.LoadFromExcel)
-	e.router.GET("/task_history", e.GetSupplierTaskHistory)
-	e.router.GET("/product_history", e.GetProductsHistory)
+	e.router.GET("/tasks_history", e.GetSupplierTaskHistory)
+	e.router.GET("/products_history", e.GetProductsHistory)
 }
 
 func (e *externalHttpServer) Start() error {

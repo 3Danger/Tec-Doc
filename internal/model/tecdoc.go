@@ -86,30 +86,30 @@ type Image struct {
 
 type Task struct {
 	ID                int64     `json:"id"`
-	SupplierID        int64     `json:"supplier_id"`
-	UserID            int64     `json:"user_id"`
-	UploadDate        time.Time `json:"upload_date"`
-	UpdateDate        time.Time `json:"update_date"`
+	SupplierID        int64     `json:"supplierID"`
+	UserID            int64     `json:"userID"`
+	UploadDate        time.Time `json:"uploadDate"`
+	UpdateDate        time.Time `json:"updateDate"`
 	IP                string    `json:"ip"`
 	Status            int       `json:"status"`
-	ProductsProcessed int       `json:"products_processed"`
-	ProductsFailed    int       `json:"products_failed"`
-	ProductsTotal     int       `json:"products_total"`
+	ProductsProcessed int       `json:"productsProcessed"`
+	ProductsFailed    int       `json:"productsFailed"`
+	ProductsTotal     int       `json:"productsTotal"`
 }
 
 type Product struct {
 	ID                  int64     `json:"id"`
-	UploadID            int64     `json:"upload_id"`
+	UploadID            int64     `json:"uploadId"`
 	Article             string    `json:"article"`
-	CardNumber          int       `json:"card_number"`
-	ProviderArticle     string    `json:"provider_article"`
-	ManufacturerArticle string    `json:"manufacturer_article"`
+	CardNumber          int       `json:"cardNumber"`
+	ProviderArticle     string    `json:"providerArticle"`
+	ManufacturerArticle string    `json:"manufacturerArticle"`
 	Brand               string    `json:"brand"`
 	SKU                 string    `json:"sku"`
 	Category            string    `json:"category"`
 	Price               int       `json:"price"`
-	UploadDate          time.Time `json:"upload_date"`
-	UpdateDate          time.Time `json:"update_date"`
+	UploadDate          time.Time `json:"uploadDate"`
+	UpdateDate          time.Time `json:"updateDate"`
 	Status              int       `json:"status"`
-	ErrorResponse       string    `json:"error_response"`
+	ErrorResponse       string    `json:"errorResponse"`
 }
