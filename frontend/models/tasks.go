@@ -1,7 +1,6 @@
 package models
 
 import (
-	"tec-doc/internal/model"
 	"time"
 )
 
@@ -16,5 +15,5 @@ type Task struct {
 	ProductsProcessed int       `json:"productsProcessed"`
 	ProductsFailed    int       `json:"productsFailed"`
 	ProductsTotal     int       `json:"productsTotal"`
-	Products          []model.Product
+	Products          []Product
 }
