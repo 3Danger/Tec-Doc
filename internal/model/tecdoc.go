@@ -100,8 +100,8 @@ type Task struct {
 type Product struct {
 	ID                  int64     `json:"id"`
 	UploadID            int64     `json:"uploadId"`
-	Article             string    `json:"article"`
 	CardNumber          int       `json:"cardNumber"`
+	Article             string    `json:"article"`
 	ProviderArticle     string    `json:"providerArticle"`
 	ManufacturerArticle string    `json:"manufacturerArticle"`
 	Brand               string    `json:"brand"`

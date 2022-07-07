@@ -38,14 +38,13 @@ func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConf
 		return nil, fmt.Errorf("can't create new request: %v", err)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Api-Key", tecDocCfg.XApiKey)
+	req.Header = http.Header{"Content-Type": {"application/json"}, "X-Api-Key": {tecDocCfg.XApiKey}}
 
 	resp, err := c.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("can't get response: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -103,14 +102,13 @@ func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocC
 		return nil, fmt.Errorf("can't create new request: %v", err)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Api-Key", tecDocCfg.XApiKey)
+	req.Header = http.Header{"Content-Type": {"application/json"}, "X-Api-Key": {tecDocCfg.XApiKey}}
 
 	resp, err := c.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("can't get response: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
