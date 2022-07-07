@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"tec-doc/frontend/models"
-	"tec-doc/internal/model"
 )
 
 const (
@@ -27,25 +26,20 @@ const (
 
 func (cl *Client) indexGet(c *gin.Context) {
 	var (
-		err   error
-		req   *http.Request
-		res   *http.Response
-		bts   []byte
-		tasks []models.Task
-		query = make(url.Values)
+		err      error
+		req      *http.Request
+		res      *http.Response
+		bts      []byte
+		tasks    []models.Task
+		products []models.Product
 	)
 	userID, supplierID, limit, offset := getParams(c)
 	if req, err = http.NewRequest(http.MethodGet, cl.backendUrlParse("/tasks_history"), nil); err != nil {
 		responseError(err, http.StatusInternalServerError, c)
 		return
 	}
-	req.Header.Add(keyUserID, userID)
-	req.Header.Add(keySupplierID, supplierID)
-
-	query.Add(keyLimit, limit)
-	query.Add(keyOffset, offset)
-	req.URL.RawQuery = query.Encode()
-
+	req.Header = http.Header{keyUserID: {userID}, keySupplierID: {supplierID}}
+	req.URL.RawQuery = url.Values{keyLimit: {limit}, keyOffset: {offset}}.Encode()
 	if res, err = cl.client.Do(req); err != nil {
 		responseError(err, http.StatusInternalServerError, c)
 		return
@@ -64,26 +58,14 @@ func (cl *Client) indexGet(c *gin.Context) {
 	}
 
 	for i, task := range tasks {
-		type ReqStruct struct {
-			UploadID int64 `json:"upload_id"`
-		}
-
-		rs := ReqStruct{task.ID}
-		js, err := json.Marshal(rs)
-		if err != nil {
+		if bts, err = json.Marshal(gin.H{"upload_id": task.ID}); err != nil {
 			responseError(err, http.StatusInternalServerError, c)
 			return
 		}
-
-		reqBodyReader := bytes.NewReader(js)
-		req, err = http.NewRequest(http.MethodGet, cl.backendUrlParse("/products_history"), reqBodyReader)
-
-		req.Header.Add(keyUserID, userID)
-		req.Header.Add(keySupplierID, supplierID)
-		query.Add(keyLimit, limit)
-		query.Add(keyOffset, offset)
-		req.URL.RawQuery = query.Encode()
-
+		req, err = http.NewRequest(http.MethodGet,
+			cl.backendUrlParse("/products_history"), bytes.NewReader(bts))
+		req.Header = http.Header{keyUserID: {userID}, keySupplierID: {supplierID}}
+		req.URL.RawQuery = url.Values{keyLimit: {limit}, keyOffset: {offset}}.Encode()
 		if res, err = cl.client.Do(req); err != nil {
 			responseError(err, http.StatusInternalServerError, c)
 			return
@@ -98,7 +80,6 @@ func (cl *Client) indexGet(c *gin.Context) {
 			return
 		}
 
-		products := make([]model.Product, 0)
 		if err = json.NewDecoder(res.Body).Decode(&products); err != nil {
 			responseError(err, http.StatusInternalServerError, c)
 			return
