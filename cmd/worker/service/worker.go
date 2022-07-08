@@ -107,10 +107,10 @@ func (s *service) CreateProductCard(ctx context.Context) error {
 		var productStatus int
 		if ok {
 			processed += 1
-			status = postgres.StatusCompleted
+			productStatus = postgres.StatusCompleted
 		} else {
 			failed += 1
-			status = postgres.StatusError
+			productStatus = postgres.StatusError
 		}
 
 		err = s.store.UpdateProductStatus(ctx, tx, product.ID, productStatus)
