@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	supplierStatusNew = iota
-	supplierStatusProcess
-	supplierStatusCompleted
-	supplierStatusError
+	StatusNew = iota
+	StatusProcess
+	StatusCompleted
+	StatusError
 )
 
 //Store интерфейс описывающий методы для работы с БД
@@ -56,7 +56,7 @@ type store struct {
 func NewStore(cfg *config.PostgresConfig) (*store, error) {
 	pool, err := NewPool(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("can't create pool: %v", err)
+		return nil, fmt.Errorf("can't create pool: %w", err)
 	}
 
 	return &store{
@@ -75,7 +75,7 @@ func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID int64
 	}
 
 	row := executor.QueryRow(ctx, createTaskQuery, supplierID, userID,
-		uploadDate, uploadDate, ip, supplierStatusNew, 0, 0, 0)
+		uploadDate, uploadDate, ip, StatusNew, 0, 0, 0)
 
 	var taskID int64
 	if err := row.Scan(&taskID); err != nil {
@@ -110,7 +110,7 @@ func (s *store) SaveIntoBuffer(ctx context.Context, tx Transaction, products []m
 	)
 
 	if err != nil {
-		return fmt.Errorf("can't save into buffer: %v", err)
+		return fmt.Errorf("can't save into buffer: %w", err)
 	}
 
 	if copyCount == 0 {
@@ -131,7 +131,7 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supp
 
 	rows, err := executor.Query(ctx, getSupplierTaskHistoryQuery, supplierID, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("can't get supplier task history: %v", err)
+		return nil, fmt.Errorf("can't get supplier task history: %w", err)
 	}
 	defer rows.Close()
 
@@ -165,7 +165,7 @@ func (s *store) GetProductsFromBuffer(ctx context.Context, tx Transaction, uploa
 
 	rows, err := executor.Query(ctx, getProductsBufferQuery, uploadID)
 	if err != nil {
-		return nil, fmt.Errorf("can't get products from buffer: %v", err)
+		return nil, fmt.Errorf("can't get products from buffer: %w", err)
 	}
 	defer rows.Close()
 
@@ -212,7 +212,7 @@ func (s *store) SaveProductsToHistory(ctx context.Context, tx Transaction, produ
 	)
 
 	if err != nil {
-		return fmt.Errorf("can't save products into history: %v", err)
+		return fmt.Errorf("can't save products into history: %w", err)
 	}
 
 	if copyCount == 0 {
@@ -233,7 +233,7 @@ func (s *store) DeleteFromBuffer(ctx context.Context, tx Transaction, uploadID i
 	res, err := executor.Exec(ctx, deleteFromBufferQuery, uploadID)
 
 	if err != nil {
-		return fmt.Errorf("can't delete from buffer: %v", err)
+		return fmt.Errorf("can't delete from buffer: %w", err)
 	}
 
 	if res.RowsAffected() == 0 {
@@ -254,7 +254,7 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 
 	rows, err := executor.Query(ctx, getProductsFromHistoryQuery, uploadID, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("can't get products from history: %v", err)
+		return nil, fmt.Errorf("can't get products from history: %w", err)
 	}
 	defer rows.Close()
 
