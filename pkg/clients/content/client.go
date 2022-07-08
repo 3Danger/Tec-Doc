@@ -30,13 +30,13 @@ func NewClient(timeout time.Duration) *contentClient {
 func (c *contentClient) CreateProductCard(ctx context.Context, contentConfig config.ContentClientConfig, supplierID int, seviceUUID string, card model.CreateProductCardRequest) error {
 	js, err := json.Marshal(card)
 	if err != nil {
-		return fmt.Errorf("can't marshal product card: %v", err)
+		return fmt.Errorf("can't marshal product card: %w", err)
 	}
 	reqBodyReader := bytes.NewReader(js)
 
 	req, err := http.NewRequest(http.MethodPost, contentConfig.URL, reqBodyReader)
 	if err != nil {
-		return fmt.Errorf("can't create new request: %v", err)
+		return fmt.Errorf("can't create new request: %w", err)
 	}
 
 	req.Header = http.Header{"Content-Type": {"application/json"},
@@ -45,7 +45,7 @@ func (c *contentClient) CreateProductCard(ctx context.Context, contentConfig con
 
 	resp, err := c.Do(req)
 	if err != nil {
-		return fmt.Errorf("can't get response: %v", err)
+		return fmt.Errorf("can't get response: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
@@ -67,7 +67,7 @@ func (c *contentClient) CreateProductCard(ctx context.Context, contentConfig con
 
 	err = json.Unmarshal(body, &r)
 	if r.Error == true {
-		return fmt.Errorf("can't unmarshal body: %v", r.ErrorText)
+		return fmt.Errorf("can't unmarshal body: %w", r.ErrorText)
 	}
 
 	return nil

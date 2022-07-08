@@ -42,7 +42,7 @@ func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConf
 
 	resp, err := c.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("can't get response: %v", err)
+		return nil, fmt.Errorf("can't get response: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
@@ -62,7 +62,7 @@ func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConf
 
 	err = json.Unmarshal(body, &r)
 	if err != nil {
-		return nil, fmt.Errorf("can't unmarshal body: %v", err)
+		return nil, fmt.Errorf("can't unmarshal body: %w", err)
 	}
 
 	if r.Status != http.StatusOK {
@@ -99,14 +99,14 @@ func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocC
 
 	req, err := http.NewRequest(http.MethodPost, tecDocCfg.URL, reqBodyReader)
 	if err != nil {
-		return nil, fmt.Errorf("can't create new request: %v", err)
+		return nil, fmt.Errorf("can't create new request: %w", err)
 	}
 
 	req.Header = http.Header{"Content-Type": {"application/json"}, "X-Api-Key": {tecDocCfg.XApiKey}}
 
 	resp, err := c.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("can't get response: %v", err)
+		return nil, fmt.Errorf("can't get response: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
@@ -124,7 +124,7 @@ func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocC
 
 	err = json.Unmarshal(body, &r)
 	if err != nil {
-		return nil, fmt.Errorf("can't unmarshal body: %v", err)
+		return nil, fmt.Errorf("can't unmarshal body: %w", err)
 	}
 
 	if r.Status != http.StatusOK {
