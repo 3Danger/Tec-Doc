@@ -1,0 +1,264 @@
+{{ template "header.gohtml" }}
+
+<body style="text-align:center">
+
+<style>
+    @import url('http://fonts.googleapis.com/css?family=Lato:400,700');
+    .button_pop{
+        margin-top: 40px;
+        text-align: right;
+    }
+
+    .button_pop a {
+        padding: 20px 50px;
+        /*border-radius: 10px;*/
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        margin: 5px;
+        display: inline-block;
+        text-align: right;
+        background-color: #f5e0ff;
+        color: #6c11c9;
+        cursor: pointer;
+        border: 0;
+        font-family: 'Lato', sans serif;
+        font-size: large;
+    }
+
+    .pop_up {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        left: 0;
+        top: 0;
+        background-color: transparent;
+        z-index: 2;
+        transform: translateX(45%) scale(0);
+        transition: .35s  ease ;
+
+    }
+
+    .pop_up::-webkit-scrollbar{
+        width: 6px;
+    }
+
+    .pop_up::-webkit-scrollbar-track{
+       background: black;
+    }
+
+    .pop_up.active {
+        transform:  translateX(0%) scale(100%);
+        background-color: rgba(0, 0, 0000, 0.7);
+        z-index: 1;
+    }
+
+    .pop_up_container {
+        display: flex;
+        width: 100%;
+        height: 100%;
+    }
+
+    .pop_up_body {
+        overflow-x:hidden;
+        overflow-y:auto;
+        margin: auto;
+        height: 500px;
+        width: 1400px;
+        background-color: #fff;
+        /*border-radius: 10px;*/
+        text-align: center;
+        padding: 15px 15px 15px 15px;
+        position: relative;
+
+    }
+
+    .pop_up_close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 21px;
+        cursor: pointer;
+    }
+
+    .table_header {
+        margin: auto auto 10px;
+        font-family: 'Lato', sans serif;
+        font-style: normal;
+        font-weight: 700;
+        font-size: 20px;
+        line-height: 36px;
+
+        display: flex;
+        align-items: center;
+        color: #000000;
+    }
+
+    .table_description {
+        margin: auto auto 30px;
+        font-family: 'Lato', sans serif;
+        font-style: normal;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 24px;
+
+        align-items: center;
+        display:  compact;
+        text-align: left;
+        color: #000000;
+
+    }
+
+    .link {
+        font-family: 'Lato', sans serif;
+        font-style: normal;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 24px;
+        text-decoration: none;
+        color: #6C11C9;
+    }
+    .link:hover {
+        text-decoration: underline;
+    }
+    .product_table {
+        width: 100%;
+        margin: auto;
+        font-family: 'Lato', sans serif;
+        font-size: 14px;
+        border-spacing: 0px 5px;
+        border-collapse: separate;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .product_table td {
+        height: 60px;
+    }
+
+    .product_table tr:first-child {
+        width: 257px;
+        height: 20px;
+        font-family: 'Lato', sans serif;
+        font-style: normal;
+        font-weight: 700;
+        font-size: 14px;
+        line-height: 16px;
+
+        align-items: center;
+
+        /* Foreground/text (Black) default */
+        color: #000000;
+        background: white;
+        /* Inside auto layout */
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+    }
+
+    .str {
+        transition: .2s;
+    }
+
+    .str:hover {
+        background-color: rgba(245, 224, 255, 0.7);
+        color: rgba(0, 0, 0, 0.7);
+    }
+    .product_table tr {
+        width: 257px;
+        height: 20px;
+
+        font-family: 'Lato', sans serif;
+        font-style: normal;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 20px;
+
+        /*identical to box height, or 125%*/
+        display:  compact;
+        align-items: center;
+
+        /* Black */
+        color: #000000;
+
+
+        /* Inside auto layout */
+        flex: none;
+        order: 1;
+        flex-grow: 1;
+
+        background: #F7F7FA;
+
+    }
+
+</style>
+
+
+<div class="button_pop">
+    <a id="open_pop_up">Детализация</a>
+</div>
+
+<div class="pop_up" id="pop_up">
+    <div class="pop_up_container" id="pop_up_container">
+        <div class="pop_up_body" id="pop_up_body">
+            <p class="table_header" >Детализация по заказу</p>
+            <p class="table_description" >Список товаров загруженных в рамках <a class="link" href="#">задания.</a></p>
+            <table class="product_table">
+                <tr>
+                    <td> Номер заявки </td>
+                    <td> Артикул </td>
+                    <td> Номер карточки </td>
+{{/*                    <td> Артикул поставщика </td>*/}}
+{{/*                    <td> Артикул производителя </td>*/}}
+                    <td> Бренд </td>
+                    <td> SKU </td>
+                    <td> Категория </td>
+                    <td> Цена </td>
+                    <td> Дата создания </td>
+                    <td> Статус </td>
+                </tr>
+                {{ range $product := . }}
+                    <tr class="str">
+                        <td>{{ $product.UploadID }} </td>
+                        <td>{{ $product.Article }} </td>
+                        <td>{{ $product.CardNumber }} </td>
+{{/*                        <td>{{ $product.ProviderArticle }} </td>*/}}
+{{/*                        <td>{{ $product.ManufacturerArticle }} < /td>*/}}
+                        <td>{{ $product.Brand }} </td>
+                        <td>{{ $product.SKU }} </td>
+                        <td>{{ $product.Category }} </td>
+                        <td>{{ $product.Price }} </td>
+                        <td>{{ $product.UploadDate }} </td>
+                        <td>{{ $product.Status }} </td>
+                    </tr>
+                {{ end }}
+            </table>
+            <div class="pop_up_close" id="pop_up_close">&#10006</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const openPopUp = document.getElementById("open_pop_up");
+    const closePopUp = document.getElementById("pop_up_close");
+    const popUp = document.getElementById("pop_up");
+
+    openPopUp.addEventListener('click', function (e){
+        e.preventDefault();
+        popUp.classList.add('active');
+
+    })
+
+    closePopUp.addEventListener('click', () => {
+        popUp.classList.remove('active');
+    } )
+
+    window.onkeydown = function( event ) {
+        if ( event.keyCode === 27 ) {
+            popUp.classList.remove('active');
+        }
+    };
+
+
+</script>
+
+
+{{ template "footer.gohtml" }}

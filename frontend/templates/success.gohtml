@@ -1,0 +1,13 @@
+{{ template "header.gohtml" }}
+    <div class="main_block">
+    <div style="margin: 20px auto; width: fit-content" ><h3> {{ .message }} </h3></div>
+        <div style="margin: 20px auto 80px; width: fit-content" >
+            <div class="button_li">
+                <form enctype="multipart/form-data" action="{{ .redirect }}" method="get">
+                    <label for="success_btn">{{ .btn_action }}</label>
+                    <input id="success_btn" style="display: none" type="submit">
+                </form>
+            </div>
+        </div>
+    </div>
+{{ template "footer.gohtml" }}

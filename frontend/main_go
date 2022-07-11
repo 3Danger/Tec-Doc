@@ -1,0 +1,26 @@
+package main
+
+import (
+	"tec-doc/frontend/client"
+	c "tec-doc/frontend/config"
+)
+
+//var config = &struct {
+//	BackendAddr  string `json:"backend_addr" default:":8000"`
+//	FrontendAddr string `json:"frontend_addr" default:":8001"`
+//}{}
+
+var config *c.Config
+
+const ContentTypeExcel = "application/vnd.ms-excel"
+
+func init() {
+	config = c.Get()
+}
+
+func main() {
+	cl := client.New(config)
+	if err := cl.Run(); err != nil {
+		log.Fatal().Err(err).Send()
+	}
+}

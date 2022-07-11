@@ -66,8 +66,8 @@ func NewStore(cfg *config.PostgresConfig) (*store, error) {
 }
 
 func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error) {
-	createTaskQuery := `INSERT INTO tasks (supplier_id, user_id, upload_date, update_date, IP, status)
-							VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;`
+	createTaskQuery := `INSERT INTO tasks (supplier_id, user_id, upload_date, update_date, IP, status, products_processed, products_failed, products_total)
+							VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;`
 	var executor Executor
 	executor = s.pool
 	if tx != nil {
@@ -75,7 +75,7 @@ func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID int64
 	}
 
 	row := executor.QueryRow(ctx, createTaskQuery, supplierID, userID,
-		uploadDate, uploadDate, ip, supplierStatusNew)
+		uploadDate, uploadDate, ip, supplierStatusNew, 0, 0, 0)
 
 	var taskID int64
 	if err := row.Scan(&taskID); err != nil {
@@ -138,7 +138,7 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supp
 	taskHistory := make([]model.Task, 0)
 	for rows.Next() {
 		var t model.Task
-		err := rows.Scan(&t.ID, &t.SupplierID, &t.UserID, &t.IP, &t.UploadDate,
+		err = rows.Scan(&t.ID, &t.SupplierID, &t.UserID, &t.IP, &t.UploadDate,
 			&t.UpdateDate, &t.Status, &t.ProductsProcessed, &t.ProductsFailed, &t.ProductsFailed)
 		if err != nil {
 			return nil, fmt.Errorf("can't get tasks from history: %w", err)
@@ -146,7 +146,7 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supp
 		taskHistory = append(taskHistory, t)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("can't get tasks from history: %w", err)
 	}
 

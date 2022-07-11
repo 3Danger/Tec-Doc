@@ -85,31 +85,31 @@ type Image struct {
 }
 
 type Task struct {
-	ID                int64
-	SupplierID        int64
-	UserID            int64
-	UploadDate        time.Time
-	UpdateDate        time.Time
-	IP                string
-	Status            int
-	ProductsProcessed int
-	ProductsFailed    int
-	ProductsTotal     int
+	ID                int64     `json:"id"`
+	SupplierID        int64     `json:"supplierID"`
+	UserID            int64     `json:"userID"`
+	UploadDate        time.Time `json:"uploadDate"`
+	UpdateDate        time.Time `json:"updateDate"`
+	IP                string    `json:"ip"`
+	Status            int       `json:"status"`
+	ProductsProcessed int       `json:"productsProcessed"`
+	ProductsFailed    int       `json:"productsFailed"`
+	ProductsTotal     int       `json:"productsTotal"`
 }
 
 type Product struct {
-	ID                  int64
-	UploadID            int64
-	Article             string
-	CardNumber          int
-	ProviderArticle     string
-	ManufacturerArticle string
-	Brand               string
-	SKU                 string
-	Category            string
-	Price               int
-	UploadDate          time.Time
-	UpdateDate          time.Time
-	Status              int
-	ErrorResponse       string
+	ID                  int64     `json:"id"`
+	UploadID            int64     `json:"uploadId"`
+	Article             string    `json:"article"`
+	CardNumber          int       `json:"cardNumber"`
+	ProviderArticle     string    `json:"providerArticle"`
+	ManufacturerArticle string    `json:"manufacturerArticle"`
+	Brand               string    `json:"brand"`
+	SKU                 string    `json:"sku"`
+	Category            string    `json:"category"`
+	Price               int       `json:"price"`
+	UploadDate          time.Time `json:"uploadDate"`
+	UpdateDate          time.Time `json:"updateDate"`
+	Status              int       `json:"status"`
+	ErrorResponse       string    `json:"errorResponse"`
 }

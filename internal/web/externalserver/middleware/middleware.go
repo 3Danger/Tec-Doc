@@ -1,10 +1,11 @@
 package middleware
 
 import (
-	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"net/http"
+	"strconv"
 )
 
 func Authorize(next *gin.Context) {
@@ -20,25 +21,28 @@ func Authorize(next *gin.Context) {
 		return
 	}
 
-	//TODO узнать как правильно добавить контексты
-	next.Request.
-		WithContext(context.WithValue(context.TODO(), "X-User-Id", userID)).
-		WithContext(context.WithValue(context.TODO(), "X-Supplier-Id", supplierID))
-
-	next.Next()
-	//next.ServeHTTP(w, req)
+	userIDN, err := strconv.ParseInt(userID, 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("Authorize", err.Error()).Send()
+	}
+	supplierIDN, err := strconv.ParseInt(supplierID, 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("Authorize", err.Error()).Send()
+	}
+	next.Set("X-User-Id", userIDN)
+	next.Set("X-Supplier-Id", supplierIDN)
 }
 
 func CredentialsFromContext(ctx *gin.Context) (supplierID int64, userID int64, err error) {
-	userID = ctx.Value("X-User-Id").(int64)
-	if userID == 0 {
+	var (
+		valueUserID     interface{}
+		valueSupplierID interface{}
+	)
+	if valueUserID = ctx.Value("X-User-Id"); valueUserID == nil {
 		return 0, 0, fmt.Errorf("can't get user_id from context")
 	}
-
-	supplierID = ctx.Value("X-Supplier-Id").(int64)
-	if userID == 0 {
+	if valueSupplierID = ctx.Value("X-Supplier-Id"); valueSupplierID == nil {
 		return 0, 0, fmt.Errorf("can't get supplier_id from context")
 	}
-
-	return userID, supplierID, nil
+	return valueUserID.(int64), valueSupplierID.(int64), nil
 }

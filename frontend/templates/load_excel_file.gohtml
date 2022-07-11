@@ -1,0 +1,92 @@
+{{ template "header.gohtml" }}
+
+<nav>
+    <ul class="buttons_ul">
+        <li class="button_li" ><a href="/">Главная</a></li>
+        <li class="button_li" ><a href="{{ .redirect }}">Скачать шаблон</a></li>
+        <li class="button_li" >
+            <form enctype="multipart/form-data" method="post">
+                <label for="files" class="btn">Выбрать файл</label>
+                <input id="files"
+                       style="display: none"
+                       type="file"
+                       name="excel_file"
+                       onchange="form.submit()"/>
+            </form>
+        </li>
+    </ul>
+</nav>
+
+<br>
+
+<div class="main_block" >
+    <table class="product_table" >
+        <tr>
+            <th> Номер заявки </th>
+            <th> Дата создания </th>
+            <th> Всего артикулов </th>
+            <th> Артикулов с ошибкой </th>
+            <th> Обработано артикулов </th>
+            <th> Статус </th>
+        </tr>
+        {{ range $task:= .tasks }}
+        <tr>
+            <td> {{ $task.ID }}</td>
+            <td> {{ $task.UploadDate }}</td>
+            <td> ProductsTotal узнать, это из counter или из БД ?</td>
+            <td> {{ $task.ProductsFailed }}</td>
+            <td> {{ $task.ProductsProcessed }}</td>
+            <td> {{ $task.Status }}</td>
+            <td>
+                <div class="button_pop">
+                    <a id="open_pop_up">Детализация</a>
+                </div>
+                <div class="pop_up" id="pop_up">
+                    <div class="pop_up_container" id="pop_up_container">
+                        <div class="pop_up_body" id="pop_up_body">
+                            <p class="table_header" >Детализация по заказу</p>
+                            <p class="table_description" >Список товаров загруженных в рамках
+                                <a class="link" href="#">задания.</a>
+                            </p>
+                            <table class="product_table">
+                                <tr>
+                                    <td> Номер заявки </td>
+                                    <td> Артикул </td>
+                                    <td> Номер карточки </td>
+{{/*                                    <td> Артикул поставщика </td>*/}}
+{{/*                                    <td> Артикул производителя </td>*/}}
+                                    <td> Бренд </td>
+                                    <td> SKU </td>
+                                    <td> Категория </td>
+                                    <td> Цена </td>
+                                    <td> Дата создания </td>
+                                    <td> Статус </td>
+                                </tr>
+                                {{ range $product := $task.Products }}
+                                    <tr class="str">
+                                        <td>{{ $product.UploadID }} </td>
+                                        <td>{{ $product.Article }} </td>
+                                        <td>{{ $product.CardNumber }} </td>
+{{/*                                        <td>{{ $product.ProviderArticle }} </td>*/}}
+{{/*                                        <td>{{ $product.ManufacturerArticle }} </td>*/}}
+                                        <td>{{ $product.Brand }} </td>
+                                        <td>{{ $product.SKU }} </td>
+                                        <td>{{ $product.Category }} </td>
+                                        <td>{{ $product.Price }} </td>
+                                        <td>{{ $product.UploadDate }} </td>
+                                        <td>{{ $product.Status }} </td>
+                                    </tr>
+                                {{ end }}
+                            </table>
+                            <div class="pop_up_close" id="pop_up_close">&#10006</div>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        {{ end }}
+    </table>
+</div>
+
+<script type="text/javascript" src="js/popup.js"> </script>
+{{ template "footer.gohtml" }}

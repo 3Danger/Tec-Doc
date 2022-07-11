@@ -59,6 +59,7 @@ func main() {
 	egroup.Go(func() error {
 		return srvc.Start(ctx)
 	})
+
 	if err = egroup.Wait(); err != nil {
 		logger.Error().Err(err).Send()
 	}

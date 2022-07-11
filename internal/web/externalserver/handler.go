@@ -1,6 +1,7 @@
 package externalserver
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -35,8 +36,45 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	})
 }
 
-func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
+func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 
+	type ReqStruct struct {
+		UploadID int64 `json:"upload_id"`
+	}
+
+	dec := json.NewDecoder(c.Request.Body)
+	dec.DisallowUnknownFields()
+
+	var rs ReqStruct
+
+	if err := dec.Decode(&rs); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "can't get upload_id",
+		})
+		return
+	}
+
+	limit, err := strconv.Atoi(c.Query("limit"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "can't get limit",
+		})
+		return
+	}
+
+	offset, err := strconv.Atoi(c.Query("offset"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "can't get offset",
+		})
+		return
+	}
+
+	productsHistory, err := e.service.GetProductsHistory(c, nil, rs.UploadID, limit, offset)
+	c.JSON(http.StatusOK, productsHistory)
+}
+
+func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	supplierID, _, err := middleware.CredentialsFromContext(c)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
@@ -46,7 +84,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.Request.Header.Get("limit"))
+	limit, err := strconv.Atoi(c.Query("limit"))
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -55,7 +93,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 		return
 	}
 
-	offset, err := strconv.Atoi(c.Request.Header.Get("offset"))
+	offset, err := strconv.Atoi(c.Query("offset"))
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -64,7 +102,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 		return
 	}
 
-	rawTasks, err := e.service.GetSupplierTaskHistory(c, supplierID, limit, offset)
+	rawTasks, err := e.service.GetSupplierTaskHistory(c, nil, supplierID, limit, offset)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusInternalServerError, gin.H{

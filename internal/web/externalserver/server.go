@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strconv"
 	"tec-doc/internal/model"
+	"tec-doc/internal/store/postgres"
+	"tec-doc/internal/web/externalserver/middleware"
 	m "tec-doc/internal/web/metrics"
 	"time"
 )
@@ -16,7 +18,8 @@ import (
 type Service interface {
 	ExcelTemplateForClient() ([]byte, error)
 	AddFromExcel(bodyData io.Reader, ctx *gin.Context) error
-	GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error)
+	GetSupplierTaskHistory(ctx context.Context, tx postgres.Transaction, supplierID int64, limit int, offset int) ([]model.Task, error)
+	GetProductsHistory(ctx context.Context, tx postgres.Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
 	//...
 }
 
@@ -50,12 +53,13 @@ func New(bindingAddress string, service Service, logger *zerolog.Logger) *extern
 }
 
 func (e *externalHttpServer) configureRouter() {
+	e.router.Use(middleware.Authorize)
 	e.router.Use(gin.Recovery())
 	e.router.Use(e.MiddleWareMetric)
-	//e.router.Use(middleware.Authorize)
 	e.router.GET("/excel_template", e.ExcelTemplate)
 	e.router.POST("/load_from_excel", e.LoadFromExcel)
-	e.router.GET("/task_history", e.GetSupplierTaskHistory)
+	e.router.GET("/tasks_history", e.GetSupplierTaskHistory)
+	e.router.GET("/products_history", e.GetProductsHistory)
 }
 
 func (e *externalHttpServer) Start() error {
