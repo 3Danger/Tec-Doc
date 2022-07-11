@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -41,12 +39,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-
-	jsonBytes, errorJson := json.MarshalIndent(conf, "", "\t")
-	fmt.Printf("err %+v, \nconf: %+v\n", errorJson, string(jsonBytes))
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
 
 	egroup, ctx := errgroup.WithContext(context.Background())
 	egroup.Go(func() error {

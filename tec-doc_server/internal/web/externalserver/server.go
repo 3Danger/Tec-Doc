@@ -36,7 +36,7 @@ type externalHttpServer struct {
 	logger  *zerolog.Logger
 }
 
-func New(bindingAddress string, service Service, logger *zerolog.Logger) *externalHttpServer {
+func New(bindingPort string, service Service, logger *zerolog.Logger) *externalHttpServer {
 	router := gin.Default()
 	serv := &externalHttpServer{
 		router:  router,
@@ -44,7 +44,7 @@ func New(bindingAddress string, service Service, logger *zerolog.Logger) *extern
 		logger:  logger,
 		metrics: m.NewMetrics("external", "HttpServer"),
 		server: http.Server{
-			Addr:    ":" + bindingAddress,
+			Addr:    ":" + bindingPort,
 			Handler: router,
 		},
 	}

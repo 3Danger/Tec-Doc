@@ -17,13 +17,13 @@ type internalHttpServer struct {
 	server *http.Server
 }
 
-func New(bindingAddress string) *internalHttpServer {
+func New(bindingPort string) *internalHttpServer {
 	serv := new(internalHttpServer)
 
 	serv.router = gin.Default()
 	serv.configureRouter()
 	serv.server = &http.Server{
-		Addr:    ":" + bindingAddress,
+		Addr:    ":" + bindingPort,
 		Handler: serv.router,
 	}
 	return serv
