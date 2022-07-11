@@ -35,16 +35,22 @@ func (cl *Client) indexGet(c *gin.Context) {
 		products []models.Product
 	)
 	userID, supplierID, limit, offset := getParams(c)
+
+	//Create request
 	if req, err = http.NewRequest(http.MethodGet, cl.backendUrlParse("/tasks_history"), nil); err != nil {
 		responseError(err, http.StatusInternalServerError, c)
 		return
 	}
 	req.Header = http.Header{keyUserID: {userID}, keySupplierID: {supplierID}}
 	req.URL.RawQuery = url.Values{keyLimit: {limit}, keyOffset: {offset}}.Encode()
+
+	//Send request
 	if res, err = cl.client.Do(req); err != nil {
 		responseError(err, http.StatusInternalServerError, c)
 		return
 	}
+
+	//Processing response
 	if res.StatusCode != 200 {
 		if bts, err = ioutil.ReadAll(res.Body); err != nil {
 			responseError(err, http.StatusInternalServerError, c)
@@ -58,6 +64,7 @@ func (cl *Client) indexGet(c *gin.Context) {
 		return
 	}
 
+	//Processing for button 'details'
 	for i, task := range tasks {
 		if bts, err = json.Marshal(gin.H{"upload_id": task.ID}); err != nil {
 			responseError(err, http.StatusInternalServerError, c)
