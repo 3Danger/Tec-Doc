@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgres-config
+  namespace: suppliers-discounts-prices-go
 data:
-  postgres-url: postgres-service.default
+  postgres-url: postgres-service.suppliers-discounts-prices-go
 

@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tec-doc-frontend-deployment
+  namespace: suppliers-discounts-prices-go
   labels:
     app: tec-doc-frontend
 spec:
@@ -23,7 +24,7 @@ spec:
             - name: TEC_DOC_FRONTEND_PORT
               value: "8002"
             - name: TEC_DOC_EXTERNAL_SERV_HOST
-              value: tec-doc-server-service.default
+              value: tec-doc-server-service.suppliers-discounts-prices-go
             - name: TEC_DOC_EXTERNAL_SERV_PORT
               value: '8001'
 ---
@@ -31,6 +32,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tec-doc-frontend-service
+  namespace: suppliers-discounts-prices-go
 spec:
   type: NodePort
   selector:

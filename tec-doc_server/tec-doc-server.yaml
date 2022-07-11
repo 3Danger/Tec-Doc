@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tec-doc-server-deployment
+  namespace: suppliers-discounts-prices-go
   labels:
     app: tec-doc-server
 spec:
@@ -46,6 +47,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tec-doc-server-service
+  namespace: suppliers-discounts-prices-go
 spec:
   selector:
     app: tec-doc-server
