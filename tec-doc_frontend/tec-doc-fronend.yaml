@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tec-doc-frontend-deployment
+  labels:
+    app: tec-doc-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tec-doc-frontend
+  template:
+    metadata:
+      labels:
+        app: tec-doc-frontend
+    spec:
+      containers:
+        - name: tec-doc-frontend
+          image: csamuro/tec-doc-frontend
+          ports:
+            - containerPort: 8002
+          env:
+            - name: TEC_DOC_FRONTEND_PORT
+              value: "8002"
+            - name: TEC_DOC_EXTERNAL_SERV_HOST
+              value: tec-doc-server-service.default
+            - name: TEC_DOC_EXTERNAL_SERV_PORT
+              value: '8001'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tec-doc-frontend-service
+spec:
+  type: NodePort
+  selector:
+    app: tec-doc-frontend
+  ports:
+    - protocol: TCP
+      port: 8002
+      targetPort: 8002
+      nodePort: 30004
