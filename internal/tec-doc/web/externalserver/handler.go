@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-	"tec-doc/internal/web/externalserver/middleware"
+	"tec-doc/internal/tec-doc/web/externalserver/middleware"
 )
 
 const ContentTypeExcel = "application/vnd.ms-excel"

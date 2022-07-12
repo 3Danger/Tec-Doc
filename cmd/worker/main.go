@@ -9,10 +9,8 @@ import (
 	"strings"
 	"tec-doc/internal/tec-doc/config"
 	l "tec-doc/internal/tec-doc/logger"
-	"tec-doc/internal/tec-doc/service"
-	"tec-doc/internal/tec-doc/web/externalserver"
-	"tec-doc/internal/tec-doc/web/internalserver"
-	"tec-doc/pkg/sig"
+	"tec-doc/internal/worker/service"
+	"time"
 )
 
 func initConfig() (*config.Config, *zerolog.Logger, error) {
@@ -46,25 +44,18 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	egroup, ctx := errgroup.WithContext(context.Background())
-	egroup.Go(func() error {
-		return sig.Listen(ctx)
-	})
+
+	errGr, ctx := errgroup.WithContext(context.Background())
 
 	srvc := service.New(conf, logger)
 
-	internalServ := internalserver.New(conf.InternalServAddress)
-	externalServ := externalserver.New(conf.ExternalServAddress, srvc, logger)
-
-	srvc.SetInternalServer(internalServ)
-	srvc.SetExternalServer(externalServ)
-
-	egroup.Go(func() error {
-		return srvc.Start(ctx)
+	//TODO timer
+	errGr.Go(func() error {
+		return srvc.TaskWorkerRun(ctx, time.Hour)
 	})
 
-	if err = egroup.Wait(); err != nil {
+	if err := errGr.Wait(); err != nil {
 		logger.Error().Err(err).Send()
 	}
-	srvc.Stop()
+
 }

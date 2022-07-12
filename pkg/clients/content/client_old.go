@@ -8,13 +8,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"tec-doc/internal/config"
-	"tec-doc/internal/model"
+	"tec-doc/internal/tec-doc/config"
+	"tec-doc/internal/tec-doc/model"
 	"time"
 )
 
 type Client interface {
-	CreateProductCard(ctx context.Context, contentConfig config.ContentClientConfig, cards []model.CreateProductCardRequest) error
+	CreateProductCard(ctx context.Context, contentConfig config.ContentClientConfig, supplierID int, seviceUUID string, card model.CreateProductCardRequest) error
 }
 
 type contentClient struct {
@@ -67,7 +67,7 @@ func (c *contentClient) CreateProductCard(ctx context.Context, contentConfig con
 
 	err = json.Unmarshal(body, &r)
 	if r.Error == true {
-		return fmt.Errorf("can't unmarshal body: %w", r.ErrorText)
+		return fmt.Errorf("can't unmarshal body: %v", r.ErrorText)
 	}
 
 	return nil
