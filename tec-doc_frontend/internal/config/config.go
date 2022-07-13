@@ -8,7 +8,7 @@ import (
 type Config struct {
 	ServerHost   string `envconfig:"EXTERNAL_SERV_HOST" required:"true"`
 	ServerPort   string `envconfig:"EXTERNAL_SERV_PORT" required:"true"`
-	FrontendPort string `envconfig:"FRONTEND_ADDRESS" default:"8002"`
+	FrontendPort string `envconfig:"FRONTEND_PORT" default:"8002"`
 }
 
 func Get() (config *Config) {
