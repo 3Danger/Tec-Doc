@@ -10,7 +10,6 @@ import (
 	"tec-doc/internal/tec-doc/config"
 	l "tec-doc/internal/tec-doc/logger"
 	"tec-doc/internal/worker/service"
-	"time"
 )
 
 func initConfig() (*config.Config, *zerolog.Logger, error) {
@@ -22,12 +21,6 @@ func initConfig() (*config.Config, *zerolog.Logger, error) {
 	// Init Config
 	conf = new(config.Config)
 	if err = envconfig.Process("TEC_DOC", conf); err != nil {
-		return nil, nil, err
-	}
-	if err = envconfig.Process("TEC_DOC", &conf.PostgresConfig); err != nil {
-		return nil, nil, err
-	}
-	if err = envconfig.Process("TEC_DOC", &conf.TecDocConfig); err != nil {
 		return nil, nil, err
 	}
 
@@ -49,11 +42,10 @@ func main() {
 
 	//TODO timer
 	errGr.Go(func() error {
-		return srvc.TaskWorkerRun(ctx, time.Hour)
+		return srvc.TaskWorkerRun(ctx, conf.Worker)
 	})
 
 	if err := errGr.Wait(); err != nil {
 		logger.Error().Err(err).Send()
 	}
-
 }

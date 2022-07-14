@@ -26,13 +26,6 @@ func initConfig() (*config.Config, *zerolog.Logger, error) {
 	if err = envconfig.Process("TEC_DOC", conf); err != nil {
 		return nil, nil, err
 	}
-	if err = envconfig.Process("TEC_DOC", &conf.PostgresConfig); err != nil {
-		return nil, nil, err
-	}
-	if err = envconfig.Process("TEC_DOC", &conf.TecDocConfig); err != nil {
-		return nil, nil, err
-	}
-
 	// Init Logger
 	logger, err = l.InitLogger(strings.ToLower(conf.LogLevel))
 	if err != nil {
@@ -53,8 +46,8 @@ func main() {
 
 	srvc := service.New(conf, logger)
 
-	internalServ := internalserver.New(conf.InternalServAddress)
-	externalServ := externalserver.New(conf.ExternalServAddress, srvc, logger)
+	internalServ := internalserver.New(conf.InternalServPort)
+	externalServ := externalserver.New(conf.ExternalServPort, srvc, logger)
 
 	srvc.SetInternalServer(internalServ)
 	srvc.SetExternalServer(externalServ)

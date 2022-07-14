@@ -41,7 +41,7 @@ type Service struct {
 }
 
 func New(conf *config.Config, log *zerolog.Logger) *Service {
-	store, err := postgres.NewStore(&conf.PostgresConfig)
+	store, err := postgres.NewStore(&conf.Postgres)
 	if err != nil {
 		log.Error().Err(err).Send()
 		return nil
@@ -52,7 +52,7 @@ func New(conf *config.Config, log *zerolog.Logger) *Service {
 		conf:         conf,
 		log:          log,
 		database:     store,
-		tecDocClient: tecdoc.NewClient(conf.TecDocConfig.URL, conf.TecDocConfig.Timeout),
+		tecDocClient: tecdoc.NewClient(conf.TecDoc.URL, conf.TecDoc.Timeout),
 	}
 }
 

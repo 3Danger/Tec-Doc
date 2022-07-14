@@ -1,40 +1,45 @@
 package config
 
 import (
-	"time"
-
 	_ "github.com/kelseyhightower/envconfig"
+	"time"
 )
 
 type Config struct {
-	InternalServAddress string `envconfig:"INTERNAL_SERV_ADDRESS" default:":8000"`
-	ExternalServAddress string `envconfig:"EXTERNAL_SERV_ADDRESS" default:":8050"`
-	LogLevel            string `envconfig:"LOG_LEVEL" default:"debug"`
-	ListenInternal      string `envconfig:"LISTEN_INTERNAL" default:":8000"`
-	PostgresConfig      PostgresConfig
-	ContentClientConfig ContentClientConfig
-	TecDocConfig        TecDocConfig
+	InternalServPort string `envconfig:"INTERNAL_SERV_PORT" required:"true"`
+	ExternalServPort string `envconfig:"EXTERNAL_SERV_PORT" required:"true"`
+	LogLevel         string `envconfig:"LOG_LEVEL" default:"debug"`
+	ListenInternal   string `envconfig:"LISTEN_INTERNAL" default:":8000"`
+	Postgres         PostgresConfig
+	Content          ContentClientConfig
+	TecDoc           TecDocConfig
+	Worker           WorkerConfig
 }
 
 type PostgresConfig struct {
-	Username string        `envconfig:"POSTGRES_USERNAME"`
-	Password string        `envconfig:"POSTGRES_PASSWORD"`
-	Host     string        `envconfig:"POSTGRES_HOST"`
-	Port     string        `envconfig:"POSTGRES_PORT"`
-	DbName   string        `envconfig:"POSTGRES_DB"`
-	Timeout  time.Duration `envconfig:"POSTGRES_TIMEOUT" default:"30s"`
+	Username string        `envconfig:"USERNAME" required:"true"`
+	Password string        `envconfig:"PASSWORD" required:"true"`
+	Host     string        `envconfig:"HOST" required:"true"`
+	Port     string        `envconfig:"PORT" required:"true"`
+	DbName   string        `envconfig:"DB" required:"true"`
+	Timeout  time.Duration `envconfig:"TIMEOUT" default:"30s"`
 	MaxConns int32         `envconfig:"MAX_CONNECTIONS" default:"100"`
 	MinConns int32         `envconfig:"MIN_CONNECTIONS" default:"10"`
 }
 
 type ContentClientConfig struct {
-	URL     string        `envconfig:"CONTENT_URL"`
-	Timeout time.Duration `envconfig:"CONTENT_TIMEOUT" default:"30s"`
+	URL     string        `envconfig:"URL"`
+	Timeout time.Duration `envconfig:"TIMEOUT" default:"30s"`
 }
 
 type TecDocConfig struct {
-	URL        string        `envconfig:"TECDOC_URL"`
-	Timeout    time.Duration `envconfig:"TECDOC_TIMEOUT" default:"30s"`
-	XApiKey    string        `envconfig:"TECDOC_API_KEY"`
-	ProviderId int           `envconfig:"TECDOC_PROVIDER_ID"`
+	URL        string        `envconfig:"URL"`
+	Timeout    time.Duration `envconfig:"TIMEOUT" default:"30s"`
+	XApiKey    string        `envconfig:"API_KEY"`
+	ProviderId int           `envconfig:"PROVIDER_ID"`
+}
+
+type WorkerConfig struct {
+	Timer  time.Duration `envconfig:"TIMER" default:"1h"`
+	Offset int           `envconfig:"OFFSET" default:"1000"`
 }
