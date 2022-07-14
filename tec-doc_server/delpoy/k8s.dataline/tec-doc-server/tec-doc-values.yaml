@@ -10,28 +10,28 @@ image:
 
 annotations:
   prometheus.io/path: /metrics
-  prometheus.io/port: "8000"
+  prometheus.io/port: "8001"
   prometheus.io/scrape: "true"
 
 ports:
   - name: metrics
-    containerPort: 8000
+    containerPort: 8001
     protocol: TCP
   - name: process
-    containerPort: 8000
+    containerPort: 8001
     protocol: TCP
 
 readinessProbe:
   httpGet:
     path: "/readiness"
-    port: 8000
+    port: 8001
   initialDelaySeconds: 30
   periodSeconds: 10
 
 livenessProbe:
   httpGet:
     path: "/health"
-    port: 8000
+    port: 8001
   initialDelaySeconds: 5
   periodSeconds: 10
 
@@ -81,7 +81,7 @@ service:
   ports:
     - port: 80
       name: process
-      targetPort: 8000
+      targetPort: 8001
 
 resources:
   requests:
