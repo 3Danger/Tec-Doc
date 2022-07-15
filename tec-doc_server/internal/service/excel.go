@@ -35,6 +35,7 @@ func (s *Service) ExcelTemplateForClient() ([]byte, error) {
 	defer func() { _ = f.Close() }()
 	nameSheet := "Products"
 	index := f.NewSheet(nameSheet)
+	f.SetActiveSheet(f.GetSheetIndex(nameSheet))
 	// Set values
 	_ = f.SetCellValue(nameSheet, "A1", "Номер карточки")
 	_ = f.SetCellValue(nameSheet, "B1", "Артикул поставщика (уникальный артикул)")
@@ -69,6 +70,9 @@ func (s *Service) ExcelTemplateForClient() ([]byte, error) {
 }
 
 func (s *Service) loadFromExcel(bodyData io.Reader) (products []model.Product, err error) {
+	var (
+		rows [][]string
+	)
 	f, err := exl.OpenReader(bodyData)
 	if err != nil {
 		return nil, err
@@ -77,10 +81,7 @@ func (s *Service) loadFromExcel(bodyData io.Reader) (products []model.Product, e
 	if len(list) == 0 {
 		return nil, errors.New("empty data")
 	}
-	rows, err := f.GetRows(list[0])
-	if err != nil {
-		return nil, err
-	}
+	rows, err = f.GetRows("Products")
 	if len(rows) < 2 {
 		return nil, errors.New("empty data")
 	}

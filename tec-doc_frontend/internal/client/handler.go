@@ -114,8 +114,6 @@ func (cl *Client) indexPost(ctx *gin.Context) {
 		responseError(err, http.StatusBadRequest, ctx)
 		return
 	}
-	defer func() { _ = file.Close() }()
-
 	userID, supplierID, _, _ := getParams(ctx)
 
 	if req, err = http.NewRequest(http.MethodPost, cl.backendUrlParse("/load_from_excel"), file); err != nil {
@@ -130,15 +128,8 @@ func (cl *Client) indexPost(ctx *gin.Context) {
 		return
 	}
 	if res.StatusCode != 200 {
-		var (
-			data      *gin.H
-			byteSlice []byte
-		)
-		if byteSlice, err = ioutil.ReadAll(res.Body); err != nil {
-			responseError(err, http.StatusInternalServerError, ctx)
-			return
-		}
-		if err = json.Unmarshal(byteSlice, data); err != nil {
+		var data = make(gin.H)
+		if err = json.NewDecoder(res.Body).Decode(&data); err != nil {
 			log.Error().Err(err).Send()
 			ctx.HTML(http.StatusInternalServerError, "error_excel_file.gohtml", gin.H{"error": err.Error()})
 			return
