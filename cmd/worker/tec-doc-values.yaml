@@ -1,0 +1,80 @@
+# Enviroment (like as cluser name)
+environment: dataline
+
+replicaCount: 1
+
+image:
+  repository: {{.Helm.Release.Image}}
+  tag: {{.Helm.Release.Tag}}
+  pullPolicy: IfNotPresent
+
+annotations:
+  prometheus.io/path: /metrics
+  prometheus.io/port: "8000"
+  prometheus.io/scrape: "true"
+
+ports:
+  - name: metrics
+    containerPort: 8000
+    protocol: TCP
+  - name: process
+    containerPort: 8000
+    protocol: TCP
+
+readinessProbe:
+  httpGet:
+    path: "/readiness"
+    port: 8000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+livenessProbe:
+  httpGet:
+    path: "/health"
+    port: 8000
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+imagePullSecrets:
+  - name: harbor-registry-secret
+
+vault:
+  enabled: true
+  role: vault-agent-injector-prd
+  authPath: auth/k8s.dataline.vault-auth-suppliers-discounts-prices-go
+  contents:
+    - services/suppliers-discounts-prices-go/prd/content-sync:
+        POSTGRES_USERNAME: postgres_username
+        POSTGRES_PASSWORD: postgres_password
+        POSTGRES_DB: postgres_db
+        TEC_DOC_API_KEY: tecdoc_api_key
+        TEC_DOC_PROVIDER_ID: tecdoc_provider_id
+env:
+  LISTEN_INTERNAL: ":8000"
+  LOG_LEVEL: "debug"
+  #INTERNAL_SERV_PORT:
+  #EXTERNAL_SERV_PORT:
+  POSTGRES_TIMEOUT: "30s"
+  POSTGRES_MAX_CONNECTIONS: 100
+  POSTGRES_MIN_CONNECTIONS: 10
+  CONTENT_URL: "http://source.content-card.svc.k8s.stage-dp/source/migration"
+  CONTENT_TIMEOUT: "30s"
+  TEC_DOC_URL: "https://webservice.tecalliance.services/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint"
+  TEC_DOC_TIMEOUT: "30s"
+  WORKER_TIMER: "1h"
+  WORKER_OFFSET: 1000
+
+service:
+  enabled: true
+  ports:
+    - port: 80
+      name: process
+      targetPort: 8000
+
+resources:
+  requests:
+    memory: "500Mi"
+    cpu: "0.5"
+  limits:
+    memory: "3024Mi"
+    cpu: "2.0"
