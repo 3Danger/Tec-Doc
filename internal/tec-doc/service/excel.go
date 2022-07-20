@@ -34,8 +34,7 @@ func (s *Service) ExcelTemplateForClient() ([]byte, error) {
 	f := exl.NewFile()
 	defer func() { _ = f.Close() }()
 	nameSheet := "Products"
-	index := f.NewSheet(nameSheet)
-	f.SetActiveSheet(f.GetSheetIndex(nameSheet))
+	f.SetSheetName(f.GetSheetName(0), nameSheet)
 	// Set values
 	_ = f.SetCellValue(nameSheet, "A1", "Номер карточки")
 	_ = f.SetCellValue(nameSheet, "B1", "Артикул поставщика (уникальный артикул)")
@@ -61,7 +60,6 @@ func (s *Service) ExcelTemplateForClient() ([]byte, error) {
 	_ = f.SetColWidth(nameSheet, "G", "G", 19)
 	_ = f.SetColWidth(nameSheet, "D", "E", 9)
 	_ = f.SetColWidth(nameSheet, "B", "B", 45)
-	f.SetActiveSheet(index)
 	buffer, err := f.WriteToBuffer()
 	if err != nil {
 		return nil, err
