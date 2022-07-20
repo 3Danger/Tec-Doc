@@ -16,7 +16,7 @@ func Authorize(next *gin.Context) {
 	}
 
 	supplierID := next.Request.Header.Get("X-Supplier-Id")
-	if userID == "" {
+	if supplierID == "" {
 		next.JSON(http.StatusUnauthorized, gin.H{"error": "invalid supplier_id"})
 		return
 	}
@@ -39,10 +39,10 @@ func CredentialsFromContext(ctx *gin.Context) (supplierID int64, userID int64, e
 		valueSupplierID interface{}
 	)
 	if valueUserID = ctx.Value("X-User-Id"); valueUserID == nil {
-		return 0, 0, fmt.Errorf("can't get user_id from context")
+		return 0, 0, fmt.Errorf("can't get user or supplier id from context")
 	}
 	if valueSupplierID = ctx.Value("X-Supplier-Id"); valueSupplierID == nil {
-		return 0, 0, fmt.Errorf("can't get supplier_id from context")
+		return 0, 0, fmt.Errorf("can't get user or supplier id from context")
 	}
 	return valueUserID.(int64), valueSupplierID.(int64), nil
 }
