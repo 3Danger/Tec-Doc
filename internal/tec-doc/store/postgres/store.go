@@ -44,6 +44,11 @@ type Transaction interface {
 	Rollback(ctx context.Context) error
 }
 
+type Pool interface {
+	Begin(ctx context.Context) (pgx.Tx, error)
+	Executor
+}
+
 func (s *store) Transaction(ctx context.Context) (Transaction, error) {
 	return s.pool.Begin(ctx)
 }
@@ -57,7 +62,7 @@ type Executor interface {
 
 type store struct {
 	cfg  *config.PostgresConfig
-	pool *pgxpool.Pool
+	pool Pool
 }
 
 func NewStore(cfg *config.PostgresConfig) (*store, error) {
