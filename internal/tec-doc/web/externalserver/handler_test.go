@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	mockExternalServer "tec-doc/internal/tec-doc/mocks/external_server"
 	"tec-doc/internal/tec-doc/model"
 	"tec-doc/internal/tec-doc/web/externalserver/middleware"
-	mockExternalServer "tec-doc/internal/tec-doc/web/externalserver/mocks"
 	"testing"
 )
 
@@ -117,9 +117,7 @@ func TestExternalHttpServer_GetSupplierTaskHistory(t *testing.T) {
 			w := httptest.NewRecorder()
 			r.ServeHTTP(w, req)
 			var writerGinMap map[string]string
-			if err := json.NewDecoder(w.Body).Decode(&writerGinMap); err != nil {
-				assert.Equal(t, nil, err, "Body decode error")
-			}
+			_ = json.NewDecoder(w.Body).Decode(&writerGinMap)
 			assert.Equal(t, testCase.response["error"], writerGinMap["error"])
 		})
 	}
