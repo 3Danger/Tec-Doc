@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+//go:generate -source=service.go -destination=mock/service_mock.go
+
 type Store interface {
 	CreateTask(ctx context.Context, tx postgres.Transaction, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error)
 	SaveIntoBuffer(ctx context.Context, tx postgres.Transaction, products []model.Product) error
