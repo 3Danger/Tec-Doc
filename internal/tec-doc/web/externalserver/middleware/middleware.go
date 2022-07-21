@@ -4,33 +4,29 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	"net/http"
 	"strconv"
 )
 
 func Authorize(next *gin.Context) {
 	userID := next.Request.Header.Get("X-User-Id")
-	if userID == "" {
-		next.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user_id"})
-		return
+	if userID != "" {
+		userIDN, err := strconv.ParseInt(userID, 10, 64)
+		if err != nil {
+			log.Error().Err(err).Str("Authorize", err.Error()).Send()
+		} else {
+			next.Set("X-User-Id", userIDN)
+		}
 	}
 
 	supplierID := next.Request.Header.Get("X-Supplier-Id")
-	if userID == "" {
-		next.JSON(http.StatusUnauthorized, gin.H{"error": "invalid supplier_id"})
-		return
+	if supplierID != "" {
+		supplierIDN, err := strconv.ParseInt(supplierID, 10, 64)
+		if err != nil {
+			log.Error().Err(err).Str("Authorize", err.Error()).Send()
+		} else {
+			next.Set("X-Supplier-Id", supplierIDN)
+		}
 	}
-
-	userIDN, err := strconv.ParseInt(userID, 10, 64)
-	if err != nil {
-		log.Error().Err(err).Str("Authorize", err.Error()).Send()
-	}
-	supplierIDN, err := strconv.ParseInt(supplierID, 10, 64)
-	if err != nil {
-		log.Error().Err(err).Str("Authorize", err.Error()).Send()
-	}
-	next.Set("X-User-Id", userIDN)
-	next.Set("X-Supplier-Id", supplierIDN)
 }
 
 func CredentialsFromContext(ctx *gin.Context) (supplierID int64, userID int64, err error) {

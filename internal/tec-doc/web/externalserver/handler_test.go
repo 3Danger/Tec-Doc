@@ -18,43 +18,60 @@ import (
 
 func TestExternalHttpServer_GetSupplierTaskHistory(t *testing.T) {
 	type mockBehavior func(svc *mockExternalServer.MockService, limit string, err error)
-	simpleBehavior := func(svc *mockExternalServer.MockService, limit string, err error) {
-		lim, _ := strconv.Atoi(limit)
-		svc.EXPECT().
-			GetSupplierTaskHistory(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			Return(make([]model.Task, lim), nil)
-	}
 	var testCases = map[string]struct {
 		userId     string
 		supplierId string
 		limit      string
 		offset     string
 		behavior   mockBehavior
-		response   gin.H
+		response   map[string]string
 	}{
-		"Test1": {
+		"success test 1": {
 			userId:     "9",
 			supplierId: "10",
 			limit:      "10",
 			offset:     "10",
-			behavior:   simpleBehavior,
-			response:   gin.H{},
+			behavior: func(svc *mockExternalServer.MockService, limit string, err error) {
+				lim, _ := strconv.Atoi(limit)
+				svc.EXPECT().
+					GetSupplierTaskHistory(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(make([]model.Task, lim), nil)
+			},
+			response: make(map[string]string),
 		},
-		"Test2": {
+		"user_id error": {
+			userId:     "f",
+			supplierId: "10",
+			limit:      "10",
+			offset:     "10",
+			behavior:   func(svc *mockExternalServer.MockService, limit string, err error) {},
+			response:   map[string]string{"error": "can't get user_id from context"},
+		},
+		"supplier_id error": {
+			userId:     "10",
+			supplierId: "",
+			limit:      "10",
+			offset:     "10",
+			behavior:   func(svc *mockExternalServer.MockService, limit string, err error) {},
+			response:   map[string]string{"error": "can't get supplier_id from context"},
+		},
+		"limit error": {
 			userId:     "9",
 			supplierId: "10",
-			limit:      "NOT VALID",
+			limit:      "INVALID",
 			offset:     "10",
-			response:   gin.H{"error": "can't get limit"},
+			behavior:   func(svc *mockExternalServer.MockService, limit string, err error) {},
+			response:   map[string]string{"error": "can't get limit"},
 		},
-		"Test3": {
+		"offset error": {
 			userId:     "9",
 			supplierId: "10",
 			limit:      "10",
-			offset:     "NOT VALID",
-			response:   gin.H{"error": "can't get offset"},
+			offset:     "INVALID",
+			behavior:   func(svc *mockExternalServer.MockService, limit string, err error) {},
+			response:   map[string]string{"error": "can't get offset"},
 		},
-		"Test4": {
+		"GetSupplierTaskHistory error": {
 			userId:     "9",
 			supplierId: "10",
 			limit:      "10",
@@ -65,33 +82,27 @@ func TestExternalHttpServer_GetSupplierTaskHistory(t *testing.T) {
 					GetSupplierTaskHistory(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(tasksNil, errors.New("some error"))
 			},
-			response: gin.H{"error": "some error"},
+			response: map[string]string{"error": "some error"},
 		},
 	}
 
 	gin.SetMode(gin.TestMode)
-	c := gomock.NewController(t)
-	defer c.Finish()
-	service := mockExternalServer.NewMockService(c)
+	zerolog.SetGlobalLevel(zerolog.Disabled)
 
-	fakeLogger := new(zerolog.Logger)
-	fakeLogger.Level(zerolog.Disabled)
-	server := New("8080", service, fakeLogger)
+	c := gomock.NewController(t)
+	mockService := mockExternalServer.NewMockService(c)
+	server := &externalHttpServer{
+		service: mockService,
+		logger:  &zerolog.Logger{},
+	}
 
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
+			testCase.behavior(mockService, testCase.limit, errors.New(testCase.response["error"]))
+
 			r := gin.New()
 			r.Use(middleware.Authorize)
-			if testCase.behavior != nil {
-				msg := ""
-				if errMsg, ok := testCase.response["error"]; ok {
-					msg = errMsg.(string)
-				}
-				testCase.behavior(service, testCase.limit, errors.New(msg))
-			}
 			r.GET("/tasks_history", server.GetSupplierTaskHistory)
-
-			w := httptest.NewRecorder()
 
 			req := httptest.NewRequest(http.MethodGet, "/tasks_history", nil)
 			q := req.URL.Query()
@@ -103,9 +114,12 @@ func TestExternalHttpServer_GetSupplierTaskHistory(t *testing.T) {
 				"X-Supplier-Id": {testCase.supplierId},
 			}
 
+			w := httptest.NewRecorder()
 			r.ServeHTTP(w, req)
-			var writerGinMap gin.H
-			_ = json.NewDecoder(w.Body).Decode(&writerGinMap)
+			var writerGinMap map[string]string
+			if err := json.NewDecoder(w.Body).Decode(&writerGinMap); err != nil {
+				assert.Equal(t, nil, err, "Body decode error")
+			}
 			assert.Equal(t, testCase.response["error"], writerGinMap["error"])
 		})
 	}
