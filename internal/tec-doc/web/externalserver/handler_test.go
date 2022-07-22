@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	mockExternalServer "tec-doc/internal/tec-doc/mocks/external_server"
+	mockExternalServer "tec-doc/internal/tec-doc/mocks/mock_externalserver"
 	"tec-doc/internal/tec-doc/model"
 	"tec-doc/internal/tec-doc/web/externalserver/middleware"
 	"testing"

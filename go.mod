@@ -10,6 +10,7 @@ require (
 	github.com/jackc/pgconn v1.12.1
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/magefile/mage v1.13.0
 	github.com/prometheus/client_golang v1.12.2
 	github.com/rs/zerolog v1.27.0
 	github.com/stretchr/testify v1.8.0
@@ -51,7 +52,6 @@ require (
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.1 // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.38.0 // indirect
