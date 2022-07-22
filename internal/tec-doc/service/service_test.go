@@ -14,12 +14,8 @@ import (
 
 func TestService_Start(t *testing.T) {
 	zerolog.SetGlobalLevel(zerolog.Disabled)
-	doAndReturnError := func(second time.Duration, errMsg string) func() error {
-		var err error
-		if errMsg != "" {
-			err = errors.New(errMsg)
-		}
-		return func() error { time.Sleep(time.Second * second); return err }
+	funcSleep := func() func() error {
+		return func() error { time.Sleep(time.Second * 10); return nil }
 	}
 	svc := &Service{
 		log: new(zerolog.Logger),
@@ -27,39 +23,50 @@ func TestService_Start(t *testing.T) {
 
 	testCases := map[string]struct {
 		err                    error
+		contextDone            bool
 		internalServerBehavior func(server *mock_internalserver.MockServer)
 		externalServerBehavior func(server *mock_externalserver.MockServer)
 	}{
 		"success": {
-			err: nil,
 			internalServerBehavior: func(server *mock_internalserver.MockServer) {
-				server.EXPECT().Start().DoAndReturn(doAndReturnError(0, ""))
+				server.EXPECT().Start().AnyTimes().Return(nil)
 			},
 			externalServerBehavior: func(server *mock_externalserver.MockServer) {
-				server.EXPECT().Start().DoAndReturn(doAndReturnError(10, ""))
+				server.EXPECT().Start().AnyTimes().Return(nil)
+			},
+		},
+		"success context done": {
+			contextDone: true,
+			internalServerBehavior: func(server *mock_internalserver.MockServer) {
+				server.EXPECT().Start().AnyTimes().DoAndReturn(funcSleep())
+			},
+			externalServerBehavior: func(server *mock_externalserver.MockServer) {
+				server.EXPECT().Start().AnyTimes().DoAndReturn(funcSleep())
 			},
 		},
 		"error internal": {
 			err: errors.New("test error of internal-server"),
 			internalServerBehavior: func(server *mock_internalserver.MockServer) {
-				server.EXPECT().Start().DoAndReturn(doAndReturnError(0, "test error of internal-server"))
+				server.EXPECT().Start().AnyTimes().Return(errors.New("test error of internal-server"))
 			},
 			externalServerBehavior: func(server *mock_externalserver.MockServer) {
-				server.EXPECT().Start().Do(doAndReturnError(10, ""))
+				server.EXPECT().Start().AnyTimes().Do(funcSleep())
 			},
 		},
 		"error external": {
 			err: errors.New("test error of external-server"),
 			internalServerBehavior: func(server *mock_internalserver.MockServer) {
-				server.EXPECT().Start().Do(doAndReturnError(10, ""))
+				server.EXPECT().Start().AnyTimes().Do(funcSleep())
 			},
 			externalServerBehavior: func(server *mock_externalserver.MockServer) {
-				server.EXPECT().Start().DoAndReturn(doAndReturnError(0, "test error of external-server"))
+				server.EXPECT().Start().Return(errors.New("test error of external-server"))
 			},
 		},
 	}
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
+			ctx, cancelFunc := context.WithCancel(context.Background())
+			defer cancelFunc()
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			internalServer := mock_internalserver.NewMockServer(ctrl)
@@ -68,8 +75,10 @@ func TestService_Start(t *testing.T) {
 			testCase.externalServerBehavior(externalServer)
 			svc.internalServer = internalServer
 			svc.externalServer = externalServer
-			err := svc.Start(context.TODO())
-			assert.Equal(t, testCase.err, err)
+			if testCase.contextDone {
+				cancelFunc()
+			}
+			assert.Equal(t, testCase.err, svc.Start(ctx))
 		})
 	}
 }
