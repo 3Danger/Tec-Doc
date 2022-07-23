@@ -3,6 +3,7 @@ module tec-doc
 go 1.18
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/gofiber/fiber/v2 v2.35.0
 	github.com/golang/mock v1.6.0
@@ -11,6 +12,7 @@ require (
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/magefile/mage v1.13.0
+	github.com/pashagolub/pgxmock v1.6.0
 	github.com/prometheus/client_golang v1.12.2
 	github.com/rs/zerolog v1.27.0
 	github.com/stretchr/testify v1.8.0

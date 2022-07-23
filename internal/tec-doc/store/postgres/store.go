@@ -37,6 +37,11 @@ type Transaction interface {
 	Rollback(ctx context.Context) error
 }
 
+type Pool interface {
+	Begin(ctx context.Context) (pgx.Tx, error)
+	Executor
+}
+
 func (s *store) Transaction(ctx context.Context) (Transaction, error) {
 	return s.pool.Begin(ctx)
 }
@@ -46,11 +51,12 @@ type Executor interface {
 	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
 	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
 	CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error)
+	Begin(ctx context.Context) (pgx.Tx, error)
 }
 
 type store struct {
 	cfg  *config.PostgresConfig
-	pool *pgxpool.Pool
+	pool Pool
 }
 
 func NewStore(cfg *config.PostgresConfig) (*store, error) {
@@ -263,7 +269,7 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 	}
 	defer rows.Close()
 
-	productsHistory := make([]model.Product, 0)
+	var productsHistory []model.Product
 	for rows.Next() {
 		var p model.Product
 		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.CardNumber, &p.ProviderArticle, &p.ManufacturerArticle, &p.Brand,
