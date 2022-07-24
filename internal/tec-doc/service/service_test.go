@@ -82,3 +82,25 @@ func TestService_Start(t *testing.T) {
 		})
 	}
 }
+
+func TestService_Stop(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockInternalServer := mock_internalserver.NewMockServer(ctrl)
+	mockExternalServer := mock_externalserver.NewMockServer(ctrl)
+	zerolog.SetGlobalLevel(zerolog.Disabled)
+	service := Service{
+		log:            new(zerolog.Logger),
+		externalServer: mockInternalServer,
+		internalServer: mockExternalServer,
+	}
+
+	//Just stop
+	mockInternalServer.EXPECT().Stop()
+	mockExternalServer.EXPECT().Stop()
+	service.Stop()
+
+	//Stop with return error
+	mockInternalServer.EXPECT().Stop().Return(errors.New("some error"))
+	mockExternalServer.EXPECT().Stop().Return(errors.New("some error"))
+	service.Stop()
+}
