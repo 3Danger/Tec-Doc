@@ -5,11 +5,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-	"tec-doc/internal/tec-doc/web/externalserver/middleware"
 )
 
-const ContentTypeExcel = "application/vnd.ms-excel"
-
+// todo: сделать аналоги ошибок на русском
 func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 	excelTemplate, err := e.service.ExcelTemplateForClient()
 	if err != nil {
@@ -19,9 +17,10 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 		})
 		return
 	}
-	c.Data(200, ContentTypeExcel, excelTemplate)
+	c.Data(http.StatusOK, "application/vnd.ms-excel", excelTemplate)
 }
 
+// todo: получение header, query, params url, body делаем на уровне web server
 func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	err := e.service.AddFromExcel(c.Request.Body, c)
 	if err != nil {
@@ -81,7 +80,7 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 }
 
 func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
-	supplierID, _, err := middleware.CredentialsFromContext(c)
+	supplierID, _, err := CredentialsFromContext(c)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusUnauthorized, gin.H{

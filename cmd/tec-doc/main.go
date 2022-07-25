@@ -6,32 +6,23 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
-	"strings"
 	"tec-doc/internal/tec-doc/config"
 	l "tec-doc/internal/tec-doc/logger"
 	"tec-doc/internal/tec-doc/service"
-	"tec-doc/internal/tec-doc/web/externalserver"
-	"tec-doc/internal/tec-doc/web/internalserver"
 	"tec-doc/pkg/sig"
 )
 
+// todo: генерация метрик на этом уровне и прокидываем дальше в сервис и server
 func initConfig() (*config.Config, *zerolog.Logger, error) {
-	var (
-		conf   *config.Config
-		logger zerolog.Logger
-		err    error
-	)
-	// Init Config
-	conf = new(config.Config)
-	if err = envconfig.Process("TEC_DOC", conf); err != nil {
+	var conf config.Config
+	if err := envconfig.Process("", &conf); err != nil {
 		return nil, nil, err
 	}
-	// Init Logger
-	logger, err = l.InitLogger(strings.ToLower(conf.LogLevel))
+	logger, err := l.InitLogger(conf.LogLevel)
 	if err != nil {
 		return nil, nil, err
 	}
-	return conf, &logger, nil
+	return &conf, &logger, nil
 }
 
 func main() {
@@ -40,25 +31,20 @@ func main() {
 		log.Fatal().Err(err).Send()
 	}
 
-	egroup, ctx := errgroup.WithContext(context.Background())
-	egroup.Go(func() error {
+	erg, ctx := errgroup.WithContext(context.Background())
+	erg.Go(func() error {
 		return sig.Listen(ctx)
 	})
 
-	srvc := service.New(conf, logger)
-
-	internalServ := internalserver.New(conf.InternalServPort)
-	externalServ := externalserver.New(conf.ExternalServPort, srvc, logger)
-
-	srvc.SetInternalServer(internalServ)
-	srvc.SetExternalServer(externalServ)
-
-	egroup.Go(func() error {
-		return srvc.Start(ctx)
+	svc := service.New(ctx, conf, logger)
+	logger.Info().Msg("service starting..")
+	erg.Go(func() error {
+		return svc.Start(ctx)
 	})
 
-	if err = egroup.Wait(); err != nil {
+	if err = erg.Wait(); err != nil {
 		logger.Error().Err(err).Send()
 	}
-	srvc.Stop()
+	svc.Stop()
+	logger.Info().Msg("graceful shutdown done")
 }

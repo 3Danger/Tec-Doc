@@ -68,13 +68,12 @@ func (s *Service) ExcelTemplateForClient() ([]byte, error) {
 }
 
 func (s *Service) loadFromExcel(bodyData io.Reader) (products []model.Product, err error) {
-	var (
-		rows [][]string
-	)
+	var rows [][]string
 	f, err := exl.OpenReader(bodyData)
 	if err != nil {
 		return nil, err
 	}
+	defer func() { _ = f.Close() }()
 	list := f.GetSheetList()
 	if len(list) == 0 {
 		return nil, errors.New("empty data")
@@ -125,21 +124,23 @@ func (s *Service) AddFromExcel(bodyData io.Reader, ctx *gin.Context) error {
 	if tx, err = s.database.Transaction(ctx); err != nil {
 		return err
 	}
-	defer func() { _ = tx.Rollback(ctx) }()
 
 	supplierID = ctx.GetInt64("X-Supplier-Id")
 	userID = ctx.GetInt64("X-User-Id")
 
 	if uploaderId, err = s.database.CreateTask(ctx, tx, supplierID, userID, ctx.ClientIP(), time.Now().UTC()); err != nil {
+		_ = tx.Rollback(ctx)
 		return err
 	}
 	for i := 0; i < len(products); i++ {
 		products[i].UploadID = uploaderId
 	}
 	if err = s.database.SaveIntoBuffer(ctx, tx, products); err != nil {
+		_ = tx.Rollback(ctx)
 		return err
 	}
 	if err = tx.Commit(ctx); err != nil {
+		_ = tx.Rollback(ctx)
 		return err
 	}
 	return nil

@@ -12,34 +12,34 @@ type Config struct {
 	ListenInternal   string `envconfig:"LISTEN_INTERNAL" default:":8000"`
 	Postgres         PostgresConfig
 	Content          ContentClientConfig
-	TecDoc           TecDocConfig
+	TecDoc           TecDocClientConfig
 	Worker           WorkerConfig
 }
 
 type PostgresConfig struct {
-	Username string        `envconfig:"USERNAME" required:"true"`
-	Password string        `envconfig:"PASSWORD" required:"true"`
-	Host     string        `envconfig:"HOST" required:"true"`
-	Port     string        `envconfig:"PORT" required:"true"`
-	DbName   string        `envconfig:"DB" required:"true"`
-	Timeout  time.Duration `envconfig:"TIMEOUT" default:"30s"`
-	MaxConns int32         `envconfig:"MAX_CONNECTIONS" default:"100"`
-	MinConns int32         `envconfig:"MIN_CONNECTIONS" default:"10"`
+	Username string        `envconfig:"POSTGRES_USERNAME" required:"true"`
+	Password string        `envconfig:"POSTGRES_PASSWORD" required:"true"`
+	Host     string        `envconfig:"POSTGRES_HOST" required:"true"`
+	Port     string        `envconfig:"POSTGRES_PORT" required:"true"`
+	DbName   string        `envconfig:"POSTGRES_DB" required:"true"`
+	Timeout  time.Duration `envconfig:"POSTGRES_TIMEOUT" default:"30s"`
+	MaxConns int32         `envconfig:"POSTGRES_MAX_CONNECTIONS" default:"100"`
+	MinConns int32         `envconfig:"POSTGRES_MIN_CONNECTIONS" default:"10"`
 }
 
 type ContentClientConfig struct {
-	URL     string        `envconfig:"URL"`
-	Timeout time.Duration `envconfig:"TIMEOUT" default:"30s"`
+	URL     string        `envconfig:"CONTENT_CLIENT_URL"`
+	Timeout time.Duration `envconfig:"CONTENT_CLIENT_TIMEOUT" default:"30s"`
 }
 
-type TecDocConfig struct {
-	URL        string        `envconfig:"URL"`
-	Timeout    time.Duration `envconfig:"TIMEOUT" default:"30s"`
-	XApiKey    string        `envconfig:"API_KEY"`
-	ProviderId int           `envconfig:"PROVIDER_ID"`
+type TecDocClientConfig struct {
+	URL        string        `envconfig:"TEC_DOC_CLIENT_URL"`
+	Timeout    time.Duration `envconfig:"TEC_DOC_CLIENT_TIMEOUT" default:"30s"`
+	XApiKey    string        `envconfig:"TEC_DOC_CLIENT_API_KEY"`
+	ProviderId int           `envconfig:"TEC_DOC_CLIENT_PROVIDER_ID"`
 }
 
 type WorkerConfig struct {
-	Timer  time.Duration `envconfig:"TIMER" default:"1h"`
-	Offset int           `envconfig:"OFFSET" default:"1000"`
+	Timer  time.Duration `envconfig:"WORKER_TIMER" default:"1h"`
+	Offset int           `envconfig:"WORKER_OFFSET" default:"1000"`
 }
