@@ -20,8 +20,8 @@ type service struct {
 	contentClient content.ClientSource
 }
 
-func New(conf *config.Config, log *zerolog.Logger) *service {
-	store, err := postgres.NewStore(&conf.Postgres)
+func New(ctx context.Context, conf *config.Config, log *zerolog.Logger) *service {
+	store, err := postgres.NewStore(ctx, &conf.Postgres)
 	if err != nil {
 		log.Error().Err(err).Send()
 		return nil
