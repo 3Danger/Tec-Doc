@@ -9,10 +9,7 @@ import (
 	"strings"
 	"tec-doc/internal/tec-doc/config"
 	l "tec-doc/internal/tec-doc/logger"
-	"tec-doc/internal/tec-doc/service"
-	"tec-doc/internal/tec-doc/web/externalserver"
-	"tec-doc/internal/tec-doc/web/internalserver"
-	"tec-doc/pkg/sig"
+	"tec-doc/internal/worker/service"
 )
 
 func initConfig() (*config.Config, *zerolog.Logger, error) {
@@ -26,6 +23,7 @@ func initConfig() (*config.Config, *zerolog.Logger, error) {
 	if err = envconfig.Process("TEC_DOC", conf); err != nil {
 		return nil, nil, err
 	}
+
 	// Init Logger
 	logger, err = l.InitLogger(strings.ToLower(conf.LogLevel))
 	if err != nil {
@@ -39,25 +37,15 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	egroup, ctx := errgroup.WithContext(context.Background())
-	egroup.Go(func() error {
-		return sig.Listen(ctx)
-	})
-
+	errGr, ctx := errgroup.WithContext(context.Background())
 	srvc := service.New(conf, logger)
 
-	internalServ := internalserver.New(conf.InternalServPort)
-	externalServ := externalserver.New(conf.ExternalServPort, srvc, logger)
-
-	srvc.SetInternalServer(internalServ)
-	srvc.SetExternalServer(externalServ)
-
-	egroup.Go(func() error {
-		return srvc.Start(ctx)
+	//TODO timer
+	errGr.Go(func() error {
+		return srvc.TaskWorkerRun(ctx, conf.Worker)
 	})
 
-	if err = egroup.Wait(); err != nil {
+	if err := errGr.Wait(); err != nil {
 		logger.Error().Err(err).Send()
 	}
-	srvc.Stop()
 }
