@@ -16,6 +16,59 @@ import (
 	"testing"
 )
 
+func TestExternalHttpServer_ExcelTemplate(t *testing.T) {
+	type mockBehavior func(service *mockExternalServer.MockService)
+	wantErr := errors.New("some error")
+	wantErrBytes, _ := json.Marshal(map[string]string{"error": wantErr.Error()})
+	testCase := map[string]struct {
+		contentType string
+		behavior    mockBehavior
+		want        []byte
+		wantStatus  int
+	}{
+		"success test": {
+			contentType: "application/vnd.ms-excel",
+			behavior: func(service *mockExternalServer.MockService) {
+				service.EXPECT().ExcelTemplateForClient().Return([]byte("some valid excel data"), nil)
+			},
+			want:       []byte("some valid excel data"),
+			wantStatus: http.StatusOK,
+		},
+		"error test": {
+			contentType: "application/json",
+			behavior: func(service *mockExternalServer.MockService) {
+				service.EXPECT().ExcelTemplateForClient().Return(nil, wantErr)
+			},
+			want:       wantErrBytes,
+			wantStatus: http.StatusInternalServerError,
+		},
+	}
+	gin.SetMode(gin.TestMode)
+	zerolog.SetGlobalLevel(zerolog.Disabled)
+	for name, tc := range testCase {
+		t.Run(name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			mockService := mockExternalServer.NewMockService(ctrl)
+			tc.behavior(mockService)
+			server := externalHttpServer{
+				router:  gin.New(),
+				service: mockService,
+				logger:  new(zerolog.Logger),
+			}
+			server.router.GET("/excel_template", server.ExcelTemplate)
+
+			req := httptest.NewRequest(http.MethodGet, "/excel_template", nil)
+			w := httptest.NewRecorder()
+
+			server.router.ServeHTTP(w, req)
+			contentType := w.Header().Get("Content-Type")
+			assert.Equal(t, tc.wantStatus, w.Code)
+			assert.Contains(t, contentType, tc.contentType)
+			assert.Equal(t, tc.want, w.Body.Bytes())
+		})
+	}
+}
+
 func TestExternalHttpServer_GetSupplierTaskHistory(t *testing.T) {
 	type mockBehavior func(svc *mockExternalServer.MockService, limit string, err error)
 	var testCases = map[string]struct {
@@ -116,9 +169,9 @@ func TestExternalHttpServer_GetSupplierTaskHistory(t *testing.T) {
 
 			w := httptest.NewRecorder()
 			r.ServeHTTP(w, req)
-			var writerGinMap map[string]string
-			_ = json.NewDecoder(w.Body).Decode(&writerGinMap)
-			assert.Equal(t, testCase.response["error"], writerGinMap["error"])
+			var gotMap map[string]string
+			_ = json.NewDecoder(w.Body).Decode(&gotMap)
+			assert.Equal(t, testCase.response["error"], gotMap["error"])
 		})
 	}
 }
