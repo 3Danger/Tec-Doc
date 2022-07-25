@@ -12,11 +12,15 @@ func (e *externalHttpServer) Authorize(next *gin.Context) {
 	userID := next.Request.Header.Get("X-User-Id")
 	if userID == "" {
 		e.logger.Error().Err(errinfo.InvalidUserID).Send()
+		next.AbortWithStatus(401)
+		return
 	}
 
 	userIDN, err := strconv.ParseInt(userID, 10, 64)
 	if err != nil {
 		e.logger.Error().Err(errinfo.InvalidUserID).Send()
+		next.AbortWithStatus(401)
+		return
 	} else if userIDN >= 0 {
 		next.Set("X-User-Id", userIDN)
 	}
@@ -24,11 +28,15 @@ func (e *externalHttpServer) Authorize(next *gin.Context) {
 	supplierID := next.Request.Header.Get("X-Supplier-Id")
 	if supplierID == "" {
 		e.logger.Error().Err(errinfo.InvalidSupplierID).Send()
+		next.AbortWithStatus(401)
+		return
 	}
 
 	supplierIDN, err := strconv.ParseInt(supplierID, 10, 64)
 	if err != nil {
 		e.logger.Error().Err(errinfo.InvalidSupplierID).Send()
+		next.AbortWithStatus(401)
+		return
 	} else if supplierIDN >= 0 {
 		next.Set("X-Supplier-Id", supplierIDN)
 	}
