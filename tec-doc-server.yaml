@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tec-doc-server-deployment
+  namespace: suppliers-discounts-prices-go
+  labels:
+    app: tec-doc-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tec-doc-server
+  template:
+    metadata:
+      labels:
+        app: tec-doc-server
+    spec:
+      containers:
+        - name: tec-doc-server
+          image: csamuro/tec-doc-server:latest
+          ports:
+            - containerPort: 8001
+          env:
+            - name: TEC_DOC_POSTGRES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: postgres-user
+            - name: TEC_DOC_POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: postgres-password
+            - name: TEC_DOC_POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: postgres-url
+            - name: TEC_DOC_POSTGRES_PORT
+              value: '5432'
+            - name: TEC_DOC_EXTERNAL_SERV_PORT
+              value: '8001'
+            - name: TEC_DOC_INTERNAL_SERV_PORT
+              value: '8000'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tec-doc-server-service
+  namespace: suppliers-discounts-prices-go
+spec:
+  selector:
+    app: tec-doc-server
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001

@@ -13,8 +13,8 @@ import (
 )
 
 type Client interface {
-	GetArticles(ctx context.Context, tecDocCfg config.TecDocConfig, dataSupplierID int, article string) ([]model.Article, error)
-	GetBrand(ctx context.Context, tecDocCfg config.TecDocConfig, brandName string) (*model.Brand, error)
+	GetArticles(ctx context.Context, tecDocCfg config.TecDocClientConfig, dataSupplierID int, article string) ([]model.Article, error)
+	GetBrand(ctx context.Context, tecDocCfg config.TecDocClientConfig, brandName string) (*model.Brand, error)
 }
 
 type tecDocClient struct {
@@ -29,7 +29,7 @@ func NewClient(baseURL string, timeout time.Duration) *tecDocClient {
 	}
 }
 
-func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConfig, brandName string) (*model.Brand, error) {
+func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocClientConfig, brandName string) (*model.Brand, error) {
 	reqBodyReader := bytes.NewReader([]byte(fmt.Sprintf(
 		`{"getBrands":{"articleCountry":"ru", "lang":"ru", "provider":%d}}`, tecDocCfg.ProviderId)))
 
@@ -78,7 +78,7 @@ func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocConf
 	return nil, fmt.Errorf("no brand found")
 }
 
-func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocConfig, dataSupplierID int, article string) ([]model.Article, error) {
+func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocClientConfig, dataSupplierID int, article string) ([]model.Article, error) {
 	reqBodyReader := bytes.NewReader([]byte(fmt.Sprintf(
 		`{
 			"getArticles": {

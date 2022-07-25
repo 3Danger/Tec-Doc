@@ -4,16 +4,17 @@ go 1.18
 
 require (
 	github.com/gin-gonic/gin v1.8.1
-	github.com/gofiber/fiber/v2 v2.34.1
-	github.com/golang/mock v1.4.4
+	github.com/gofiber/fiber/v2 v2.35.0
+	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgconn v1.12.1
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/magefile/mage v1.13.0
 	github.com/pashagolub/pgxmock v1.6.0
 	github.com/prometheus/client_golang v1.12.2
 	github.com/rs/zerolog v1.27.0
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.8.0
 	github.com/xuri/excelize/v2 v2.6.0
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 )
@@ -54,7 +55,7 @@ require (
 	github.com/richardlehane/msoleps v1.0.1 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.37.0 // indirect
+	github.com/valyala/fasthttp v1.38.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/xuri/efp v0.0.0-20220407160117-ad0f7a785be8 // indirect
 	github.com/xuri/nfp v0.0.0-20220409054826-5e722a1d9e22 // indirect
@@ -64,5 +65,5 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

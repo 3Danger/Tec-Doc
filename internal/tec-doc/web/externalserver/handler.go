@@ -5,34 +5,44 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-	"tec-doc/internal/tec-doc/web/externalserver/middleware"
 )
 
-const ContentTypeExcel = "application/vnd.ms-excel"
-
+// todo: сделать аналоги ошибок на русском
 func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 	excelTemplate, err := e.service.ExcelTemplateForClient()
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"error": "внутренняя ошибка сервера",
 		})
 		return
 	}
-	c.Data(200, ContentTypeExcel, excelTemplate)
+	c.Data(http.StatusOK, "application/vnd.ms-excel", excelTemplate)
 }
 
+// todo: получение header, query, params url, body делаем на уровне web server
 func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
-	err := e.service.AddFromExcel(c.Request.Body, c)
+	supplierID, userID := c.GetInt64("X-Supplier-Id"), c.GetInt64("X-User-Id")
+
+	products, err := e.loadFromExcel(c.Request.Body)
+	if err != nil {
+		e.logger.Error().Err(err).Send()
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "некорректные данные в excel",
+		})
+		return
+	}
+
+	err = e.service.AddFromExcel(c, products, supplierID, userID)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"error": "внутренняя ошибка сервера",
 		})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"message": "success",
+		"message": "данные успешно загружены",
 	})
 }
 
@@ -48,38 +58,48 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 	var rs ReqStruct
 
 	if err := dec.Decode(&rs); err != nil {
+		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "can't get upload_id",
+			"error": "некорректный ID задания",
 		})
 		return
 	}
 
 	limit, err := strconv.Atoi(c.Query("limit"))
 	if err != nil {
+		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "can't get limit",
+			"error": "некорректный параметр limit",
 		})
 		return
 	}
 
 	offset, err := strconv.Atoi(c.Query("offset"))
 	if err != nil {
+		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "can't get offset",
+			"error": "некорректный параметр offset",
 		})
 		return
 	}
 
 	productsHistory, err := e.service.GetProductsHistory(c, nil, rs.UploadID, limit, offset)
+	if err != nil {
+		e.logger.Error().Err(err).Send()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "внутренняя ошибка сервера",
+		})
+		return
+	}
 	c.JSON(http.StatusOK, productsHistory)
 }
 
 func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
-	supplierID, _, err := middleware.CredentialsFromContext(c)
+	supplierID, _, err := CredentialsFromContext(c)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": err.Error(),
+			"error": "некорректный ID задания",
 		})
 		return
 	}
@@ -88,7 +108,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusBadRequest, gin.H{
-			"can't get limit": err.Error(),
+			"error": "некорректный параметр limit",
 		})
 		return
 	}
@@ -97,7 +117,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusBadRequest, gin.H{
-			"can't get offset": err.Error(),
+			"error": "некорректный параметр offset",
 		})
 		return
 	}
@@ -106,7 +126,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"error": "внутренняя ошибка сервера",
 		})
 		return
 	}
@@ -128,7 +148,7 @@ func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
 	if err := dec.Decode(&rs); err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusBadRequest, gin.H{
-			"can't get brand and article number": err.Error(),
+			"error": "некорректное имя бренда или номер артикула",
 		})
 		return
 	}
@@ -137,7 +157,7 @@ func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"can't get tecdoc brand": err.Error(),
+			"error": "внутренняя ошибка сервера",
 		})
 		return
 	}
@@ -146,7 +166,7 @@ func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"can't get tecdoc articles": err.Error(),
+			"error": "внутренняя ошибка сервера",
 		})
 		return
 	}
