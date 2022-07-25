@@ -39,6 +39,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
+
 	egroup, ctx := errgroup.WithContext(context.Background())
 	egroup.Go(func() error {
 		return sig.Listen(ctx)

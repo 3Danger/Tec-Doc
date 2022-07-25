@@ -71,6 +71,12 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 	}
 
 	productsHistory, err := e.service.GetProductsHistory(c, nil, rs.UploadID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, productsHistory)
 }
 

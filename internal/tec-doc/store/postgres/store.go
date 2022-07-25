@@ -68,7 +68,12 @@ type store struct {
 func NewStore(cfg *config.PostgresConfig) (*store, error) {
 	pool, err := NewPool(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("can't create pool: %w", err)
+		return nil, fmt.Errorf("can't create pool: %v", err)
+	}
+
+	err = pool.Ping(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("can't connect pool: %v", err)
 	}
 
 	return &store{
@@ -296,7 +301,7 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 		getProductsFromHistoryQuery = `SELECT id, upload_id, article, card_number, provider_article, manufacturer_article, brand, sku, category, price,
 	upload_date, update_date, status, errorresponse FROM products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 		executor        Executor
-		productsHistory = make([]model.Product, 0)
+		productsHistory []model.Product
 	)
 
 	executor = s.pool

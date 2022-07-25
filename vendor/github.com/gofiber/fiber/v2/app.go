@@ -39,7 +39,7 @@ import (
 )
 
 // Version of current fiber package
-const Version = "2.34.1"
+const Version = "2.35.0"
 
 // Handler defines a function to serve HTTP requests.
 type Handler = func(*Ctx) error
@@ -76,7 +76,8 @@ type Storage interface {
 //  cfg := fiber.Config{}
 //  cfg.ErrorHandler = func(c *Ctx, err error) error {
 //   code := StatusInternalServerError
-//   if e, ok := err.(*Error); ok {
+//   var e *fiber.Error
+//   if errors.As(err, &e) {
 //     code = e.Code
 //   }
 //   c.Set(HeaderContentType, MIMETextPlainCharsetUTF8)
@@ -433,7 +434,8 @@ const (
 // DefaultErrorHandler that process return errors from handlers
 var DefaultErrorHandler = func(c *Ctx, err error) error {
 	code := StatusInternalServerError
-	if e, ok := err.(*Error); ok {
+	var e *Error
+	if errors.As(err, &e) {
 		code = e.Code
 	}
 	c.Set(HeaderContentType, MIMETextPlainCharsetUTF8)

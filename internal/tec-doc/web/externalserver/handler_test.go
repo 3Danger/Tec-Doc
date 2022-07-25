@@ -12,7 +12,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strconv"
-	mock_externalserver "tec-doc/internal/tec-doc/mock"
+	mockExternalServer "tec-doc/internal/tec-doc/mocks/mock_externalserver"
 	"tec-doc/internal/tec-doc/model"
 	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/internal/tec-doc/web/externalserver/middleware"
@@ -20,11 +20,64 @@ import (
 	"time"
 )
 
-func TestHandler_GetSupplierTaskHistory(t *testing.T) {
+func TestExternalHttpServer_ExcelTemplate(t *testing.T) {
+	type mockBehavior func(service *mockExternalServer.MockService)
+	wantErr := errors.New("some error")
+	wantErrBytes, _ := json.Marshal(map[string]string{"error": wantErr.Error()})
+	testCase := map[string]struct {
+		contentType string
+		behavior    mockBehavior
+		want        []byte
+		wantStatus  int
+	}{
+		"success test": {
+			contentType: "application/vnd.ms-excel",
+			behavior: func(service *mockExternalServer.MockService) {
+				service.EXPECT().ExcelTemplateForClient().Return([]byte("some valid excel data"), nil)
+			},
+			want:       []byte("some valid excel data"),
+			wantStatus: http.StatusOK,
+		},
+		"error test": {
+			contentType: "application/json",
+			behavior: func(service *mockExternalServer.MockService) {
+				service.EXPECT().ExcelTemplateForClient().Return(nil, wantErr)
+			},
+			want:       wantErrBytes,
+			wantStatus: http.StatusInternalServerError,
+		},
+	}
+	gin.SetMode(gin.TestMode)
+	zerolog.SetGlobalLevel(zerolog.Disabled)
+	for name, tc := range testCase {
+		t.Run(name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			mockService := mockExternalServer.NewMockService(ctrl)
+			tc.behavior(mockService)
+			server := externalHttpServer{
+				router:  gin.New(),
+				service: mockService,
+				logger:  new(zerolog.Logger),
+			}
+			server.router.GET("/excel_template", server.ExcelTemplate)
+
+			req := httptest.NewRequest(http.MethodGet, "/excel_template", nil)
+			w := httptest.NewRecorder()
+
+			server.router.ServeHTTP(w, req)
+			contentType := w.Header().Get("Content-Type")
+			assert.Equal(t, tc.wantStatus, w.Code)
+			assert.Contains(t, contentType, tc.contentType)
+			assert.Equal(t, tc.want, w.Body.Bytes())
+		})
+	}
+}
+
+func TestExternalHttpServer_GetSupplierTaskHistory(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockService := mock_externalserver.NewMockService(ctrl)
+	mockService := mockExternalServer.NewMockService(ctrl)
 
 	type args struct {
 		ctx              context.Context
@@ -39,13 +92,13 @@ func TestHandler_GetSupplierTaskHistory(t *testing.T) {
 		offsetQuery      string
 	}
 
-	type mockBehavoir func(args args, tasks []model.Task)
+	type mockBehavior func(args args, tasks []model.Task)
 
 	testCases := []struct {
 		name                 string
 		input                args
 		tasks                []model.Task
-		mock                 mockBehavoir
+		mock                 mockBehavior
 		expectedStatusCode   int
 		wantErrBody          string
 		expectedResponseBody func(want interface{}) string
@@ -66,7 +119,7 @@ func TestHandler_GetSupplierTaskHistory(t *testing.T) {
 		{
 			name:        "Error invalid userID header",
 			input:       args{context.Background(), nil, int64(1), int64(1), 0, 0, "Error", "X-Supplier-Id", "limit", "offset"},
-			wantErrBody: `{"error":"invalid user_id"}{"error":"can't get user or supplier id from context"}`,
+			wantErrBody: `{"error":"can't get user_id from context"}`,
 			mock: func(args args, tasks []model.Task) {
 			},
 			expectedStatusCode: http.StatusUnauthorized,
@@ -77,7 +130,7 @@ func TestHandler_GetSupplierTaskHistory(t *testing.T) {
 		{
 			name:        "Error invalid supplierID header",
 			input:       args{context.Background(), nil, int64(1), int64(1), 0, 0, "X-User-Id", "Error", "limit", "offset"},
-			wantErrBody: `{"error":"invalid supplier_id"}{"error":"can't get user or supplier id from context"}`,
+			wantErrBody: `{"error":"can't get supplier_id from context"}`,
 			mock: func(args args, tasks []model.Task) {
 			},
 			expectedStatusCode: http.StatusUnauthorized,
@@ -159,9 +212,9 @@ func TestHandler_GetSupplierTaskHistory(t *testing.T) {
 
 			assert.Equal(t, w.Code, tt.expectedStatusCode)
 			if tt.wantErrBody == "" {
-				assert.Equal(t, w.Body.String(), tt.expectedResponseBody(tt.tasks))
+				assert.Equal(t, tt.expectedResponseBody(tt.tasks), w.Body.String())
 			} else {
-				assert.Equal(t, w.Body.String(), tt.expectedResponseBody(tt.wantErrBody))
+				assert.Equal(t, tt.expectedResponseBody(tt.wantErrBody), w.Body.String())
 			}
 		})
 	}
