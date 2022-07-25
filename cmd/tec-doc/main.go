@@ -9,10 +9,10 @@ import (
 	"tec-doc/internal/tec-doc/config"
 	l "tec-doc/internal/tec-doc/logger"
 	"tec-doc/internal/tec-doc/service"
+	"tec-doc/pkg/metrics"
 	"tec-doc/pkg/sig"
 )
 
-// todo: генерация метрик на этом уровне и прокидываем дальше в сервис и server
 func initConfig() (*config.Config, *zerolog.Logger, error) {
 	var conf config.Config
 	if err := envconfig.Process("", &conf); err != nil {
@@ -36,7 +36,8 @@ func main() {
 		return sig.Listen(ctx)
 	})
 
-	svc := service.New(ctx, conf, logger)
+	mts := metrics.NewMetrics("external", "HttpServer")
+	svc := service.New(ctx, conf, logger, mts)
 	logger.Info().Msg("service starting..")
 	erg.Go(func() error {
 		return svc.Start(ctx)

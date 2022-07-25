@@ -1,13 +1,9 @@
 package service
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	exl "github.com/xuri/excelize/v2"
-	"io"
-	"strconv"
 	"tec-doc/internal/tec-doc/model"
-	"tec-doc/internal/tec-doc/store/postgres"
 	"time"
 )
 
@@ -67,68 +63,14 @@ func (s *Service) ExcelTemplateForClient() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func (s *Service) loadFromExcel(bodyData io.Reader) (products []model.Product, err error) {
-	var rows [][]string
-	f, err := exl.OpenReader(bodyData)
+func (s *Service) AddFromExcel(ctx *gin.Context, products []model.Product, supplierID int64, userID int64) error {
+	tx, err := s.database.Transaction(ctx)
 	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = f.Close() }()
-	list := f.GetSheetList()
-	if len(list) == 0 {
-		return nil, errors.New("empty data")
-	}
-	rows, err = f.GetRows("Products")
-	if len(rows) < 2 {
-		return nil, errors.New("empty data")
-	}
-	products = make([]model.Product, len(rows[1:]))
-	for i := range products {
-		if err = parseExcelRow(&products[i], rows[i+1]); err != nil {
-			return nil, err
-		}
-	}
-	return products, nil
-}
-
-func parseExcelRow(p *model.Product, row []string) (err error) {
-	if len(row) < 7 {
-		return errors.New("row is invalid")
-	}
-	if p.CardNumber, err = strconv.Atoi(row[0]); err != nil {
-		return err
-	}
-	p.ProviderArticle = row[1]
-	p.ManufacturerArticle = row[2]
-	p.Brand = row[3]
-	p.SKU = row[4]
-	p.Category = row[5]
-	if p.Price, err = strconv.Atoi(row[6]); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Service) AddFromExcel(bodyData io.Reader, ctx *gin.Context) error {
-
-	var (
-		err      error
-		products []model.Product
-		tx       postgres.Transaction
-
-		supplierID, userID, uploaderId int64
-	)
-	if products, err = s.loadFromExcel(bodyData); err != nil {
-		return err
-	}
-	if tx, err = s.database.Transaction(ctx); err != nil {
 		return err
 	}
 
-	supplierID = ctx.GetInt64("X-Supplier-Id")
-	userID = ctx.GetInt64("X-User-Id")
-
-	if uploaderId, err = s.database.CreateTask(ctx, tx, supplierID, userID, ctx.ClientIP(), time.Now().UTC()); err != nil {
+	uploaderId, err := s.database.CreateTask(ctx, tx, supplierID, userID, ctx.ClientIP(), time.Now().UTC())
+	if err != nil {
 		_ = tx.Rollback(ctx)
 		return err
 	}

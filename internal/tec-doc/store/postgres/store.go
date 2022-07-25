@@ -19,7 +19,6 @@ const (
 	StatusError
 )
 
-//Store интерфейс описывающий методы для работы с БД
 type Store interface {
 	CreateTask(ctx context.Context, tx Transaction, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error)
 	SaveIntoBuffer(ctx context.Context, tx Transaction, products []model.Product) error
