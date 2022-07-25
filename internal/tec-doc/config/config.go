@@ -1,9 +1,8 @@
 package config
 
 import (
-	"time"
-
 	_ "github.com/kelseyhightower/envconfig"
+	"time"
 )
 
 type Config struct {
@@ -14,6 +13,7 @@ type Config struct {
 	Postgres         PostgresConfig
 	Content          ContentClientConfig
 	TecDoc           TecDocConfig
+	Worker           WorkerConfig
 }
 
 type PostgresConfig struct {
@@ -37,4 +37,9 @@ type TecDocConfig struct {
 	Timeout    time.Duration `envconfig:"TIMEOUT" default:"30s"`
 	XApiKey    string        `envconfig:"API_KEY"`
 	ProviderId int           `envconfig:"PROVIDER_ID"`
+}
+
+type WorkerConfig struct {
+	Timer  time.Duration `envconfig:"TIMER" default:"1h"`
+	Offset int           `envconfig:"OFFSET" default:"1000"`
 }

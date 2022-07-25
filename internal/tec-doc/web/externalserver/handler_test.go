@@ -1,6 +1,9 @@
 package externalserver
 
 import (
+<<<<<<< HEAD
+=======
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -70,108 +73,148 @@ func TestExternalHttpServer_ExcelTemplate(t *testing.T) {
 }
 
 func TestExternalHttpServer_GetSupplierTaskHistory(t *testing.T) {
-	type mockBehavior func(svc *mockExternalServer.MockService, limit string, err error)
-	var testCases = map[string]struct {
-		userId     string
-		supplierId string
-		limit      string
-		offset     string
-		behavior   mockBehavior
-		response   map[string]string
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := mockExternalServer.NewMockService(ctrl)
+
+	type args struct {
+		ctx              context.Context
+		tx               postgres.Transaction
+		userID           int64
+		supplierID       int64
+		limit            int
+		offset           int
+		userIDHeader     string
+		supplierIDHeader string
+		limitQuery       string
+		offsetQuery      string
+	}
+
+	type mockBehavoir func(args args, tasks []model.Task)
+
+	testCases := []struct {
+		name                 string
+		input                args
+		tasks                []model.Task
+		mock                 mockBehavoir
+		expectedStatusCode   int
+		wantErrBody          string
+		expectedResponseBody func(want interface{}) string
 	}{
-		"success test 1": {
-			userId:     "9",
-			supplierId: "10",
-			limit:      "10",
-			offset:     "10",
-			behavior: func(svc *mockExternalServer.MockService, limit string, err error) {
-				lim, _ := strconv.Atoi(limit)
-				svc.EXPECT().
-					GetSupplierTaskHistory(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(make([]model.Task, lim), nil)
+		{
+			name:  "OK",
+			input: args{context.Background(), nil, int64(1), int64(1), 0, 0, "X-User-Id", "X-Supplier-Id", "limit", "offset"},
+			tasks: []model.Task{{int64(1), int64(1), int64(1), time.Now(), time.Now(), "127.0.0.1", 0, 0, 0, 0}},
+			mock: func(args args, tasks []model.Task) {
+				mockService.EXPECT().GetSupplierTaskHistory(gomock.Any(), args.tx, args.supplierID, args.limit, args.offset).Return(tasks, nil).Times(1)
 			},
-			response: make(map[string]string),
-		},
-		"user_id error": {
-			userId:     "f",
-			supplierId: "10",
-			limit:      "10",
-			offset:     "10",
-			behavior:   func(svc *mockExternalServer.MockService, limit string, err error) {},
-			response:   map[string]string{"error": "can't get user_id from context"},
-		},
-		"supplier_id error": {
-			userId:     "10",
-			supplierId: "",
-			limit:      "10",
-			offset:     "10",
-			behavior:   func(svc *mockExternalServer.MockService, limit string, err error) {},
-			response:   map[string]string{"error": "can't get supplier_id from context"},
-		},
-		"limit error": {
-			userId:     "9",
-			supplierId: "10",
-			limit:      "INVALID",
-			offset:     "10",
-			behavior:   func(svc *mockExternalServer.MockService, limit string, err error) {},
-			response:   map[string]string{"error": "can't get limit"},
-		},
-		"offset error": {
-			userId:     "9",
-			supplierId: "10",
-			limit:      "10",
-			offset:     "INVALID",
-			behavior:   func(svc *mockExternalServer.MockService, limit string, err error) {},
-			response:   map[string]string{"error": "can't get offset"},
-		},
-		"GetSupplierTaskHistory error": {
-			userId:     "9",
-			supplierId: "10",
-			limit:      "10",
-			offset:     "10",
-			behavior: func(svc *mockExternalServer.MockService, limit string, err error) {
-				var tasksNil []model.Task = nil
-				svc.EXPECT().
-					GetSupplierTaskHistory(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(tasksNil, errors.New("some error"))
+			expectedStatusCode: http.StatusOK,
+			expectedResponseBody: func(want interface{}) string {
+				js, _ := json.Marshal(want)
+				return string(js)
 			},
-			response: map[string]string{"error": "some error"},
+		},
+		{
+			name:        "Error invalid userID header",
+			input:       args{context.Background(), nil, int64(1), int64(1), 0, 0, "Error", "X-Supplier-Id", "limit", "offset"},
+			wantErrBody: `{"error":"invalid user_id"}{"error":"can't get user or supplier id from context"}`,
+			mock: func(args args, tasks []model.Task) {
+			},
+			expectedStatusCode: http.StatusUnauthorized,
+			expectedResponseBody: func(want interface{}) string {
+				return want.(string)
+			},
+		},
+		{
+			name:        "Error invalid supplierID header",
+			input:       args{context.Background(), nil, int64(1), int64(1), 0, 0, "X-User-Id", "Error", "limit", "offset"},
+			wantErrBody: `{"error":"invalid supplier_id"}{"error":"can't get user or supplier id from context"}`,
+			mock: func(args args, tasks []model.Task) {
+			},
+			expectedStatusCode: http.StatusUnauthorized,
+			expectedResponseBody: func(want interface{}) string {
+				return want.(string)
+			},
+		},
+		{
+			name:        "Error invalid limit query",
+			input:       args{context.Background(), nil, int64(1), int64(1), 0, 0, "X-User-Id", "X-Supplier-Id", "Error", "offset"},
+			wantErrBody: `{"can't get limit":"strconv.Atoi: parsing \"\": invalid syntax"}`,
+			mock: func(args args, tasks []model.Task) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			expectedResponseBody: func(want interface{}) string {
+				return want.(string)
+			},
+		},
+		{
+			name:        "Error invalid offset query",
+			input:       args{context.Background(), nil, int64(1), int64(1), 0, 0, "X-User-Id", "X-Supplier-Id", "limit", "Error"},
+			wantErrBody: `{"can't get offset":"strconv.Atoi: parsing \"\": invalid syntax"}`,
+			mock: func(args args, tasks []model.Task) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			expectedResponseBody: func(want interface{}) string {
+				return want.(string)
+			},
+		},
+		{
+			name:        "Error invalid limit value",
+			input:       args{context.Background(), nil, int64(1), int64(1), -1, 0, "X-User-Id", "X-Supplier-Id", "limit", "offset"},
+			wantErrBody: `{"error":"{can't get task history}"}`,
+			mock: func(args args, tasks []model.Task) {
+				mockService.EXPECT().GetSupplierTaskHistory(gomock.Any(), args.tx, args.supplierID, args.limit, args.offset).Return(nil, errors.New("{can't get task history}")).Times(1)
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			expectedResponseBody: func(want interface{}) string {
+				return want.(string)
+			},
+		},
+		{
+			name:        "Error invalid offset value",
+			input:       args{context.Background(), nil, int64(1), int64(1), 1, -1, "X-User-Id", "X-Supplier-Id", "limit", "offset"},
+			wantErrBody: `{"error":"{can't get task history}"}`,
+			mock: func(args args, tasks []model.Task) {
+				mockService.EXPECT().GetSupplierTaskHistory(gomock.Any(), args.tx, args.supplierID, args.limit, args.offset).Return(nil, errors.New("{can't get task history}")).Times(1)
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			expectedResponseBody: func(want interface{}) string {
+				return want.(string)
+			},
 		},
 	}
 
-	gin.SetMode(gin.TestMode)
-	zerolog.SetGlobalLevel(zerolog.Disabled)
-
-	c := gomock.NewController(t)
-	mockService := mockExternalServer.NewMockService(c)
-	server := &externalHttpServer{
+	router := gin.Default()
+	server := externalHttpServer{
+		router:  router,
 		service: mockService,
 		logger:  &zerolog.Logger{},
+		server: http.Server{
+			Addr:    "/",
+			Handler: router,
+		},
 	}
+	server.router.GET("/task_history_test", middleware.Authorize, server.GetSupplierTaskHistory)
 
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			testCase.behavior(mockService, testCase.limit, errors.New(testCase.response["error"]))
-
-			r := gin.New()
-			r.Use(middleware.Authorize)
-			r.GET("/tasks_history", server.GetSupplierTaskHistory)
-
-			req := httptest.NewRequest(http.MethodGet, "/tasks_history", nil)
-			q := req.URL.Query()
-			q.Add("limit", testCase.limit)
-			q.Add("offset", testCase.offset)
-			req.URL.RawQuery = q.Encode()
-			req.Header = http.Header{
-				"X-User-Id":     {testCase.userId},
-				"X-Supplier-Id": {testCase.supplierId},
-			}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mock(tt.input, tt.tasks)
 
 			w := httptest.NewRecorder()
-			r.ServeHTTP(w, req)
-			var gotMap map[string]string
-			_ = json.NewDecoder(w.Body).Decode(&gotMap)
-			assert.Equal(t, testCase.response["error"], gotMap["error"])
+
+			req := httptest.NewRequest("GET", "/task_history_test", nil)
+			req.Header = http.Header{tt.input.userIDHeader: {strconv.FormatInt(tt.input.userID, 10)}, tt.input.supplierIDHeader: {strconv.FormatInt(tt.input.supplierID, 10)}}
+			req.URL.RawQuery = url.Values{tt.input.limitQuery: {strconv.Itoa(tt.input.limit)}, tt.input.offsetQuery: {strconv.Itoa(tt.input.offset)}}.Encode()
+
+			server.router.ServeHTTP(w, req)
+
+			assert.Equal(t, w.Code, tt.expectedStatusCode)
+			if tt.wantErrBody == "" {
+				assert.Equal(t, w.Body.String(), tt.expectedResponseBody(tt.tasks))
+			} else {
+				assert.Equal(t, w.Body.String(), tt.expectedResponseBody(tt.wantErrBody))
+			}
 		})
 	}
 }

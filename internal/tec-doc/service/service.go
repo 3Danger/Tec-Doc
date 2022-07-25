@@ -14,7 +14,7 @@ type Store interface {
 	CreateTask(ctx context.Context, tx postgres.Transaction, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error)
 	SaveIntoBuffer(ctx context.Context, tx postgres.Transaction, products []model.Product) error
 	GetSupplierTaskHistory(ctx context.Context, tx postgres.Transaction, supplierID int64, limit int, offset int) ([]model.Task, error)
-	GetProductsFromBuffer(ctx context.Context, tx postgres.Transaction, uploadID int64) ([]model.Product, error)
+	GetProductsBuffer(ctx context.Context, tx postgres.Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
 	SaveProductsToHistory(ctx context.Context, tx postgres.Transaction, products []model.Product) error
 	DeleteFromBuffer(ctx context.Context, tx postgres.Transaction, uploadID int64) error
 	GetProductsHistory(ctx context.Context, tx postgres.Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
@@ -46,6 +46,7 @@ func New(conf *config.Config, log *zerolog.Logger) *Service {
 		log.Error().Err(err).Send()
 		return nil
 	}
+
 	log.Info().Msg("create service")
 	return &Service{
 		conf:         conf,

@@ -94,7 +94,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "can't get limit",
+			"can't get limit": err.Error(),
 		})
 		return
 	}
@@ -103,7 +103,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "can't get offset",
+			"can't get offset": err.Error(),
 		})
 		return
 	}
@@ -118,4 +118,44 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, rawTasks)
+}
+
+func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
+	type ReqStruct struct {
+		ArticleNumber string `json:"ArticleNumber"`
+		Brand         string `json:"Brand"`
+	}
+
+	dec := json.NewDecoder(c.Request.Body)
+	dec.DisallowUnknownFields()
+
+	var rs ReqStruct
+
+	if err := dec.Decode(&rs); err != nil {
+		e.logger.Error().Err(err).Send()
+		c.JSON(http.StatusBadRequest, gin.H{
+			"can't get brand and article number": err.Error(),
+		})
+		return
+	}
+
+	brand, err := e.service.GetBrand(c, rs.Brand)
+	if err != nil {
+		e.logger.Error().Err(err).Send()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"can't get tecdoc brand": err.Error(),
+		})
+		return
+	}
+
+	articles, err := e.service.GetArticles(c, brand.SupplierId, rs.ArticleNumber)
+	if err != nil {
+		e.logger.Error().Err(err).Send()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"can't get tecdoc articles": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, articles)
 }

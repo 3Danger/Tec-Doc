@@ -1,6 +1,3 @@
-# github.com/DATA-DOG/go-sqlmock v1.5.0
-## explicit
-github.com/DATA-DOG/go-sqlmock
 # github.com/andybalholm/brotli v1.0.4
 ## explicit; go 1.12
 github.com/andybalholm/brotli
@@ -44,7 +41,7 @@ github.com/goccy/go-json/internal/encoder/vm_color_indent
 github.com/goccy/go-json/internal/encoder/vm_indent
 github.com/goccy/go-json/internal/errors
 github.com/goccy/go-json/internal/runtime
-# github.com/gofiber/fiber/v2 v2.35.0
+# github.com/gofiber/fiber/v2 v2.34.1
 ## explicit; go 1.16
 github.com/gofiber/fiber/v2
 github.com/gofiber/fiber/v2/internal/bytebufferpool
@@ -56,7 +53,7 @@ github.com/gofiber/fiber/v2/internal/msgp
 github.com/gofiber/fiber/v2/internal/schema
 github.com/gofiber/fiber/v2/internal/uuid
 github.com/gofiber/fiber/v2/utils
-# github.com/golang/mock v1.6.0
+# github.com/golang/mock v1.4.4
 ## explicit; go 1.11
 github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.5.2
@@ -114,10 +111,6 @@ github.com/klauspost/compress/zlib
 # github.com/leodido/go-urn v1.2.1
 ## explicit; go 1.13
 github.com/leodido/go-urn
-# github.com/magefile/mage v1.13.0
-## explicit; go 1.12
-github.com/magefile/mage/mg
-github.com/magefile/mage/sh
 # github.com/mattn/go-colorable v0.1.12
 ## explicit; go 1.13
 github.com/mattn/go-colorable
@@ -178,7 +171,7 @@ github.com/rs/zerolog
 github.com/rs/zerolog/internal/cbor
 github.com/rs/zerolog/internal/json
 github.com/rs/zerolog/log
-# github.com/stretchr/testify v1.8.0
+# github.com/stretchr/testify v1.7.1
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
 # github.com/ugorji/go/codec v1.2.7
@@ -187,7 +180,7 @@ github.com/ugorji/go/codec
 # github.com/valyala/bytebufferpool v1.0.0
 ## explicit
 github.com/valyala/bytebufferpool
-# github.com/valyala/fasthttp v1.38.0
+# github.com/valyala/fasthttp v1.37.0
 ## explicit; go 1.15
 github.com/valyala/fasthttp
 github.com/valyala/fasthttp/fasthttputil
@@ -298,6 +291,6 @@ google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit; go 1.15
 gopkg.in/yaml.v2
-# gopkg.in/yaml.v3 v3.0.1
+# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
 gopkg.in/yaml.v3
