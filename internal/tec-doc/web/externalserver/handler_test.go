@@ -1,8 +1,6 @@
 package externalserver
 
 import (
-<<<<<<< HEAD
-=======
 	"context"
 	"encoding/json"
 	"errors"
@@ -12,11 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	mockExternalServer "tec-doc/internal/tec-doc/mocks/mock_externalserver"
 	"tec-doc/internal/tec-doc/model"
+	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/internal/tec-doc/web/externalserver/middleware"
 	"testing"
+	"time"
 )
 
 func TestExternalHttpServer_ExcelTemplate(t *testing.T) {
@@ -91,13 +92,13 @@ func TestExternalHttpServer_GetSupplierTaskHistory(t *testing.T) {
 		offsetQuery      string
 	}
 
-	type mockBehavoir func(args args, tasks []model.Task)
+	type mockBehavior func(args args, tasks []model.Task)
 
 	testCases := []struct {
 		name                 string
 		input                args
 		tasks                []model.Task
-		mock                 mockBehavoir
+		mock                 mockBehavior
 		expectedStatusCode   int
 		wantErrBody          string
 		expectedResponseBody func(want interface{}) string
@@ -118,7 +119,7 @@ func TestExternalHttpServer_GetSupplierTaskHistory(t *testing.T) {
 		{
 			name:        "Error invalid userID header",
 			input:       args{context.Background(), nil, int64(1), int64(1), 0, 0, "Error", "X-Supplier-Id", "limit", "offset"},
-			wantErrBody: `{"error":"invalid user_id"}{"error":"can't get user or supplier id from context"}`,
+			wantErrBody: `{"error":"can't get user_id from context"}`,
 			mock: func(args args, tasks []model.Task) {
 			},
 			expectedStatusCode: http.StatusUnauthorized,
@@ -129,7 +130,7 @@ func TestExternalHttpServer_GetSupplierTaskHistory(t *testing.T) {
 		{
 			name:        "Error invalid supplierID header",
 			input:       args{context.Background(), nil, int64(1), int64(1), 0, 0, "X-User-Id", "Error", "limit", "offset"},
-			wantErrBody: `{"error":"invalid supplier_id"}{"error":"can't get user or supplier id from context"}`,
+			wantErrBody: `{"error":"can't get supplier_id from context"}`,
 			mock: func(args args, tasks []model.Task) {
 			},
 			expectedStatusCode: http.StatusUnauthorized,
@@ -211,9 +212,9 @@ func TestExternalHttpServer_GetSupplierTaskHistory(t *testing.T) {
 
 			assert.Equal(t, w.Code, tt.expectedStatusCode)
 			if tt.wantErrBody == "" {
-				assert.Equal(t, w.Body.String(), tt.expectedResponseBody(tt.tasks))
+				assert.Equal(t, tt.expectedResponseBody(tt.tasks), w.Body.String())
 			} else {
-				assert.Equal(t, w.Body.String(), tt.expectedResponseBody(tt.wantErrBody))
+				assert.Equal(t, tt.expectedResponseBody(tt.wantErrBody), w.Body.String())
 			}
 		})
 	}

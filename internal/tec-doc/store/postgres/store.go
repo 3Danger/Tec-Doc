@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgconn"
-	"tec-doc/internal/config"
-	"tec-doc/internal/model"
+	"tec-doc/internal/tec-doc/config"
+	"tec-doc/internal/tec-doc/model"
 	"time"
 
 	"github.com/jackc/pgx/v4"
@@ -62,7 +62,7 @@ type Executor interface {
 
 type store struct {
 	cfg  *config.PostgresConfig
-	pool *pgxpool.Pool
+	pool Pool
 }
 
 func NewStore(cfg *config.PostgresConfig) (*store, error) {
@@ -301,7 +301,7 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 		getProductsFromHistoryQuery = `SELECT id, upload_id, article, card_number, provider_article, manufacturer_article, brand, sku, category, price,
 	upload_date, update_date, status, errorresponse FROM products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 		executor        Executor
-		productsHistory = make([]model.Product, 0)
+		productsHistory []model.Product
 	)
 
 	executor = s.pool

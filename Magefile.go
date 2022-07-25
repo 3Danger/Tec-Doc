@@ -19,6 +19,7 @@ var (
 	sourceFiles     = []string{
 		"internal/tec-doc/web/externalserver/server.go",
 		"internal/tec-doc/web/internalserver/server.go",
+		"internal/tec-doc/store/postgres/store.go",
 	}
 )
 

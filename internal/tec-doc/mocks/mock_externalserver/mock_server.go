@@ -67,6 +67,36 @@ func (mr *MockServiceMockRecorder) ExcelTemplateForClient() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExcelTemplateForClient", reflect.TypeOf((*MockService)(nil).ExcelTemplateForClient))
 }
 
+// GetArticles mocks base method.
+func (m *MockService) GetArticles(ctx context.Context, dataSupplierID int, article string) ([]model.Article, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetArticles", ctx, dataSupplierID, article)
+	ret0, _ := ret[0].([]model.Article)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetArticles indicates an expected call of GetArticles.
+func (mr *MockServiceMockRecorder) GetArticles(ctx, dataSupplierID, article interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetArticles", reflect.TypeOf((*MockService)(nil).GetArticles), ctx, dataSupplierID, article)
+}
+
+// GetBrand mocks base method.
+func (m *MockService) GetBrand(ctx context.Context, brandName string) (*model.Brand, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBrand", ctx, brandName)
+	ret0, _ := ret[0].(*model.Brand)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBrand indicates an expected call of GetBrand.
+func (mr *MockServiceMockRecorder) GetBrand(ctx, brandName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBrand", reflect.TypeOf((*MockService)(nil).GetBrand), ctx, brandName)
+}
+
 // GetProductsHistory mocks base method.
 func (m *MockService) GetProductsHistory(ctx context.Context, tx postgres.Transaction, uploadID int64, limit, offset int) ([]model.Product, error) {
 	m.ctrl.T.Helper()
