@@ -38,7 +38,7 @@ func main() {
 		log.Fatal().Err(err).Send()
 	}
 	errGr, ctx := errgroup.WithContext(context.Background())
-	srvc := service.New(conf, logger)
+	srvc := service.New(ctx, conf, logger)
 
 	//TODO timer
 	errGr.Go(func() error {
