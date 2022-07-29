@@ -4,7 +4,10 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
+	_ "tec-doc/docs"
 	"tec-doc/internal/tec-doc/model"
 	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/pkg/metrics"
@@ -49,6 +52,8 @@ func (e *externalHttpServer) configureRouter() {
 	e.router.GET("/task_history", e.GetSupplierTaskHistory)
 	e.router.GET("/product_history", e.GetProductsHistory)
 	e.router.GET("/tecdoc_articles", e.GetTecDocArticles)
+
+	e.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
 
 func New(bindingPort string, service Service, logger *zerolog.Logger, mts *metrics.Metrics) *externalHttpServer {

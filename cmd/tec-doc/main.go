@@ -13,6 +13,12 @@ import (
 	"tec-doc/pkg/sig"
 )
 
+// @title Tec-Doc API
+// @version 1.0
+// @descriptionAPI Tec-Doc server
+
+// @host localhost:8002
+// @BasePath /
 func initConfig() (*config.Config, *zerolog.Logger, error) {
 	var conf config.Config
 	if err := envconfig.Process("", &conf); err != nil {

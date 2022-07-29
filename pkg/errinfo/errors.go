@@ -13,6 +13,8 @@ type errInf struct {
 var (
 	InternalServerErr   = errors.New("internal server error")
 	InvalidExcelData    = errors.New("invalid excel data")
+	InvalidExcelEmpty   = errors.New("invalid excel empty")
+	InvalidBodyEmpty    = errors.New("invalid body is empty")
 	InvalidTaskID       = errors.New("invalid task id")
 	InvalidSupplierID   = errors.New("invalid supplier id")
 	InvalidUserID       = errors.New("invalid supplier id")
@@ -27,6 +29,14 @@ var (
 		},
 		InvalidExcelData: {
 			Msg:    "В excel указаны некорректные данные",
+			Status: http.StatusBadRequest,
+		},
+		InvalidExcelEmpty: {
+			Msg:    "в таблице нет данных",
+			Status: http.StatusBadRequest,
+		},
+		InvalidBodyEmpty: {
+			Msg:    "пустое тело запроса",
 			Status: http.StatusBadRequest,
 		},
 		InvalidTaskID: {
