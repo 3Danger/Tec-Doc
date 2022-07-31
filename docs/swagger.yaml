@@ -73,12 +73,12 @@ paths:
       operationId: excel_template
       parameters:
       - description: ID of user
-        in: query
+        in: header
         name: X-User-Id
         required: true
         type: string
       - description: ID of supplier
-        in: query
+        in: header
         name: X-Supplier-Id
         required: true
         type: string
@@ -101,25 +101,25 @@ paths:
   /load_from_excel:
     post:
       consumes:
-      - application/vnd.ms-excel
+      - 'multipart/form-data:'
       description: for upload excel table with products into
       operationId: load_from_excel
       parameters:
+      - description: excel file
+        in: formData
+        name: excel_file
+        required: true
+        type: file
       - description: ID of user
-        in: query
+        in: header
         name: X-User-Id
         required: true
         type: string
       - description: ID of supplier
-        in: query
+        in: header
         name: X-Supplier-Id
         required: true
         type: string
-      - description: excel file
-        in: formData
-        name: file
-        required: true
-        type: file
       produces:
       - application/json
       responses:
@@ -162,12 +162,12 @@ paths:
         required: true
         type: string
       - description: ID of user
-        in: query
+        in: header
         name: X-User-Id
         required: true
         type: string
       - description: ID of supplier
-        in: query
+        in: header
         name: X-Supplier-Id
         required: true
         type: string
@@ -203,12 +203,12 @@ paths:
         required: true
         type: string
       - description: ID of user
-        in: query
+        in: header
         name: X-User-Id
         required: true
         type: string
       - description: ID of supplier
-        in: query
+        in: header
         name: X-Supplier-Id
         required: true
         type: string

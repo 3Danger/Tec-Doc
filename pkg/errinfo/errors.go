@@ -14,7 +14,7 @@ var (
 	InternalServerErr   = errors.New("internal server error")
 	InvalidExcelData    = errors.New("invalid excel data")
 	InvalidExcelEmpty   = errors.New("invalid excel empty")
-	InvalidBodyEmpty    = errors.New("invalid body is empty")
+	InvalidNotFile      = errors.New("invalid, file not found in request")
 	InvalidTaskID       = errors.New("invalid task id")
 	InvalidSupplierID   = errors.New("invalid supplier id")
 	InvalidUserID       = errors.New("invalid supplier id")
@@ -35,8 +35,8 @@ var (
 			Msg:    "в таблице нет данных",
 			Status: http.StatusBadRequest,
 		},
-		InvalidBodyEmpty: {
-			Msg:    "пустое тело запроса",
+		InvalidNotFile: {
+			Msg:    "нет файла в запросе",
 			Status: http.StatusBadRequest,
 		},
 		InvalidTaskID: {

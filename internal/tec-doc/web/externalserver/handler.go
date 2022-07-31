@@ -15,8 +15,8 @@ import (
 // @Description download excel table template
 // @ID excel_template
 // @Produce application/vnd.ms-excel
-// @Param X-User-Id query string true "ID of user"
-// @Param X-Supplier-Id query string true "ID of supplier"
+// @Param X-User-Id header string true "ID of user"
+// @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} byte
 // @Failure 500 {object} errinfo.errInf
 // @Router /excel_template [get]
@@ -35,11 +35,10 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 // @Tags excel
 // @Description for upload excel table with products into
 // @ID load_from_excel
-// @Accept application/vnd.ms-excel
 // @Produce json
-// @Param X-User-Id query string true "ID of user"
-// @Param X-Supplier-Id query string true "ID of supplier"
-// @Param file formData file true "excel file"
+// @Param excel_file formData file true "excel file"
+// @Param X-User-Id header string true "ID of user"
+// @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {object} string
 // @Failure 400 {object} string
 // @Failure 500 {object} string
@@ -47,13 +46,15 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	supplierID, userID := c.GetInt64("X-Supplier-Id"), c.GetInt64("X-User-Id")
 
-	if c.Request.Body == http.NoBody {
-		msg, status := errinfo.GetErrorInfo(errinfo.InvalidBodyEmpty)
-		log.Error().Err(errinfo.InvalidBodyEmpty).Send()
+	file, _, err := c.Request.FormFile("excel_file")
+	if err != nil {
+		msg, status := errinfo.GetErrorInfo(errinfo.InvalidNotFile)
+		log.Error().Err(errinfo.InvalidNotFile).Send()
 		c.JSON(status, msg)
 		return
 	}
-	products, err := e.loadFromExcel(c.Request.Body)
+	defer file.Close()
+	products, err := e.loadFromExcel(file)
 	if err != nil {
 		msg, status := errinfo.GetErrorInfo(errinfo.InvalidExcelData)
 		if err.Error() == "empty data" || err == io.EOF {
@@ -83,8 +84,8 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param upload_id body object true "ID of the task sender"
 // @Param limit query string true "limit of contents"
 // @Param offset query string true "offset of contents"
-// @Param X-User-Id query string true "ID of user"
-// @Param X-Supplier-Id query string true "ID of supplier"
+// @Param X-User-Id header string true "ID of user"
+// @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
 // @Router /product_history [get]
@@ -133,8 +134,8 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 // @Produce json
 // @Param limit query string true "limit of contents"
 // @Param offset query string true "offset of contents"
-// @Param X-User-Id query string true "ID of user"
-// @Param X-Supplier-Id query string true "ID of supplier"
+// @Param X-User-Id header string true "ID of user"
+// @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} model.Task
 // @Failure 500 {object} errinfo.errInf
 // @Router /task_history [get]

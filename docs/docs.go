@@ -32,14 +32,14 @@ const docTemplate = `{
                         "type": "string",
                         "description": "ID of user",
                         "name": "X-User-Id",
-                        "in": "query",
+                        "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "ID of supplier",
                         "name": "X-Supplier-Id",
-                        "in": "query",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -66,7 +66,7 @@ const docTemplate = `{
             "post": {
                 "description": "for upload excel table with products into",
                 "consumes": [
-                    "application/vnd.ms-excel"
+                    "multipart/form-data:"
                 ],
                 "produces": [
                     "application/json"
@@ -78,24 +78,24 @@ const docTemplate = `{
                 "operationId": "load_from_excel",
                 "parameters": [
                     {
+                        "type": "file",
+                        "description": "excel file",
+                        "name": "excel_file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
                         "type": "string",
                         "description": "ID of user",
                         "name": "X-User-Id",
-                        "in": "query",
+                        "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "ID of supplier",
                         "name": "X-Supplier-Id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "excel file",
-                        "name": "file",
-                        "in": "formData",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -163,14 +163,14 @@ const docTemplate = `{
                         "type": "string",
                         "description": "ID of user",
                         "name": "X-User-Id",
-                        "in": "query",
+                        "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "ID of supplier",
                         "name": "X-Supplier-Id",
-                        "in": "query",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -223,14 +223,14 @@ const docTemplate = `{
                         "type": "string",
                         "description": "ID of user",
                         "name": "X-User-Id",
-                        "in": "query",
+                        "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "ID of supplier",
                         "name": "X-Supplier-Id",
-                        "in": "query",
+                        "in": "header",
                         "required": true
                     }
                 ],
