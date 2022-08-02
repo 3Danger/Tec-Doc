@@ -40,7 +40,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 }
 
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
-	var rs map[string]int64
+	var rs int64
 	if err := json.NewDecoder(c.Request.Body).Decode(&rs); err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTaskID))
@@ -61,7 +61,7 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 		return
 	}
 
-	productsHistory, err := e.service.GetProductsHistory(c, rs["upload_id"], limit, offset)
+	productsHistory, err := e.service.GetProductsHistory(c, rs, limit, offset)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
@@ -102,6 +102,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	c.JSON(http.StatusOK, rawTasks)
 }
 
+// todo: переделать на json (по возможности и остальные методы)
 func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
 	var rs map[string]string
 	if err := json.NewDecoder(c.Request.Body).Decode(&rs); err != nil {
