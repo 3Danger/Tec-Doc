@@ -3,8 +3,12 @@ package externalserver
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/cors"
 	"github.com/rs/zerolog"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
+	_ "tec-doc/docs"
 	"tec-doc/internal/tec-doc/model"
 	"tec-doc/pkg/metrics"
 )
@@ -41,13 +45,45 @@ func (e *externalHttpServer) Stop() error {
 
 func (e *externalHttpServer) configureRouter() {
 	e.router.Use(gin.Recovery())
-	e.router.Use(e.Authorize)
 	e.router.Use(e.MiddleWareMetric)
-	e.router.GET("/excel_template", e.ExcelTemplate)
-	e.router.POST("/load_from_excel", e.LoadFromExcel)
-	e.router.GET("/task_history", e.GetSupplierTaskHistory)
-	e.router.GET("/product_history", e.GetProductsHistory)
-	e.router.GET("/tecdoc_articles", e.GetTecDocArticles)
+	api := e.router.Group("/api")
+	{
+		api.Use(e.Authorize)
+		api.GET("/excel_template", e.ExcelTemplate)
+		api.POST("/load_from_excel", e.LoadFromExcel)
+		api.GET("/task_history", e.GetSupplierTaskHistory)
+		api.POST("/product_history", e.GetProductsHistory)
+		api.GET("/tecdoc_articles", e.GetTecDocArticles)
+	}
+
+	e.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+}
+
+func corsConfigure() *cors.Cors {
+	var headers = []string{
+		"X-User-Id",
+		"X-Supplier-Id",
+		"Origin",
+		"X-Requested-With",
+		"api_key",
+		"Content-Type",
+		"Authorization",
+		"Accept",
+	}
+	return cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		//AllowedOrigins:         []string{"https://editor.swagger.io", "https://editor.swagger.io/", "*.gitlab.io", "https://gitlab.wildberries.ru/portals/suppliers-discounts-prices-go/tec-doc/-/blob/magomedov.m25/docs/swagger.json"},
+		AllowOriginFunc:        nil,
+		AllowOriginRequestFunc: nil,
+		AllowedMethods:         []string{"GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS"},
+		AllowedHeaders:         headers,
+		ExposedHeaders:         headers,
+		MaxAge:                 0,
+		AllowCredentials:       true,
+		OptionsPassthrough:     false,
+		OptionsSuccessStatus:   0,
+		Debug:                  true,
+	})
 }
 
 func New(bindingPort string, service Service, logger *zerolog.Logger, mts *metrics.Metrics) *externalHttpServer {
@@ -59,7 +95,7 @@ func New(bindingPort string, service Service, logger *zerolog.Logger, mts *metri
 		metrics: mts,
 		server: http.Server{
 			Addr:    bindingPort,
-			Handler: router,
+			Handler: corsConfigure().Handler(router),
 		},
 	}
 	serv.configureRouter()

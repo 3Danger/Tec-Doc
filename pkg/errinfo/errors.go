@@ -11,15 +11,17 @@ type errInf struct {
 }
 
 var (
-	InternalServerErr       = errors.New("internal server error")
-	InvalidExcelData        = errors.New("invalid excel data")
-	InvalidTaskID           = errors.New("invalid task id")
-	InvalidSupplierID       = errors.New("invalid supplier id")
-	InvalidUserID           = errors.New("invalid user id")
+	InternalServerErr   = errors.New("internal server error")
+	InvalidExcelData    = errors.New("invalid excel data")
+	InvalidExcelEmpty   = errors.New("invalid excel empty")
+	InvalidNotFile      = errors.New("invalid, file not found in request")
+	InvalidTaskID       = errors.New("invalid task id")
+	InvalidSupplierID   = errors.New("invalid supplier id")
+	InvalidUserID       = errors.New("invalid supplier id")
 	InvalidUserOrSupplierID = errors.New("invalid user or supplier id")
-	InvalidLimit            = errors.New("invalid limit")
-	InvalidOffset           = errors.New("invalid offset")
-	InvalidTecDocParams     = errors.New("invalid tecdoc params")
+	InvalidLimit        = errors.New("invalid limit")
+	InvalidOffset       = errors.New("invalid offset")
+	InvalidTecDocParams = errors.New("invalid tecdoc params")
 
 	constErrs = map[error]errInf{
 		InternalServerErr: {
@@ -28,6 +30,14 @@ var (
 		},
 		InvalidExcelData: {
 			Msg:    "В excel указаны некорректные данные",
+			Status: http.StatusBadRequest,
+		},
+		InvalidExcelEmpty: {
+			Msg:    "в таблице нет данных",
+			Status: http.StatusBadRequest,
+		},
+		InvalidNotFile: {
+			Msg:    "нет файла в запросе",
 			Status: http.StatusBadRequest,
 		},
 		InvalidTaskID: {

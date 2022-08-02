@@ -3,11 +3,23 @@ package externalserver
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
+	"io"
 	"net/http"
 	"strconv"
 	"tec-doc/pkg/errinfo"
 )
 
+// @Summary ExcelTemplate
+// @Tags excel
+// @Description download excel table template
+// @ID excel_template
+// @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+// @Param X-User-Id header string true "ID of user"
+// @Param X-Supplier-Id header string true "ID of supplier"
+// @Success 200 {array} byte
+// @Failure 500 {object} errinfo.errInf
+// @Router /api/excel_template [get]
 func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 	excelTemplate, err := e.service.ExcelTemplateForClient()
 	if err != nil {
@@ -18,13 +30,36 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelTemplate)
 }
 
+// @Summary LoadFromExcel
+// @Tags excel
+// @Description for upload excel table with products into
+// @ID load_from_excel
+// @Produce json
+// @Param excel_file formData file true "excel file"
+// @Param X-User-Id header string true "ID of user"
+// @Param X-Supplier-Id header string true "ID of supplier"
+// @Success 200 {object} string
+// @Failure 400 {object} string
+// @Failure 500 {object} string
+// @Router /api/load_from_excel [post]
 func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	supplierID, userID := c.GetInt64("X-Supplier-Id"), c.GetInt64("X-User-Id")
 
-	products, err := e.loadFromExcel(c.Request.Body)
+	file, _, err := c.Request.FormFile("excel_file")
+	if err != nil {
+		log.Error().Err(errinfo.InvalidNotFile).Send()
+		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidNotFile))
+		return
+	}
+	defer file.Close()
+	products, err := e.loadFromExcel(file)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
-		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidSupplierID))
+		if err.Error() == "empty data" || err == io.EOF {
+			c.JSON(errinfo.GetErrorInfo(errinfo.InvalidExcelEmpty))
+			return
+		}
+		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidExcelData))
 		return
 	}
 
@@ -39,6 +74,20 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	})
 }
 
+// @Summary GetProductsHistory
+// @Tags product
+// @Description getting product list
+// @ID products_history
+// @Accept json
+// @Produce json
+// @Param upload_id body int64 true "ID of the task sender"
+// @Param limit query string true "limit of contents"
+// @Param offset query string true "offset of contents"
+// @Param X-User-Id header string true "ID of user"
+// @Param X-Supplier-Id header string true "ID of supplier"
+// @Success 200 {array} model.Product
+// @Failure 500 {object} errinfo.errInf
+// @Router /api/product_history [get]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 	var rs int64
 	if err := json.NewDecoder(c.Request.Body).Decode(&rs); err != nil {
@@ -61,7 +110,7 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 		return
 	}
 
-	productsHistory, err := e.service.GetProductsHistory(c, rs, limit, offset)
+	productsHistory, err := e.service.GetProductsHistory(c, int64(rs), limit, offset)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
@@ -70,6 +119,18 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 	c.JSON(http.StatusOK, productsHistory)
 }
 
+// @Summary GetSupplierTaskHistory
+// @Tags product
+// @Description getting task list
+// @ID supplier_task_history
+// @Produce json
+// @Param limit query string true "limit of contents"
+// @Param offset query string true "offset of contents"
+// @Param X-User-Id header string true "ID of user"
+// @Param X-Supplier-Id header string true "ID of supplier"
+// @Success 200 {array} model.Task
+// @Failure 500 {object} errinfo.errInf
+// @Router /api/task_history [get]
 func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	supplierID, _, err := CredentialsFromContext(c)
 	if err != nil {
