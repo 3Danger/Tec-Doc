@@ -67,7 +67,7 @@ info:
   title: Tec-Doc API
   version: "1.0"
 paths:
-  /excel_template:
+  /api/excel_template:
     get:
       description: download excel table template
       operationId: excel_template
@@ -98,7 +98,7 @@ paths:
       summary: ExcelTemplate
       tags:
       - excel
-  /load_from_excel:
+  /api/load_from_excel:
     post:
       description: for upload excel table with products into
       operationId: load_from_excel
@@ -136,7 +136,7 @@ paths:
       summary: LoadFromExcel
       tags:
       - excel
-  /product_history:
+  /api/product_history:
     get:
       consumes:
       - application/json
@@ -185,7 +185,7 @@ paths:
       summary: GetProductsHistory
       tags:
       - product
-  /task_history:
+  /api/task_history:
     get:
       description: getting task list
       operationId: supplier_task_history

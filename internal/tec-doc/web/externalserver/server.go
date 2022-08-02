@@ -45,13 +45,16 @@ func (e *externalHttpServer) Stop() error {
 
 func (e *externalHttpServer) configureRouter() {
 	e.router.Use(gin.Recovery())
-	e.router.Use(e.Authorize)
 	e.router.Use(e.MiddleWareMetric)
-	e.router.GET("/excel_template", e.ExcelTemplate)
-	e.router.POST("/load_from_excel", e.LoadFromExcel)
-	e.router.GET("/task_history", e.GetSupplierTaskHistory)
-	e.router.POST("/product_history", e.GetProductsHistory)
-	e.router.GET("/tecdoc_articles", e.GetTecDocArticles)
+	api := e.router.Group("/api")
+	{
+		api.Use(e.Authorize)
+		api.GET("/excel_template", e.ExcelTemplate)
+		api.POST("/load_from_excel", e.LoadFromExcel)
+		api.GET("/task_history", e.GetSupplierTaskHistory)
+		api.POST("/product_history", e.GetProductsHistory)
+		api.GET("/tecdoc_articles", e.GetTecDocArticles)
+	}
 
 	e.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

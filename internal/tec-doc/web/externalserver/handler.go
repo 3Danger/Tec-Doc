@@ -19,7 +19,7 @@ import (
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} byte
 // @Failure 500 {object} errinfo.errInf
-// @Router /excel_template [get]
+// @Router /api/excel_template [get]
 func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 	excelTemplate, err := e.service.ExcelTemplateForClient()
 	if err != nil {
@@ -41,7 +41,7 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 // @Success 200 {object} string
 // @Failure 400 {object} string
 // @Failure 500 {object} string
-// @Router /load_from_excel [post]
+// @Router /api/load_from_excel [post]
 func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	supplierID, userID := c.GetInt64("X-Supplier-Id"), c.GetInt64("X-User-Id")
 
@@ -87,7 +87,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
-// @Router /product_history [get]
+// @Router /api/product_history [get]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 	var rs int64
 	if err := json.NewDecoder(c.Request.Body).Decode(&rs); err != nil {
@@ -130,7 +130,7 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} model.Task
 // @Failure 500 {object} errinfo.errInf
-// @Router /task_history [get]
+// @Router /api/task_history [get]
 func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	supplierID, _, err := CredentialsFromContext(c)
 	if err != nil {

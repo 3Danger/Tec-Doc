@@ -16,7 +16,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/excel_template": {
+        "/api/excel_template": {
             "get": {
                 "description": "download excel table template",
                 "produces": [
@@ -62,7 +62,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/load_from_excel": {
+        "/api/load_from_excel": {
             "post": {
                 "description": "for upload excel table with products into",
                 "produces": [
@@ -118,7 +118,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/product_history": {
+        "/api/product_history": {
             "get": {
                 "description": "getting product list",
                 "consumes": [
@@ -190,7 +190,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/task_history": {
+        "/api/task_history": {
             "get": {
                 "description": "getting task list",
                 "produces": [
