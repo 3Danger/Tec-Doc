@@ -61,10 +61,10 @@ var (
 	}
 )
 
-func GetErrorInfo(err error) (string, int) {
+func GetErrorInfo(err error) (int, string) {
 	info, found := constErrs[err]
 	if found {
-		return info.Msg, info.Status
+		return info.Status, info.Msg
 	}
-	return "", 0
+	return 0, ""
 }
