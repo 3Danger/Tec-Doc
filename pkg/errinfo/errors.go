@@ -11,14 +11,15 @@ type errInf struct {
 }
 
 var (
-	InternalServerErr   = errors.New("internal server error")
-	InvalidExcelData    = errors.New("invalid excel data")
-	InvalidTaskID       = errors.New("invalid task id")
-	InvalidSupplierID   = errors.New("invalid supplier id")
-	InvalidUserID       = errors.New("invalid supplier id")
-	InvalidLimit        = errors.New("invalid limit")
-	InvalidOffset       = errors.New("invalid offset")
-	InvalidTecDocParams = errors.New("invalid tecdoc params")
+	InternalServerErr       = errors.New("internal server error")
+	InvalidExcelData        = errors.New("invalid excel data")
+	InvalidTaskID           = errors.New("invalid task id")
+	InvalidSupplierID       = errors.New("invalid supplier id")
+	InvalidUserID           = errors.New("invalid user id")
+	InvalidUserOrSupplierID = errors.New("invalid user or supplier id")
+	InvalidLimit            = errors.New("invalid limit")
+	InvalidOffset           = errors.New("invalid offset")
+	InvalidTecDocParams     = errors.New("invalid tecdoc params")
 
 	constErrs = map[error]errInf{
 		InternalServerErr: {
@@ -35,6 +36,10 @@ var (
 		},
 		InvalidSupplierID: {
 			Msg:    "Некорректный id поставщика",
+			Status: http.StatusBadRequest,
+		},
+		InvalidUserOrSupplierID: {
+			Msg:    "Некорректный id поставщика или пользователя",
 			Status: http.StatusBadRequest,
 		},
 		InvalidUserID: {
