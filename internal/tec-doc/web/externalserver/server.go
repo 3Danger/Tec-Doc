@@ -60,13 +60,24 @@ func (e *externalHttpServer) configureRouter() {
 }
 
 func corsConfigure() *cors.Cors {
+	var headers = []string{
+		"X-User-Id",
+		"X-Supplier-Id",
+		"Origin",
+		"X-Requested-With",
+		"api_key",
+		"Content-Type",
+		"Authorization",
+		"Accept",
+	}
 	return cors.New(cors.Options{
-		AllowedOrigins:         []string{"editor.swagger.io", "http://localhost:*"},
+		AllowedOrigins: []string{"*"},
+		//AllowedOrigins:         []string{"https://editor.swagger.io", "https://editor.swagger.io/", "*.gitlab.io", "https://gitlab.wildberries.ru/portals/suppliers-discounts-prices-go/tec-doc/-/blob/magomedov.m25/docs/swagger.json"},
 		AllowOriginFunc:        nil,
 		AllowOriginRequestFunc: nil,
-		AllowedMethods:         nil,
-		AllowedHeaders:         []string{"X-User-Id", "X-Supplier-Id"},
-		ExposedHeaders:         nil,
+		AllowedMethods:         []string{"GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS"},
+		AllowedHeaders:         headers,
+		ExposedHeaders:         headers,
 		MaxAge:                 0,
 		AllowCredentials:       true,
 		OptionsPassthrough:     false,
