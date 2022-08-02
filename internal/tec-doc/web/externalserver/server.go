@@ -3,6 +3,7 @@ package externalserver
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -55,6 +56,22 @@ func (e *externalHttpServer) configureRouter() {
 	e.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
 
+func corsConfigure() *cors.Cors {
+	return cors.New(cors.Options{
+		AllowedOrigins:         []string{"editor.swagger.io", "http://localhost:*"},
+		AllowOriginFunc:        nil,
+		AllowOriginRequestFunc: nil,
+		AllowedMethods:         nil,
+		AllowedHeaders:         []string{"X-User-Id", "X-Supplier-Id"},
+		ExposedHeaders:         nil,
+		MaxAge:                 0,
+		AllowCredentials:       true,
+		OptionsPassthrough:     false,
+		OptionsSuccessStatus:   0,
+		Debug:                  true,
+	})
+}
+
 func New(bindingPort string, service Service, logger *zerolog.Logger, mts *metrics.Metrics) *externalHttpServer {
 	router := gin.Default()
 	serv := &externalHttpServer{
@@ -64,7 +81,7 @@ func New(bindingPort string, service Service, logger *zerolog.Logger, mts *metri
 		metrics: mts,
 		server: http.Server{
 			Addr:    bindingPort,
-			Handler: router,
+			Handler: corsConfigure().Handler(router),
 		},
 	}
 	serv.configureRouter()
