@@ -107,7 +107,6 @@ func (s *store) SaveIntoBuffer(ctx context.Context, tx Transaction, products []m
 	var (
 		executor Executor
 		rows     = make([][]interface{}, len(products))
-		r        = make([]interface{}, 0, len(products))
 	)
 
 	executor = s.pool
@@ -116,11 +115,9 @@ func (s *store) SaveIntoBuffer(ctx context.Context, tx Transaction, products []m
 	}
 
 	for i, pr := range products {
-		r = append(r, pr.UploadID, pr.Article, pr.CardNumber, pr.ProviderArticle,
+		rows[i] = []interface{}{pr.UploadID, pr.Article, pr.CardNumber, pr.ProviderArticle,
 			pr.ManufacturerArticle, pr.Brand, pr.SKU, pr.Category, pr.Price,
-			time.Now().UTC(), time.Now().UTC(), pr.Status, pr.ErrorResponse)
-		rows[i] = r
-		r = r[:]
+			time.Now().UTC(), time.Now().UTC(), pr.Status, pr.ErrorResponse}
 	}
 
 	copyCount, err := executor.CopyFrom(
@@ -142,10 +139,10 @@ func (s *store) SaveIntoBuffer(ctx context.Context, tx Transaction, products []m
 	return nil
 }
 
-func (s *store) GetProductsBufferWithStatus(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int, status int) ([]model.Product, error) {
+func (s *store) GetProductsBuffer(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int) ([]model.Product, error) {
 	var (
 		getProductsBufferQuery = `SELECT id, upload_id, article, card_number, provider_article, manufacturer_article, brand, sku, category, price,
-	upload_date, update_date, status, errorresponse FROM products_buffer WHERE upload_id = $1 and status=$2 LIMIT $3 OFFSET $4;`
+	upload_date, update_date, status, errorresponse FROM products_buffer WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 		executor       Executor
 		productsBuffer = make([]model.Product, 0)
 	)
@@ -156,7 +153,7 @@ func (s *store) GetProductsBufferWithStatus(ctx context.Context, tx Transaction,
 		executor = tx
 	}
 
-	rows, err := executor.Query(ctx, getProductsBufferQuery, uploadID, status, limit, offset)
+	rows, err := executor.Query(ctx, getProductsBufferQuery, uploadID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("can't get products from buffer: %w", err)
 	}
@@ -177,4 +174,63 @@ func (s *store) GetProductsBufferWithStatus(ctx context.Context, tx Transaction,
 	}
 
 	return productsBuffer, nil
+}
+
+func (s *store) SaveProductsToHistory(ctx context.Context, tx Transaction, products []model.Product) error {
+	var (
+		executor Executor
+		rows     = make([][]interface{}, len(products))
+	)
+	executor = s.pool
+	if tx != nil {
+		executor = tx
+	}
+
+	for i, pr := range products {
+		rows[i] = []interface{}{pr.UploadID, pr.Article, pr.CardNumber, pr.ProviderArticle,
+			pr.ManufacturerArticle, pr.Brand, pr.SKU, pr.Category, pr.Price,
+			pr.UploadDate, pr.UpdateDate, pr.Status, pr.ErrorResponse}
+	}
+
+	copyCount, err := executor.CopyFrom(
+		ctx,
+		pgx.Identifier{"products_history"},
+		[]string{"upload_id", "article", "card_number", "provider_article", "manufacturer_article",
+			"brand", "sku", "category", "price", "upload_date", "update_date", "status", "errorresponse"},
+		pgx.CopyFromRows(rows),
+	)
+
+	if err != nil {
+		return fmt.Errorf("can't save products into history: %w", err)
+	}
+
+	if copyCount == 0 {
+		return fmt.Errorf("no products saved into history")
+	}
+
+	return nil
+}
+
+func (s *store) DeleteFromBuffer(ctx context.Context, tx Transaction, uploadID int64) error {
+	var (
+		deleteFromBufferQuery = `DELETE FROM products_buffer WHERE upload_id=$1;`
+		executor              Executor
+	)
+
+	executor = s.pool
+	if tx != nil {
+		executor = tx
+	}
+
+	res, err := executor.Exec(ctx, deleteFromBufferQuery, uploadID)
+
+	if err != nil {
+		return fmt.Errorf("can't delete from buffer: %w", err)
+	}
+
+	if res.RowsAffected() == 0 {
+		return fmt.Errorf("no products deleted from buffer")
+	}
+
+	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"tec-doc/internal/tec-doc/web/externalserver"
 	"tec-doc/internal/tec-doc/web/internalserver"
 	"tec-doc/pkg/clients/tecdoc"
+	"tec-doc/pkg/metrics"
 	"time"
 )
 
@@ -43,7 +44,7 @@ type Service struct {
 	tecDocClient   TecDocClient
 }
 
-func New(ctx context.Context, conf *config.Config, log *zerolog.Logger) *Service {
+func New(ctx context.Context, conf *config.Config, log *zerolog.Logger, mts *metrics.Metrics) *Service {
 	store, err := postgres.NewStore(ctx, &conf.Postgres)
 	if err != nil {
 		log.Error().Err(err).Send()
@@ -57,7 +58,7 @@ func New(ctx context.Context, conf *config.Config, log *zerolog.Logger) *Service
 		tecDocClient: tecdoc.NewClient(conf.TecDoc.URL, conf.TecDoc.Timeout),
 	}
 	svc.internalServer = internalserver.New(conf.InternalServPort)
-	svc.externalServer = externalserver.New(conf.ExternalServPort, &svc, log)
+	svc.externalServer = externalserver.New(conf.ExternalServPort, &svc, log, mts)
 	return &svc
 }
 

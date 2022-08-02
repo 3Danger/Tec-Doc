@@ -4,16 +4,15 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
-	"io"
 	"net/http"
 	"tec-doc/internal/tec-doc/model"
 	"tec-doc/internal/tec-doc/store/postgres"
-	m "tec-doc/pkg/metrics"
+	"tec-doc/pkg/metrics"
 )
 
 type Service interface {
 	ExcelTemplateForClient() ([]byte, error)
-	AddFromExcel(bodyData io.Reader, ctx *gin.Context) error
+	AddFromExcel(ctx *gin.Context, products []model.Product, supplierID int64, userID int64) error
 	GetSupplierTaskHistory(ctx context.Context, tx postgres.Transaction, supplierID int64, limit int, offset int) ([]model.Task, error)
 	GetProductsHistory(ctx context.Context, tx postgres.Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
 	GetArticles(ctx context.Context, dataSupplierID int, article string) ([]model.Article, error)
@@ -28,7 +27,7 @@ type Server interface {
 type externalHttpServer struct {
 	router  *gin.Engine
 	server  http.Server
-	metrics *m.Metrics
+	metrics *metrics.Metrics
 	service Service
 	logger  *zerolog.Logger
 }
@@ -52,14 +51,13 @@ func (e *externalHttpServer) configureRouter() {
 	e.router.GET("/tecdoc_articles", e.GetTecDocArticles)
 }
 
-// todo: прокинуть метрики сверху
-func New(bindingPort string, service Service, logger *zerolog.Logger) *externalHttpServer {
+func New(bindingPort string, service Service, logger *zerolog.Logger, mts *metrics.Metrics) *externalHttpServer {
 	router := gin.Default()
 	serv := &externalHttpServer{
 		router:  router,
 		service: service,
 		logger:  logger,
-		metrics: m.NewMetrics("external", "HttpServer"),
+		metrics: mts,
 		server: http.Server{
 			Addr:    bindingPort,
 			Handler: router,

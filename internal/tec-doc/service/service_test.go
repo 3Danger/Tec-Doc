@@ -74,7 +74,6 @@ func TestService_GetSupplierTaskHistory(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.want, got)
 			}
-			//assert.NoError(t, mockPool.ExpectationsWereMet())
 		})
 	}
 }
