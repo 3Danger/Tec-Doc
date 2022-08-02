@@ -65,9 +65,6 @@ const docTemplate = `{
         "/load_from_excel": {
             "post": {
                 "description": "for upload excel table with products into",
-                "consumes": [
-                    "multipart/form-data:"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -142,7 +139,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "type": "integer"
                         }
                     },
                     {

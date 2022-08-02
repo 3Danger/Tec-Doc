@@ -49,7 +49,7 @@ func (e *externalHttpServer) configureRouter() {
 	e.router.GET("/excel_template", e.ExcelTemplate)
 	e.router.POST("/load_from_excel", e.LoadFromExcel)
 	e.router.GET("/task_history", e.GetSupplierTaskHistory)
-	e.router.GET("/product_history", e.GetProductsHistory)
+	e.router.POST("/product_history", e.GetProductsHistory)
 	e.router.GET("/tecdoc_articles", e.GetTecDocArticles)
 
 	e.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

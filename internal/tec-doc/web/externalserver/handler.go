@@ -80,7 +80,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @ID products_history
 // @Accept json
 // @Produce json
-// @Param upload_id body object true "ID of the task sender"
+// @Param upload_id body int64 true "ID of the task sender"
 // @Param limit query string true "limit of contents"
 // @Param offset query string true "offset of contents"
 // @Param X-User-Id header string true "ID of user"
@@ -110,7 +110,7 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 		return
 	}
 
-	productsHistory, err := e.service.GetProductsHistory(c, rs, limit, offset)
+	productsHistory, err := e.service.GetProductsHistory(c, int64(rs), limit, offset)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))

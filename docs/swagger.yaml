@@ -100,8 +100,6 @@ paths:
       - excel
   /load_from_excel:
     post:
-      consumes:
-      - 'multipart/form-data:'
       description: for upload excel table with products into
       operationId: load_from_excel
       parameters:
@@ -150,7 +148,7 @@ paths:
         name: upload_id
         required: true
         schema:
-          type: object
+          type: integer
       - description: limit of contents
         in: query
         name: limit
