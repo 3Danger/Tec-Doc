@@ -14,7 +14,7 @@ import (
 // @Tags excel
 // @Description download excel table template
 // @ID excel_template
-// @Produce application/vnd.ms-excel
+// @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} byte

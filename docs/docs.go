@@ -20,7 +20,7 @@ const docTemplate = `{
             "get": {
                 "description": "download excel table template",
                 "produces": [
-                    "application/vnd.ms-excel"
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 ],
                 "tags": [
                     "excel"
