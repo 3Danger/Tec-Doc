@@ -61,7 +61,7 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 		return
 	}
 
-	productsHistory, err := e.service.GetProductsHistory(c, nil, rs["upload_id"], limit, offset)
+	productsHistory, err := e.service.GetProductsHistory(c, rs["upload_id"], limit, offset)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
