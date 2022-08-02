@@ -18,6 +18,7 @@ var (
 	InvalidTaskID       = errors.New("invalid task id")
 	InvalidSupplierID   = errors.New("invalid supplier id")
 	InvalidUserID       = errors.New("invalid supplier id")
+	InvalidUserOrSupplierID = errors.New("invalid user or supplier id")
 	InvalidLimit        = errors.New("invalid limit")
 	InvalidOffset       = errors.New("invalid offset")
 	InvalidTecDocParams = errors.New("invalid tecdoc params")
@@ -47,6 +48,10 @@ var (
 			Msg:    "Некорректный id поставщика",
 			Status: http.StatusBadRequest,
 		},
+		InvalidUserOrSupplierID: {
+			Msg:    "Некорректный id поставщика или пользователя",
+			Status: http.StatusBadRequest,
+		},
 		InvalidUserID: {
 			Msg:    "Некорректный id пользователя",
 			Status: http.StatusBadRequest,
@@ -66,10 +71,10 @@ var (
 	}
 )
 
-func GetErrorInfo(err error) (string, int) {
+func GetErrorInfo(err error) (int, string) {
 	info, found := constErrs[err]
 	if found {
-		return info.Msg, info.Status
+		return info.Status, info.Msg
 	}
-	return "", 0
+	return 0, ""
 }

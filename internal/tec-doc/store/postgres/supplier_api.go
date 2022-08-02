@@ -9,6 +9,8 @@ import (
 )
 
 func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	var (
 		createTaskQuery = `INSERT INTO tasks (supplier_id, user_id, upload_date, update_date, IP, status, products_processed, products_failed, products_total)
 							VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;`
@@ -32,8 +34,10 @@ func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID int64
 }
 
 func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supplierID int64, limit int, offset int) ([]model.Task, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	var (
-		getSupplierTaskHistoryQuery = `SELECT id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total
+		getSupplierTaskHistoryQuery = `SELECT id, supplier_id, user_id, upload_date, update_date, status, products_processed, products_failed, products_total
 								FROM tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`
 		executor    Executor
 		taskHistory = make([]model.Task, 0)
@@ -52,7 +56,7 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supp
 
 	for rows.Next() {
 		var t model.Task
-		err = rows.Scan(&t.ID, &t.SupplierID, &t.UserID, &t.IP, &t.UploadDate,
+		err = rows.Scan(&t.ID, &t.SupplierID, &t.UserID, &t.UploadDate,
 			&t.UpdateDate, &t.Status, &t.ProductsProcessed, &t.ProductsFailed, &t.ProductsFailed)
 		if err != nil {
 			return nil, fmt.Errorf("can't get tasks from history: %w", err)
@@ -68,6 +72,8 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supp
 }
 
 func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int) ([]model.Product, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	var (
 		getProductsFromHistoryQuery = `SELECT id, upload_id, article, card_number, provider_article, manufacturer_article, brand, sku, category, price,
 	upload_date, update_date, status, errorresponse FROM products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
@@ -88,7 +94,7 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 
 	for rows.Next() {
 		var p model.Product
-		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.CardNumber, &p.ProviderArticle, &p.ManufacturerArticle, &p.Brand,
+		err = rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.CardNumber, &p.ProviderArticle, &p.ManufacturerArticle, &p.Brand,
 			&p.SKU, &p.Category, &p.Price, &p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
 		if err != nil {
 			return nil, fmt.Errorf("can't get products from history: %w", err)
@@ -96,7 +102,7 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 		productsHistory = append(productsHistory, p)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("can't get products from history: %w", err)
 	}
 
@@ -104,6 +110,8 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 }
 
 func (s *store) SaveIntoBuffer(ctx context.Context, tx Transaction, products []model.Product) error {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	var (
 		executor Executor
 		rows     = make([][]interface{}, len(products))
@@ -140,6 +148,8 @@ func (s *store) SaveIntoBuffer(ctx context.Context, tx Transaction, products []m
 }
 
 func (s *store) GetProductsBuffer(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int) ([]model.Product, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	var (
 		getProductsBufferQuery = `SELECT id, upload_id, article, card_number, provider_article, manufacturer_article, brand, sku, category, price,
 	upload_date, update_date, status, errorresponse FROM products_buffer WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
@@ -177,6 +187,8 @@ func (s *store) GetProductsBuffer(ctx context.Context, tx Transaction, uploadID 
 }
 
 func (s *store) SaveProductsToHistory(ctx context.Context, tx Transaction, products []model.Product) error {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	var (
 		executor Executor
 		rows     = make([][]interface{}, len(products))
@@ -212,6 +224,8 @@ func (s *store) SaveProductsToHistory(ctx context.Context, tx Transaction, produ
 }
 
 func (s *store) DeleteFromBuffer(ctx context.Context, tx Transaction, uploadID int64) error {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	var (
 		deleteFromBufferQuery = `DELETE FROM products_buffer WHERE upload_id=$1;`
 		executor              Executor

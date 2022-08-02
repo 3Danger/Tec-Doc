@@ -6,23 +6,23 @@ variables:
   # hold pls
   CI_TMPL_PROJECT_VERSION: *ci_tmpl_vers
   # ci vars
-  GO_VER: "1.18"                                #<<<<<
+  GO_VER: "1.17"                                #<<<<<
   CI_TMPL_HELM_CHART_NAME: common-deploy
   CI_TMPL_HELM_CHART_VERSION: 2.1.0
   # list of services for build & deploy
-  CI_TMPL_HELM_RELEASE_NAMES: "tec-doc-server"         #<<<<<
+  CI_TMPL_HELM_RELEASE_NAMES: "tec-doc-api"         #<<<<<
   CI_TMPL_HELM_RELEASE_NAMESPACE: suppliers-discounts-prices-go
   # list of clusters for deploy
   CI_TMPL_KUBE_CLUSTERS_DEV: "k8s.dldevel"
-  CI_TMPL_KUBE_CLUSTERS_PROD: "k8s.datapro,k8s.dataline"
+  CI_TMPL_KUBE_CLUSTERS_PROD: "k8s.prod-dl,k8s.prod-dp"
 
   # harbor project name
-  REGISTRY_PROJECT: "portals" # если images находятся в dockerhub то указать "dockerhub" ??
+  REGISTRY_PROJECT: "portals"
 
   VAULT_JWT_AUTH: "jwt2"
   VAULT_JWT_ROLE_K8S_DLDEVEL: k8s_clusters-k8s.dldevel-$CI_TMPL_HELM_RELEASE_NAMESPACE
-  VAULT_JWT_ROLE_K8S_DATALINE: k8s_clusters-k8s.dataline-$CI_TMPL_HELM_RELEASE_NAMESPACE
-  VAULT_JWT_ROLE_K8S_DATAPRO: k8s_clusters-k8s.datapro-$CI_TMPL_HELM_RELEASE_NAMESPACE
+  VAULT_JWT_ROLE_K8S_PROD_DL: k8s_clusters-k8s.prod-dl-$CI_TMPL_HELM_RELEASE_NAMESPACE
+  VAULT_JWT_ROLE_K8S_PROD_DP: k8s_clusters-k8s.prod-dp-$CI_TMPL_HELM_RELEASE_NAMESPACE
 
 include:
   - { <<: *repo, file: /pipelines/go.yml }

@@ -8,30 +8,42 @@ import (
 	"time"
 )
 
-func (e *externalHttpServer) Authorize(next *gin.Context) {
-	userID := next.Request.Header.Get("X-User-Id")
+func (e *externalHttpServer) Authorize(ctx *gin.Context) {
+	userID := ctx.Request.Header.Get("X-User-Id")
 	if userID == "" {
 		e.logger.Error().Err(errinfo.InvalidUserID).Send()
+		ctx.AbortWithStatus(401)
+		return
 	}
 
 	userIDN, err := strconv.ParseInt(userID, 10, 64)
 	if err != nil {
 		e.logger.Error().Err(errinfo.InvalidUserID).Send()
-	} else if userIDN >= 0 {
-		next.Set("X-User-Id", userIDN)
+		ctx.AbortWithStatus(401)
+		return
 	}
 
-	supplierID := next.Request.Header.Get("X-Supplier-Id")
+	supplierID := ctx.Request.Header.Get("X-Supplier-Id")
 	if supplierID == "" {
 		e.logger.Error().Err(errinfo.InvalidSupplierID).Send()
+		ctx.AbortWithStatus(401)
+		return
 	}
 
 	supplierIDN, err := strconv.ParseInt(supplierID, 10, 64)
 	if err != nil {
 		e.logger.Error().Err(errinfo.InvalidSupplierID).Send()
-	} else if supplierIDN >= 0 {
-		next.Set("X-Supplier-Id", supplierIDN)
+		ctx.AbortWithStatus(401)
+		return
 	}
+	if supplierIDN == 0 || userIDN == 0 {
+		e.logger.Error().Err(errinfo.InvalidUserOrSupplierID).Send()
+		ctx.AbortWithStatus(401)
+		return
+	}
+
+	ctx.Set("X-User-Id", userIDN)
+	ctx.Set("X-Supplier-Id", supplierIDN)
 }
 
 func CredentialsFromContext(ctx *gin.Context) (supplierID, userID int64, err error) {

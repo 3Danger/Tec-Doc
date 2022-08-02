@@ -9,7 +9,6 @@ type Config struct {
 	InternalServPort string `envconfig:"INTERNAL_SERV_PORT" required:"true"`
 	ExternalServPort string `envconfig:"EXTERNAL_SERV_PORT" required:"true"`
 	LogLevel         string `envconfig:"LOG_LEVEL" default:"debug"`
-	ListenInternal   string `envconfig:"LISTEN_INTERNAL" default:":8000"`
 	Postgres         PostgresConfig
 	Content          ContentClientConfig
 	TecDoc           TecDocClientConfig
