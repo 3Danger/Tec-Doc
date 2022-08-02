@@ -13,7 +13,7 @@ import (
 type Service interface {
 	ExcelTemplateForClient() ([]byte, error)
 	AddFromExcel(ctx *gin.Context, products []model.Product, supplierID int64, userID int64) error
-	GetSupplierTaskHistory(ctx context.Context, tx postgres.Transaction, supplierID int64, limit int, offset int) ([]model.Task, error)
+	GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error)
 	GetProductsHistory(ctx context.Context, tx postgres.Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
 	GetArticles(ctx context.Context, dataSupplierID int, article string) ([]model.Article, error)
 	GetBrand(ctx context.Context, brandName string) (*model.Brand, error)
