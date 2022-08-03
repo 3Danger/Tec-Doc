@@ -64,7 +64,7 @@ const docTemplate = `{
         },
         "/load_from_excel": {
             "post": {
-                "description": "for upload excel table with products into",
+                "description": "upload excel table containing products info",
                 "produces": [
                     "application/json"
                 ],
@@ -120,7 +120,7 @@ const docTemplate = `{
         },
         "/product_history": {
             "post": {
-                "description": "getting product list",
+                "description": "get product list",
                 "consumes": [
                     "application/json"
                 ],
@@ -162,7 +162,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "The input body\u003cbr /\u003e UploadID is ID of uploaded task",
+                        "description": "The input body.\u003cbr /\u003e UploadID is ID of uploaded task.",
                         "name": "InputBody",
                         "in": "body",
                         "required": true,
@@ -192,7 +192,7 @@ const docTemplate = `{
         },
         "/task_history": {
             "get": {
-                "description": "getting task list",
+                "description": "get task list",
                 "produces": [
                     "application/json"
                 ],
@@ -252,7 +252,7 @@ const docTemplate = `{
         },
         "/tecdoc_articles": {
             "post": {
-                "description": "getting tecdoc articles",
+                "description": "get tecdoc articles",
                 "produces": [
                     "application/json"
                 ],
@@ -260,10 +260,10 @@ const docTemplate = `{
                     "tecdoc"
                 ],
                 "summary": "GetTecDocArticles",
-                "operationId": "tecdod_articles",
+                "operationId": "tecdoc_articles",
                 "parameters": [
                     {
-                        "description": "The input body\u003cbr /\u003eBrand is brand name, ArticleNumber is article of product",
+                        "description": "The input body.\u003cbr /\u003eBrand is brand name, ArticleNumber is article of product.",
                         "name": "InputBody",
                         "in": "body",
                         "required": true,

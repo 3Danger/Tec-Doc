@@ -33,7 +33,7 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 
 // @Summary LoadFromExcel
 // @Tags excel
-// @Description for upload excel table with products into
+// @Description upload excel table containing products info
 // @ID load_from_excel
 // @Produce json
 // @Param excel_file formData file true "excel file"
@@ -77,7 +77,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 
 // @Summary GetProductsHistory
 // @Tags product
-// @Description getting product list
+// @Description get product list
 // @ID products_history
 // @Accept json
 // @Produce json
@@ -85,7 +85,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param offset query string true "offset of contents"
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
-// @Param InputBody body model.GetProductsHistoryRequest true "The input body<br /> UploadID is ID of uploaded task"
+// @Param InputBody body model.GetProductsHistoryRequest true "The input body.<br /> UploadID is ID of uploaded task."
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
 // @Router /product_history [post]
@@ -123,7 +123,7 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 
 // @Summary GetSupplierTaskHistory
 // @Tags product
-// @Description getting task list
+// @Description get task list
 // @ID supplier_task_history
 // @Produce json
 // @Param limit query string true "limit of contents"
@@ -167,10 +167,10 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 
 // @Summary GetTecDocArticles
 // @Tags tecdoc
-// @Description getting tecdoc articles
-// @ID tecdod_articles
+// @Description get tecdoc articles
+// @ID tecdoc_articles
 // @Produce json
-// @Param InputBody body model.GetTecDocArticlesRequest true "The input body<br />Brand is brand name, ArticleNumber is article of product"
+// @Param InputBody body model.GetTecDocArticlesRequest true "The input body.<br />Brand is brand name, ArticleNumber is article of product."
 // @Success 200 {array} model.Article
 // @Failure 500 {object} errinfo.errInf
 // @Router /tecdoc_articles [post]

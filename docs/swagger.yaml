@@ -210,7 +210,7 @@ paths:
       - excel
   /load_from_excel:
     post:
-      description: for upload excel table with products into
+      description: upload excel table containing products info
       operationId: load_from_excel
       parameters:
       - description: excel file
@@ -250,7 +250,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: getting product list
+      description: get product list
       operationId: products_history
       parameters:
       - description: limit of contents
@@ -273,7 +273,7 @@ paths:
         name: X-Supplier-Id
         required: true
         type: string
-      - description: The input body<br /> UploadID is ID of uploaded task
+      - description: The input body.<br /> UploadID is ID of uploaded task.
         in: body
         name: InputBody
         required: true
@@ -297,7 +297,7 @@ paths:
       - product
   /task_history:
     get:
-      description: getting task list
+      description: get task list
       operationId: supplier_task_history
       parameters:
       - description: limit of contents
@@ -338,11 +338,11 @@ paths:
       - product
   /tecdoc_articles:
     post:
-      description: getting tecdoc articles
-      operationId: tecdod_articles
+      description: get tecdoc articles
+      operationId: tecdoc_articles
       parameters:
-      - description: The input body<br />Brand is brand name, ArticleNumber is article
-          of product
+      - description: The input body.<br />Brand is brand name, ArticleNumber is article
+          of product.
         in: body
         name: InputBody
         required: true
