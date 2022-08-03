@@ -7,42 +7,6 @@ definitions:
       status:
         type: integer
     type: object
-  externalserver.RequestBody:
-    properties:
-      uploadID:
-        type: integer
-    type: object
-  model.Product:
-    properties:
-      article:
-        type: string
-      brand:
-        type: string
-      cardNumber:
-        type: integer
-      category:
-        type: string
-      errorResponse:
-        type: string
-      id:
-        type: integer
-      manufacturerArticle:
-        type: string
-      price:
-        type: integer
-      providerArticle:
-        type: string
-      sku:
-        type: string
-      status:
-        type: integer
-      updateDate:
-        type: string
-      uploadDate:
-        type: string
-      uploadId:
-        type: integer
-    type: object
   model.Task:
     properties:
       id:
@@ -168,21 +132,16 @@ paths:
         name: X-Supplier-Id
         required: true
         type: string
-      - description: The input body struct
+      - description: message/rfc822
         in: body
-        name: RequestBody
+        name: email
         required: true
         schema:
-          $ref: '#/definitions/externalserver.RequestBody'
+          example: "Subject: Testmail\r\n\r\nBody Message\r\n"
+          type: string
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/model.Product'
-            type: array
         "500":
           description: Internal Server Error
           schema:

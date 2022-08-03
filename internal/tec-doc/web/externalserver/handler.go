@@ -88,8 +88,7 @@ type RequestBody struct {
 // @Param offset query string true "offset of contents"
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
-// @Param RequestBody body RequestBody true "The input body struct"
-// @Success 200 {array} model.Product
+// @Param email body string true "message/rfc822" SchemaExample(Subject: Testmail\r\n\r\nBody Message\r\n)// @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
 // @Router /product_history [get]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {

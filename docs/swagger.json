@@ -154,25 +154,17 @@
                         "required": true
                     },
                     {
-                        "description": "The input body struct",
-                        "name": "RequestBody",
+                        "description": "message/rfc822",
+                        "name": "email",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/externalserver.RequestBody"
+                            "type": "string",
+                            "example": "Subject: Testmail\r\n\r\nBody Message\r\n"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.Product"
-                            }
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -251,61 +243,6 @@
                     "type": "string"
                 },
                 "status": {
-                    "type": "integer"
-                }
-            }
-        },
-        "externalserver.RequestBody": {
-            "type": "object",
-            "properties": {
-                "uploadID": {
-                    "type": "integer"
-                }
-            }
-        },
-        "model.Product": {
-            "type": "object",
-            "properties": {
-                "article": {
-                    "type": "string"
-                },
-                "brand": {
-                    "type": "string"
-                },
-                "cardNumber": {
-                    "type": "integer"
-                },
-                "category": {
-                    "type": "string"
-                },
-                "errorResponse": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "manufacturerArticle": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "integer"
-                },
-                "providerArticle": {
-                    "type": "string"
-                },
-                "sku": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "updateDate": {
-                    "type": "string"
-                },
-                "uploadDate": {
-                    "type": "string"
-                },
-                "uploadId": {
                     "type": "integer"
                 }
             }
