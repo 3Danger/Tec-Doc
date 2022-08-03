@@ -162,17 +162,25 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "message/rfc822",
+                        "description": "{uploadID}",
                         "name": "email",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string",
-                            "example": "Subject: Testmail\r\n\r\nBody Message\r\n"
+                            "type": "string"
                         }
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Product"
+                            }
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -251,6 +259,53 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.Product": {
+            "type": "object",
+            "properties": {
+                "article": {
+                    "type": "string"
+                },
+                "brand": {
+                    "type": "string"
+                },
+                "cardNumber": {
+                    "type": "integer"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "errorResponse": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "manufacturerArticle": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "providerArticle": {
+                    "type": "string"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "updateDate": {
+                    "type": "string"
+                },
+                "uploadDate": {
+                    "type": "string"
+                },
+                "uploadId": {
                     "type": "integer"
                 }
             }
