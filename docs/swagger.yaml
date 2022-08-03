@@ -7,9 +7,112 @@ definitions:
       status:
         type: integer
     type: object
+  model.Article:
+    properties:
+      articleNumber:
+        type: string
+      brand:
+        type: string
+      country:
+        type: string
+      ean:
+        items:
+          type: string
+        type: array
+      oemnumbers:
+        items:
+          type: string
+        type: array
+      packageHeight:
+        $ref: '#/definitions/model.ArticleCriteria'
+      packageLength:
+        $ref: '#/definitions/model.ArticleCriteria'
+      packageWidth:
+        $ref: '#/definitions/model.ArticleCriteria'
+      panoramicImages:
+        items:
+          $ref: '#/definitions/model.Image'
+        type: array
+      pictures:
+        items:
+          $ref: '#/definitions/model.Image'
+        type: array
+      productGroups:
+        items:
+          type: string
+        type: array
+      relatedVehicles:
+        items:
+          type: string
+        type: array
+      replacedByArticles:
+        items:
+          type: string
+        type: array
+      weight:
+        $ref: '#/definitions/model.ArticleCriteria'
+    type: object
+  model.ArticleCriteria:
+    properties:
+      criteriaAbbrDescription:
+        type: string
+      criteriaDescription:
+        type: string
+      criteriaId:
+        type: integer
+      criteriaType:
+        type: string
+      criteriaUnitDescription:
+        type: string
+      formattedValue:
+        type: string
+      immediateDisplay:
+        type: boolean
+      isInterval:
+        type: boolean
+      isMandatory:
+        type: boolean
+      rawValue:
+        type: string
+    type: object
   model.GetProductsHistoryRequest:
     properties:
       UploadID:
+        example: 1
+        type: integer
+    type: object
+  model.GetTecDocArticlesRequest:
+    properties:
+      ArticleNumber:
+        type: string
+      Brand:
+        type: string
+    type: object
+  model.Image:
+    properties:
+      fileName:
+        type: string
+      headerDescription:
+        type: string
+      headerKey:
+        type: integer
+      imageURL50:
+        type: string
+      imageURL100:
+        type: string
+      imageURL200:
+        type: string
+      imageURL400:
+        type: string
+      imageURL800:
+        type: string
+      imageURL1600:
+        type: string
+      imageURL3200:
+        type: string
+      typeDescription:
+        type: string
+      typeKey:
         type: integer
     type: object
   model.Product:
@@ -231,4 +334,31 @@ paths:
       summary: GetSupplierTaskHistory
       tags:
       - product
+  /tecdoc_articles:
+    get:
+      description: getting tecdoc articles
+      operationId: tecdod_articles
+      parameters:
+      - description: The input body
+        in: body
+        name: InputBody
+        required: true
+        schema:
+          $ref: '#/definitions/model.GetTecDocArticlesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Article'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errinfo.errInf'
+      summary: GetTecDocArticles
+      tags:
+      - tecdoc
 swagger: "2.0"

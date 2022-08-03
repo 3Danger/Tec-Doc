@@ -241,6 +241,47 @@
                     }
                 }
             }
+        },
+        "/tecdoc_articles": {
+            "get": {
+                "description": "getting tecdoc articles",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tecdoc"
+                ],
+                "summary": "GetTecDocArticles",
+                "operationId": "tecdod_articles",
+                "parameters": [
+                    {
+                        "description": "The input body",
+                        "name": "InputBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GetTecDocArticlesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Article"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errinfo.errInf"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -255,10 +296,166 @@
                 }
             }
         },
+        "model.Article": {
+            "type": "object",
+            "properties": {
+                "articleNumber": {
+                    "type": "string"
+                },
+                "brand": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "ean": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "oemnumbers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "packageHeight": {
+                    "$ref": "#/definitions/model.ArticleCriteria"
+                },
+                "packageLength": {
+                    "$ref": "#/definitions/model.ArticleCriteria"
+                },
+                "packageWidth": {
+                    "$ref": "#/definitions/model.ArticleCriteria"
+                },
+                "panoramicImages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Image"
+                    }
+                },
+                "pictures": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Image"
+                    }
+                },
+                "productGroups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "relatedVehicles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "replacedByArticles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "weight": {
+                    "$ref": "#/definitions/model.ArticleCriteria"
+                }
+            }
+        },
+        "model.ArticleCriteria": {
+            "type": "object",
+            "properties": {
+                "criteriaAbbrDescription": {
+                    "type": "string"
+                },
+                "criteriaDescription": {
+                    "type": "string"
+                },
+                "criteriaId": {
+                    "type": "integer"
+                },
+                "criteriaType": {
+                    "type": "string"
+                },
+                "criteriaUnitDescription": {
+                    "type": "string"
+                },
+                "formattedValue": {
+                    "type": "string"
+                },
+                "immediateDisplay": {
+                    "type": "boolean"
+                },
+                "isInterval": {
+                    "type": "boolean"
+                },
+                "isMandatory": {
+                    "type": "boolean"
+                },
+                "rawValue": {
+                    "type": "string"
+                }
+            }
+        },
         "model.GetProductsHistoryRequest": {
             "type": "object",
             "properties": {
                 "UploadID": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "model.GetTecDocArticlesRequest": {
+            "type": "object",
+            "properties": {
+                "ArticleNumber": {
+                    "type": "string"
+                },
+                "Brand": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Image": {
+            "type": "object",
+            "properties": {
+                "fileName": {
+                    "type": "string"
+                },
+                "headerDescription": {
+                    "type": "string"
+                },
+                "headerKey": {
+                    "type": "integer"
+                },
+                "imageURL100": {
+                    "type": "string"
+                },
+                "imageURL1600": {
+                    "type": "string"
+                },
+                "imageURL200": {
+                    "type": "string"
+                },
+                "imageURL3200": {
+                    "type": "string"
+                },
+                "imageURL400": {
+                    "type": "string"
+                },
+                "imageURL50": {
+                    "type": "string"
+                },
+                "imageURL800": {
+                    "type": "string"
+                },
+                "typeDescription": {
+                    "type": "string"
+                },
+                "typeKey": {
                     "type": "integer"
                 }
             }
