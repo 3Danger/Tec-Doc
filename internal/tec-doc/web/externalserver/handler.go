@@ -166,11 +166,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 }
 
 func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
-	type Request struct {
-		Brand         string `json:"Brand"`
-		ArticleNumber string `json:"ArticleNumber"`
-	}
-	var rq Request
+	var rq model.GetTecDocArticlesRequest
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&rq); err != nil {
 		e.logger.Error().Err(err).Send()
