@@ -335,7 +335,7 @@ paths:
       tags:
       - product
   /tecdoc_articles:
-    get:
+    post:
       description: getting tecdoc articles
       operationId: tecdod_articles
       parameters:

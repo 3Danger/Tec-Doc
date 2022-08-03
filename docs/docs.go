@@ -251,7 +251,7 @@ const docTemplate = `{
             }
         },
         "/tecdoc_articles": {
-            "get": {
+            "post": {
                 "description": "getting tecdoc articles",
                 "produces": [
                     "application/json"
