@@ -173,7 +173,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 // @Param InputBody body model.GetTecDocArticlesRequest true "The input body"
 // @Success 200 {array} model.Article
 // @Failure 500 {object} errinfo.errInf
-// @Router /tecdoc_articles [get]
+// @Router /tecdoc_articles [post]
 func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
 	var rq model.GetTecDocArticlesRequest
 
