@@ -84,8 +84,10 @@ definitions:
   model.GetTecDocArticlesRequest:
     properties:
       ArticleNumber:
+        example: "0451103274"
         type: string
       Brand:
+        example: BOSCH
         type: string
     type: object
   model.Image:

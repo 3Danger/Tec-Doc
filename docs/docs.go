@@ -420,10 +420,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "ArticleNumber": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "0451103274"
                 },
                 "Brand": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "BOSCH"
                 }
             }
         },
