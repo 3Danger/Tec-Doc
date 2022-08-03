@@ -162,7 +162,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "The input body",
+                        "description": "The input body\u003cbr /\u003e UploadID is ID of uploaded task",
                         "name": "InputBody",
                         "in": "body",
                         "required": true,
@@ -263,7 +263,7 @@ const docTemplate = `{
                 "operationId": "tecdod_articles",
                 "parameters": [
                     {
-                        "description": "The input body\u003cbr /\u003eBrand is brand name",
+                        "description": "The input body\u003cbr /\u003eBrand is brand name, ArticleNumber is article of product",
                         "name": "InputBody",
                         "in": "body",
                         "required": true,

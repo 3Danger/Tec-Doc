@@ -273,7 +273,7 @@ paths:
         name: X-Supplier-Id
         required: true
         type: string
-      - description: The input body
+      - description: The input body<br /> UploadID is ID of uploaded task
         in: body
         name: InputBody
         required: true
@@ -341,7 +341,8 @@ paths:
       description: getting tecdoc articles
       operationId: tecdod_articles
       parameters:
-      - description: The input body<br />Brand is brand name
+      - description: The input body<br />Brand is brand name, ArticleNumber is article
+          of product
         in: body
         name: InputBody
         required: true
