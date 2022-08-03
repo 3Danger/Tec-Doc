@@ -51,7 +51,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidNotFile))
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 	products, err := e.loadFromExcel(file)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
@@ -74,6 +74,10 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	})
 }
 
+type Request struct {
+	UploadID int64 `json:"uploadID"`
+}
+
 // @Summary GetProductsHistory
 // @Tags product
 // @Description getting product list
@@ -85,12 +89,17 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param offset query string true "offset of contents"
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
+// @Param Request body Request true "Add Request"
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
 // @Router /product_history [get]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
-	var rs int64
-	if err := json.NewDecoder(c.Request.Body).Decode(&rs); err != nil {
+	type Request struct {
+		UploadID int64 `json:"uploadID"`
+	}
+	var rq Request
+
+	if err := json.NewDecoder(c.Request.Body).Decode(&rq); err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTaskID))
 		return
@@ -110,7 +119,7 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 		return
 	}
 
-	productsHistory, err := e.service.GetProductsHistory(c, int64(rs), limit, offset)
+	productsHistory, err := e.service.GetProductsHistory(c, rq.UploadID, limit, offset)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
@@ -163,23 +172,27 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	c.JSON(http.StatusOK, rawTasks)
 }
 
-// todo: переделать на json (по возможности и остальные методы)
 func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
-	var rs map[string]string
-	if err := json.NewDecoder(c.Request.Body).Decode(&rs); err != nil {
+	type Request struct {
+		Brand         string `json:"Brand"`
+		ArticleNumber string `json:"ArticleNumber"`
+	}
+	var rq Request
+
+	if err := json.NewDecoder(c.Request.Body).Decode(&rq); err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTecDocParams))
 		return
 	}
 
-	brand, err := e.service.GetBrand(c, rs["Brand"])
+	brand, err := e.service.GetBrand(c, rq.Brand)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
 		return
 	}
 
-	articles, err := e.service.GetArticles(c, brand.SupplierId, rs["ArticleNumber"])
+	articles, err := e.service.GetArticles(c, brand.SupplierId, rq.ArticleNumber)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))

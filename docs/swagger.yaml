@@ -7,6 +7,11 @@ definitions:
       status:
         type: integer
     type: object
+  externalserver.Request:
+    properties:
+      uploadID:
+        type: integer
+    type: object
   model.Product:
     properties:
       article:
@@ -169,6 +174,12 @@ paths:
         name: X-Supplier-Id
         required: true
         type: string
+      - description: Add Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/externalserver.Request'
       produces:
       - application/json
       responses:

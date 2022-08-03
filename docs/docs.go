@@ -169,6 +169,15 @@ const docTemplate = `{
                         "name": "X-Supplier-Id",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "description": "Add Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/externalserver.Request"
+                        }
                     }
                 ],
                 "responses": {
@@ -259,6 +268,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "externalserver.Request": {
+            "type": "object",
+            "properties": {
+                "uploadID": {
                     "type": "integer"
                 }
             }
