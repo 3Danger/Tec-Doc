@@ -341,7 +341,7 @@ paths:
       description: getting tecdoc articles
       operationId: tecdod_articles
       parameters:
-      - description: The input body \n Brand is brand name
+      - description: The input body \r\n Brand is brand name
         in: body
         name: InputBody
         required: true
