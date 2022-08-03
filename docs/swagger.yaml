@@ -245,7 +245,7 @@ paths:
       tags:
       - excel
   /product_history:
-    get:
+    post:
       consumes:
       - application/json
       description: getting product list

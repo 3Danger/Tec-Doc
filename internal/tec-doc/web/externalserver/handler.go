@@ -88,7 +88,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param InputBody body model.GetProductsHistoryRequest true "The input body"
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
-// @Router /product_history [get]
+// @Router /product_history [post]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 	var rq model.GetProductsHistoryRequest
 

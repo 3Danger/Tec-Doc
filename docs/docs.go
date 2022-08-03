@@ -119,7 +119,7 @@ const docTemplate = `{
             }
         },
         "/product_history": {
-            "get": {
+            "post": {
                 "description": "getting product list",
                 "consumes": [
                     "application/json"
