@@ -7,6 +7,12 @@ definitions:
       status:
         type: integer
     type: object
+  model.GetProductsHistoryRequest:
+    properties:
+      UploadID:
+        example: 1
+        type: integer
+    type: object
   model.Product:
     properties:
       article:
@@ -163,12 +169,12 @@ paths:
         name: X-Supplier-Id
         required: true
         type: string
-      - description: '{uploadID}'
+      - description: The input body
         in: body
-        name: email
+        name: RequestBody
         required: true
         schema:
-          type: string
+          $ref: '#/definitions/model.GetProductsHistoryRequest'
       produces:
       - application/json
       responses:

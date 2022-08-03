@@ -162,12 +162,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "{uploadID}",
-                        "name": "email",
+                        "description": "The input body",
+                        "name": "RequestBody",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/model.GetProductsHistoryRequest"
                         }
                     }
                 ],
@@ -260,6 +260,15 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "integer"
+                }
+            }
+        },
+        "model.GetProductsHistoryRequest": {
+            "type": "object",
+            "properties": {
+                "UploadID": {
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"tec-doc/internal/tec-doc/model"
 	"tec-doc/pkg/errinfo"
 )
 
@@ -74,10 +75,6 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	})
 }
 
-type RequestBody struct {
-	UploadID int64 `json:"uploadID"`
-}
-
 // @Summary GetProductsHistory
 // @Tags product
 // @Description getting product list
@@ -88,15 +85,12 @@ type RequestBody struct {
 // @Param offset query string true "offset of contents"
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
-// @Param email body string true "{uploadID}"
+// @Param RequestBody body model.GetProductsHistoryRequest true "The input body"
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
 // @Router /product_history [get]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
-	type RequestBody struct {
-		UploadID int64 `json:"uploadID"`
-	}
-	var rq RequestBody
+	var rq model.GetProductsHistoryRequest
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&rq); err != nil {
 		e.logger.Error().Err(err).Send()
