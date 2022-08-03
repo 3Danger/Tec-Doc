@@ -85,7 +85,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param offset query string true "offset of contents"
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
-// @Param InputBody body model.GetProductsHistoryRequest true "The input body.<br /> UploadID is ID of uploaded task."
+// @Param InputBody body model.GetProductsHistoryRequest true "The input body.<br /> UploadID is ID of previously uploaded task."
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
 // @Router /product_history [post]

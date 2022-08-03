@@ -84,7 +84,7 @@ definitions:
   model.GetTecDocArticlesRequest:
     properties:
       ArticleNumber:
-        example: "0451103274"
+        example: 0451103274XF
         type: string
       Brand:
         example: BOSCH
@@ -273,7 +273,7 @@ paths:
         name: X-Supplier-Id
         required: true
         type: string
-      - description: The input body.<br /> UploadID is ID of uploaded task.
+      - description: The input body.<br /> UploadID is ID of previously uploaded task.
         in: body
         name: InputBody
         required: true

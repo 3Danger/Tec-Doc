@@ -162,7 +162,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "The input body.\u003cbr /\u003e UploadID is ID of uploaded task.",
+                        "description": "The input body.\u003cbr /\u003e UploadID is ID of previously uploaded task.",
                         "name": "InputBody",
                         "in": "body",
                         "required": true,
@@ -421,7 +421,7 @@ const docTemplate = `{
             "properties": {
                 "ArticleNumber": {
                     "type": "string",
-                    "example": "0451103274"
+                    "example": "0451103274XF"
                 },
                 "Brand": {
                     "type": "string",

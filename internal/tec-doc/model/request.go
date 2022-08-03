@@ -6,5 +6,5 @@ type GetProductsHistoryRequest struct {
 
 type GetTecDocArticlesRequest struct {
 	Brand         string `json:"Brand" example:"BOSCH"`
-	ArticleNumber string `json:"ArticleNumber" example:"0451103274"`
+	ArticleNumber string `json:"ArticleNumber" example:"0451103274XF"`
 }
