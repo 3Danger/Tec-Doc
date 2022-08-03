@@ -1,6 +1,6 @@
 .template_repo: &repo
   project: 'devops/ci/templates'
-  ref: &ci_tmpl_vers 'v3.1.0'
+  ref: &ci_tmpl_vers 'v3.0.1'
 
 variables:
   # hold pls
