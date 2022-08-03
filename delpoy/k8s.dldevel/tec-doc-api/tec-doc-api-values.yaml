@@ -1,0 +1,80 @@
+# Enviroment (like as cluser name)
+environment: dev
+
+replicaCount: 1
+
+image:
+  repository: {{.Helm.Release.Image}}
+  tag: {{.Helm.Release.Tag}}
+  pullPolicy: IfNotPresent
+
+annotations:
+  prometheus.io/path: /metrics
+  prometheus.io/port: "8001"
+  prometheus.io/scrape: "true"
+
+ports:
+  - name: metrics
+    containerPort: 8001
+    protocol: TCP
+  - name: api
+    containerPort: 8000
+    protocol: TCP
+
+readinessProbe:
+  httpGet:
+    path: "/readiness"
+    port: 8001
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+livenessProbe:
+  httpGet:
+    path: "/health"
+    port: 8001
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+imagePullSecrets:
+  - name: harbor-registry-secret
+
+vault:
+  enabled: true
+  role: vault-agent-injector-dev
+  authPath: auth/k8s.dldevel.vault-auth-suppliers-discounts-prices-go
+  contents:
+    - services/suppliers-discounts-prices-go/dev/tec-doc:
+        POSTGRES_USERNAME: POSTGRES_USERNAME
+        POSTGRES_PASSWORD: POSTGRES_PASSWORD
+        POSTGRES_DB: POSTGRES_DB
+        TEC_DOC_CLIENT_API_KEY: TEC_DOC_CLIENT_API_KEY
+        TEC_DOC_CLIENT_PROVIDER_ID: TEC_DOC_CLIENT_PROVIDER_ID
+
+env:
+  INTERNAL_SERV_PORT: ":8001"
+  EXTERNAL_SERV_PORT: ":8000"
+  LOG_LEVEL: "debug"
+  POSTGRES_HOST: "5000"
+  POSTGRES_PORT: "suppliers-discounts-prices-go-tecdoc-pgsql-haproxy.suppliers-discounts-prices-go.svc.k8s.dataline"
+  POSTGRES_TIMEOUT: "30s"
+  POSTGRES_MAX_CONNECTIONS: "100"
+  POSTGRES_MIN_CONNECTIONS: "10"
+  CONTENT_CLIENT_URL: "http://source.content-card.svc.k8s.stage-dp/source/migration"
+  CONTENT_CLIENT_TIMEOUT: "15s"
+  TEC_DOC_CLIENT_URL: "https://webservice.tecalliance.services/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"
+  TEC_DOC_CLIENT_TIMEOUT: "15s"
+
+service:
+  enabled: true
+  ports:
+    - port: 80
+      name: api
+      targetPort: 8000
+
+resources:
+  requests:
+    memory: "500Mi"
+    cpu: "0.5"
+  limits:
+    memory: "1000Mi"
+    cpu: "1.0"
