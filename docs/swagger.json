@@ -155,7 +155,7 @@
                     },
                     {
                         "description": "The input body",
-                        "name": "RequestBody",
+                        "name": "InputBody",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -259,8 +259,7 @@
             "type": "object",
             "properties": {
                 "UploadID": {
-                    "type": "integer",
-                    "example": 1
+                    "type": "integer"
                 }
             }
         },

@@ -10,7 +10,6 @@ definitions:
   model.GetProductsHistoryRequest:
     properties:
       UploadID:
-        example: 1
         type: integer
     type: object
   model.Product:
@@ -171,7 +170,7 @@ paths:
         type: string
       - description: The input body
         in: body
-        name: RequestBody
+        name: InputBody
         required: true
         schema:
           $ref: '#/definitions/model.GetProductsHistoryRequest'

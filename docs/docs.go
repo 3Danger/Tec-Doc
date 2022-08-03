@@ -163,7 +163,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "The input body",
-                        "name": "RequestBody",
+                        "name": "InputBody",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -267,8 +267,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "UploadID": {
-                    "type": "integer",
-                    "example": 1
+                    "type": "integer"
                 }
             }
         },
