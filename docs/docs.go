@@ -134,15 +134,6 @@ const docTemplate = `{
                 "operationId": "products_history",
                 "parameters": [
                     {
-                        "description": "ID of the task sender",
-                        "name": "upload_id",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
                         "type": "string",
                         "description": "limit of contents",
                         "name": "limit",
@@ -171,12 +162,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Add Request",
-                        "name": "Request",
+                        "description": "The input body struct",
+                        "name": "RequestBody",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/externalserver.Request"
+                            "$ref": "#/definitions/externalserver.RequestBody"
                         }
                     }
                 ],
@@ -272,7 +263,7 @@ const docTemplate = `{
                 }
             }
         },
-        "externalserver.Request": {
+        "externalserver.RequestBody": {
             "type": "object",
             "properties": {
                 "uploadID": {

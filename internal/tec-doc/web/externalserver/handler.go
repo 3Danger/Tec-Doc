@@ -74,7 +74,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	})
 }
 
-type Request struct {
+type RequestBody struct {
 	UploadID int64 `json:"uploadID"`
 }
 
@@ -84,20 +84,19 @@ type Request struct {
 // @ID products_history
 // @Accept json
 // @Produce json
-// @Param upload_id body int64 true "ID of the task sender"
 // @Param limit query string true "limit of contents"
 // @Param offset query string true "offset of contents"
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
-// @Param Request body Request true "Add Request"
+// @Param RequestBody body RequestBody true "The input body struct"
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
 // @Router /product_history [get]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
-	type Request struct {
+	type RequestBody struct {
 		UploadID int64 `json:"uploadID"`
 	}
-	var rq Request
+	var rq RequestBody
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&rq); err != nil {
 		e.logger.Error().Err(err).Send()

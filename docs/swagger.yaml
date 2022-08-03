@@ -7,7 +7,7 @@ definitions:
       status:
         type: integer
     type: object
-  externalserver.Request:
+  externalserver.RequestBody:
     properties:
       uploadID:
         type: integer
@@ -148,12 +148,6 @@ paths:
       description: getting product list
       operationId: products_history
       parameters:
-      - description: ID of the task sender
-        in: body
-        name: upload_id
-        required: true
-        schema:
-          type: integer
       - description: limit of contents
         in: query
         name: limit
@@ -174,12 +168,12 @@ paths:
         name: X-Supplier-Id
         required: true
         type: string
-      - description: Add Request
+      - description: The input body struct
         in: body
-        name: Request
+        name: RequestBody
         required: true
         schema:
-          $ref: '#/definitions/externalserver.Request'
+          $ref: '#/definitions/externalserver.RequestBody'
       produces:
       - application/json
       responses:
