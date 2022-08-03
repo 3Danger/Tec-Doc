@@ -263,7 +263,7 @@ const docTemplate = `{
                 "operationId": "tecdod_articles",
                 "parameters": [
                     {
-                        "description": "The input body",
+                        "description": "The input body\u003cbr /\u003eBrand is brand name",
                         "name": "InputBody",
                         "in": "body",
                         "required": true,

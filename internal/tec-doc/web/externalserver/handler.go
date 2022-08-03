@@ -170,7 +170,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 // @Description getting tecdoc articles
 // @ID tecdod_articles
 // @Produce json
-// @Param InputBody body model.GetTecDocArticlesRequest true "The input body"\n"Brand is brand name"
+// @Param InputBody body model.GetTecDocArticlesRequest true "The input body<br />Brand is brand name"
 // @Success 200 {array} model.Article
 // @Failure 500 {object} errinfo.errInf
 // @Router /tecdoc_articles [post]
