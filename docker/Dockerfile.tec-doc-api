@@ -3,7 +3,7 @@ ARG ALPINE_VER
 FROM nexus.wildberries.ru/library/golang:${GO_VER}-alpine as builder
 WORKDIR /src
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -mod=vendor -a -installsuffix cgo -o app ./cmd/tec-doc-api
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=vendor -a -installsuffix cgo -o app ./cmd/tec-doc/main.go
 
 FROM nexus.wildberries.ru/library/alpine:${ALPINE_VER}
 WORKDIR /root/
