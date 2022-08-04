@@ -36,7 +36,7 @@ livenessProbe:
   periodSeconds: 10
 
 imagePullSecrets:
-  - name: harbor-registry-secret
+  - name: harbor-portals-registry-secret
 
 vault:
   enabled: true
