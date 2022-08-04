@@ -15,6 +15,7 @@ variables:
   # list of services for build & deploy
   CI_TMPL_HELM_RELEASE_NAMES: "tec-doc-api"
   CI_TMPL_HELM_RELEASE_NAMESPACE: "suppliers-discounts-prices-go"
+  CI_TMPL_HELM_RELEASE_TIMEOUT: 300
   # list of clusters for deploy
   CI_TMPL_KUBE_CLUSTERS_DEV: "k8s.dldevel"
   CI_TMPL_KUBE_CLUSTERS_STAGE: "k8s.stage-dp"
