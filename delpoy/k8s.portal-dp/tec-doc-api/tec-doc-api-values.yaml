@@ -1,5 +1,7 @@
 # Enviroment (like as cluser name)
-environment: dldevel
+environment: portal-dp
+
+replicaCount: 2
 
 ports:
   - name: metrics
@@ -16,4 +18,3 @@ service:
     - port: 80
       name: api
       targetPort: 8000
-
