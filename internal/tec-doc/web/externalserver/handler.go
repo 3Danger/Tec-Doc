@@ -87,7 +87,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
-// @Router /api/product_history [get]
+// @Router /api/product_history [post]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 	var rs int64
 	if err := json.NewDecoder(c.Request.Body).Decode(&rs); err != nil {

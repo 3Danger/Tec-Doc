@@ -137,7 +137,7 @@ paths:
       tags:
       - excel
   /api/product_history:
-    get:
+    post:
       consumes:
       - application/json
       description: getting product list
