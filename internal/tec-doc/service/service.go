@@ -8,6 +8,7 @@ import (
 	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/internal/tec-doc/web/externalserver"
 	"tec-doc/internal/tec-doc/web/internalserver"
+	"tec-doc/pkg/clients/services"
 	"tec-doc/pkg/clients/tecdoc"
 	"tec-doc/pkg/metrics"
 	"time"
@@ -36,12 +37,15 @@ type Server interface {
 }
 
 type Service struct {
-	conf           *config.Config
-	log            *zerolog.Logger
+	conf            *config.Config
+	log             *zerolog.Logger
+	abacClient      services.ABAC
+	suppliersClient services.Suppliers
+	database        Store
+	tecDocClient    TecDocClient
+
 	externalServer Server
 	internalServer Server
-	database       Store
-	tecDocClient   TecDocClient
 }
 
 func New(ctx context.Context, conf *config.Config, log *zerolog.Logger, mts *metrics.Metrics) *Service {
@@ -94,4 +98,16 @@ func (s *Service) Stop() {
 
 	s.database.Stop()
 	s.log.Info().Msg("stopping database")
+}
+
+func (s *Service) Scope() *config.Scope {
+	return &s.conf.Scope
+}
+
+func (s *Service) Abac() services.ABAC {
+	return s.abacClient
+}
+
+func (s *Service) Suppliers() services.Suppliers {
+	return s.suppliersClient
 }
