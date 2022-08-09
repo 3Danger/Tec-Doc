@@ -2,11 +2,25 @@ package externalserver
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"strconv"
+	"strings"
 	"tec-doc/pkg/errinfo"
 	m "tec-doc/pkg/metrics"
 	"time"
 )
+
+func (e *externalHttpServer) corsMiddleware(ctx *gin.Context) {
+	ctx.Header("Access-Control-Allow-Origin", "*")
+	ctx.Header("Access-Control-Allow-Methods", strings.Join([]string{
+		http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions,
+	}, ", "))
+	ctx.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	if ctx.Request.Method == http.MethodOptions {
+		ctx.AbortWithStatus(204)
+		return
+	}
+}
 
 func (e *externalHttpServer) Authorize(ctx *gin.Context) {
 	userID := ctx.Request.Header.Get("X-User-Id")
