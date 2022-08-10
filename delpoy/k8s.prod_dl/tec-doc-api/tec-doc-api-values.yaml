@@ -1,4 +1,4 @@
-# Enviroment (like as cluser name)
+# Enviroment (like as cluser name )
 environment: prod_dl
 
 replicaCount: 2
