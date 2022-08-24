@@ -27,8 +27,8 @@ type Store interface {
 }
 
 type TecDocClient interface {
-	GetArticles(ctx context.Context, tecDocCfg config.TecDocClientConfig, dataSupplierID int, article string) ([]model.Article, error)
-	GetBrand(ctx context.Context, tecDocCfg config.TecDocClientConfig, brandName string) (*model.Brand, error)
+	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
+	GetBrand(brandName string) (*model.Brand, error)
 }
 
 type Server interface {
@@ -59,7 +59,7 @@ func New(ctx context.Context, conf *config.Config, log *zerolog.Logger, mts *met
 		conf:         conf,
 		log:          log,
 		database:     store,
-		tecDocClient: tecdoc.NewClient(conf.TecDoc.URL, conf.TecDoc.Timeout),
+		tecDocClient: tecdoc.NewClient(conf.TecDoc.URL, conf.TecDoc),
 	}
 	svc.internalServer = internalserver.New(conf.InternalServPort)
 	svc.externalServer = externalserver.New(conf.ExternalServPort, &svc, log, mts)
