@@ -6,54 +6,46 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"tec-doc/pkg/clients/models"
 )
 
-// DataFirstResponse для записи ответа первого запроса
-type DataFirstResponse struct {
-	Data struct {
-		Array []struct {
-			ArticleLinkages struct {
-				LinkingTargetId []struct {
-					LinkingTargetId int `json:"linkingTargetId"`
-				} `json:"array"`
-			} `json:"articleLinkages"`
-		} `json:"array"`
-	} `json:"data"`
-	Status int `json:"status"`
-}
-
-// GetLinkageTargetsBody для записи ответа втрого запроса
-type GetLinkageTargetsBody struct {
-	GetLinkageTargets GetLinkageTargets `json:"getLinkageTargets"`
-}
-
-type GetLinkageTargets struct {
-	LinkageTargetCountry string             `json:"linkageTargetCountry"`
-	Lang                 string             `json:"lang"`
-	LinkageTargetIds     []LinkageTargetIds `json:"linkageTargetIds"`
-}
-
-type LinkageTargetIds struct {
-	Type string `json:"type"`
-	Id   int    `json:"id"`
-}
-
-// LinkageTargetsResponse для записи результата
-type LinkageTargetsResponse struct {
-	LinkageTargets []LinkageTargets `json:"linkageTargets"`
-	Status         int              `json:"status"`
-}
-
-type LinkageTargets struct {
-	LinkageTargetId        int    `json:"linkageTargetId"`
-	MfrName                string `json:"mfrName"`
-	VehicleModelSeriesName string `json:"vehicleModelSeriesName"`
-	BeginYearMonth         string `json:"beginYearMonth"`
-	EndYearMonth           string `json:"endYearMonth"`
-}
-
 // Applicability получение списка применимости
-func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets map[int]LinkageTargets, err error) {
+func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets map[int]models.LinkageTargets, err error) {
+	type (
+		// DataFirstResponse для записи ответа первого запроса
+		DataFirstResponse struct {
+			Data struct {
+				Array []struct {
+					ArticleLinkages struct {
+						LinkingTargetId []struct {
+							LinkingTargetId int `json:"linkingTargetId"`
+						} `json:"array"`
+					} `json:"articleLinkages"`
+				} `json:"array"`
+			} `json:"data"`
+			Status int `json:"status"`
+		}
+		// LinkageTargetsResponse для записи результата
+		LinkageTargetsResponse struct {
+			LinkageTargets []models.LinkageTargets `json:"linkageTargets"`
+			Status         int                     `json:"status"`
+		}
+
+		// GetLinkageTargetsResponse для записи ответа второго запроса
+		LinkageTargetIds struct {
+			Type string `json:"type"`
+			Id   int    `json:"id"`
+		}
+		GetLinkageTargets struct {
+			LinkageTargetCountry string             `json:"linkageTargetCountry"`
+			Lang                 string             `json:"lang"`
+			LinkageTargetIds     []LinkageTargetIds `json:"linkageTargetIds"`
+		}
+		GetLinkageTargetsResponse struct {
+			GetLinkageTargets GetLinkageTargets `json:"getLinkageTargets"`
+		}
+	)
+
 	const LIMIT = 100
 	var responseFirst DataFirstResponse
 	{
@@ -76,7 +68,7 @@ func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets map[in
 		}
 	}
 
-	var LinkageTargetsBody []GetLinkageTargetsBody
+	var LinkageTargetsBody []GetLinkageTargetsResponse
 	{
 		var linkageTargetIds []LinkageTargetIds
 		for _, array := range responseFirst.Data.Array {
@@ -87,18 +79,18 @@ func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets map[in
 		steps := len(linkageTargetIds) / LIMIT
 		for i := 0; i < steps; i++ {
 			start, end := i*LIMIT, (i+1)*LIMIT
-			LinkageTargetsBody = append(LinkageTargetsBody, GetLinkageTargetsBody{GetLinkageTargets{
+			LinkageTargetsBody = append(LinkageTargetsBody, GetLinkageTargetsResponse{GetLinkageTargets{
 				"RU", "ru",
 				linkageTargetIds[start:end]},
 			})
 		}
-		LinkageTargetsBody = append(LinkageTargetsBody, GetLinkageTargetsBody{GetLinkageTargets{
+		LinkageTargetsBody = append(LinkageTargetsBody, GetLinkageTargetsResponse{GetLinkageTargets{
 			"RU", "ru",
 			linkageTargetIds[steps*LIMIT:]},
 		})
 	}
 
-	linkageTargets = make(map[int]LinkageTargets, len(LinkageTargetsBody)*LIMIT)
+	linkageTargets = make(map[int]models.LinkageTargets, len(LinkageTargetsBody)*LIMIT)
 	for _, targets := range LinkageTargetsBody {
 		var requestByte []byte
 		if requestByte, err = json.Marshal(targets); err != nil {
