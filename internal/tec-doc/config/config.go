@@ -13,6 +13,7 @@ type Config struct {
 	Content          ContentClientConfig
 	TecDoc           TecDocClientConfig
 	Worker           WorkerConfig
+	Scope            Scope
 }
 
 type PostgresConfig struct {
@@ -41,4 +42,10 @@ type TecDocClientConfig struct {
 type WorkerConfig struct {
 	Timer  time.Duration `envconfig:"WORKER_TIMER" default:"1h"`
 	Offset int           `envconfig:"WORKER_OFFSET" default:"1000"`
+}
+
+type Scope struct {
+	Scope                   string `envconfig:"SCOPE" default:"suppliers"`
+	ContentFeatureKey       string `envconfig:"CONTENT_FEATURE_KEY" default:"content"`
+	UpdateContentFeatureKey string `envconfig:"UPDATE_CONTENT_FEATURE_KEY" default:"content/update"`
 }
