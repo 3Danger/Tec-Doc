@@ -1,0 +1,35 @@
+# https://git.wildberries.ru/devops/ci/templates/-/blob/master/README.md
+.template_repo: &repo
+  project: 'devops/ci/templates'
+  ref: &ci_tmpl_vers 'v3.1.0'
+
+variables:
+  # hold pls
+  CI_TMPL_PROJECT_VERSION: *ci_tmpl_vers
+  # ci vars
+
+  GO_VER: "1.17"
+  ALPINE_VER: "3.13"
+  CI_TMPL_HELM_CHART_NAME: "common-deploy"
+  CI_TMPL_HELM_CHART_VERSION: 2.1.3
+  # list of services for build & deploy
+  CI_TMPL_HELM_RELEASE_NAMES: "tec-doc-api"
+  CI_TMPL_HELM_RELEASE_NAMESPACE: "suppliers-discounts-prices-go"
+  CI_TMPL_HELM_RELEASE_TIMEOUT: 300
+  # list of clusters for deploy
+  CI_TMPL_KUBE_CLUSTERS_DEV: "k8s.dldevel"
+  CI_TMPL_KUBE_CLUSTERS_STAGE: "k8s.stage-dp"
+  CI_TMPL_KUBE_CLUSTERS_PROD: "k8s.portal-dl,k8s.portal-dp,k8s.dataline,k8s.datapro"
+
+  REGISTRY_PROJECT: portals
+  VAULT_JWT_AUTH: "jwt2"
+  VAULT_JWT_ROLE_K8S_DLDEVEL: k8s_clusters-k8s.dldevel-$CI_TMPL_HELM_RELEASE_NAMESPACE
+  VAULT_JWT_ROLE_K8S_STAGE_DP: k8s_clusters-k8s.stage-dp-$CI_TMPL_HELM_RELEASE_NAMESPACE
+  VAULT_JWT_ROLE_K8S_PORTAL_DL: k8s_clusters-k8s.portal-dl-$CI_TMPL_HELM_RELEASE_NAMESPACE
+  VAULT_JWT_ROLE_K8S_PORTAL_DP: k8s_clusters-k8s.portal-dp-$CI_TMPL_HELM_RELEASE_NAMESPACE
+  VAULT_JWT_ROLE_K8S_DATALINE: k8s_clusters-k8s.dataline-$CI_TMPL_HELM_RELEASE_NAMESPACE
+  VAULT_JWT_ROLE_K8S_DATAPRO: k8s_clusters-k8s.datapro-$CI_TMPL_HELM_RELEASE_NAMESPACE
+
+
+include:
+  - {<<: *repo, file: /pipelines/go.yml}

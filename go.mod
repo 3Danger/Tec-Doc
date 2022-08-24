@@ -13,6 +13,7 @@ require (
 	github.com/magefile/mage v1.13.0
 	github.com/pashagolub/pgxmock v1.6.0
 	github.com/prometheus/client_golang v1.12.2
+	github.com/rs/cors v1.8.2
 	github.com/rs/zerolog v1.27.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.8.0

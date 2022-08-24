@@ -1,25 +1,34 @@
-# Enviroment (like as cluser name )
-environment: prod_dl
+replicaCount: 1
 
-replicaCount: 2
+resources:
+  requests:
+    memory: "500Mi"
+    cpu: "0.5"
+  limits:
+    memory: "1000Mi"
+    cpu: "1.0"
 
 image:
   repository: {{.Helm.Release.Image}}
   tag: {{.Helm.Release.Tag}}
   pullPolicy: IfNotPresent
+  
+# # Set imagePullSecrets if exist
+imagePullSecrets:
+ - name: harbor-registry-secret
 
 annotations:
-  prometheus.io/path: /metrics
-  prometheus.io/port: "8001"
   prometheus.io/scrape: "true"
+  prometheus.io/path: "/metrics"
+  prometheus.io/port: "9090"
 
-ports:
-  - name: metrics
-    containerPort: 8001
-    protocol: TCP
-  - name: api
-    containerPort: 8000
-    protocol: TCP
+extendedLabels:
+  department: "portal" 
+  project: "tec-doc-api" 
+  team: "seller-portal" 
+  developer: "" 
+  resources: "mongo" 
+  dependencies: ""
 
 readinessProbe:
   httpGet:
@@ -35,15 +44,13 @@ livenessProbe:
   initialDelaySeconds: 5
   periodSeconds: 10
 
-imagePullSecrets:
-  - name: harbor-registry-secret
-
 vault:
   enabled: true
-  role: vault-agent-injector-prd
-  authPath: auth/k8s.prod-dl.vault-auth-suppliers-discounts-prices-go
+  # entrypoint: ./app <- точка входа не задается т.к. совпадает с точкой входа по умолчанию
+  role: vault-agent-injector-{{.Helm.Release.Environment}}  # vault injector role - выдается при интеграции службой технической поддержки
+  authPath: auth/{{ .Helm.Release.Cluster }}.vault-auth-{{ .Helm.Release.Namespace }} # vault injector authPath - выдается при интеграции службой технической поддержки
   contents:
-    - services/suppliers-discounts-prices-go/prd/tec-doc:
+    - services/{{ .Helm.Release.Namespace }}/{{.Helm.Release.Environment}}/tec-doc:
         POSTGRES_USERNAME: POSTGRES_USERNAME
         POSTGRES_PASSWORD: POSTGRES_PASSWORD
         POSTGRES_DB: POSTGRES_DB
@@ -64,17 +71,3 @@ env:
   TEC_DOC_CLIENT_URL: "https://webservice.tecalliance.services/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"
   TEC_DOC_CLIENT_TIMEOUT: "15s"
 
-service:
-  enabled: true
-  ports:
-    - port: 80
-      name: api
-      targetPort: 8000
-
-resources:
-  requests:
-    memory: "500Mi"
-    cpu: "0.5"
-  limits:
-    memory: "1000Mi"
-    cpu: "1.0"
