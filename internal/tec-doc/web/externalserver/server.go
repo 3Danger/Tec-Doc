@@ -68,7 +68,8 @@ func New(bindingPort string, service Service, logger *zerolog.Logger, mts *metri
 		logger:  logger,
 		metrics: mts,
 		server: http.Server{
-			Addr: bindingPort,
+			Addr:    bindingPort,
+			Handler: router,
 		},
 	}
 	serv.configureRouter()

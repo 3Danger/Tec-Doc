@@ -25,6 +25,8 @@ var (
 	SupplierIsNotUUID       = errors.New("supplier is not uuid")
 	FailOldSupplierID       = errors.New("can't get old supplier ID")
 	CheckAcessError         = errors.New("check access error")
+	NoTecDocArticlesFound   = errors.New("no articles found")
+	NoTecDocBrandFound      = errors.New("no brand found")
 
 	constErrs = map[error]errInf{
 		InternalServerErr: {
@@ -81,6 +83,14 @@ var (
 		},
 		CheckAcessError: {
 			Msg:    "ошибка доступа, проверьте имеются ли необходимые права",
+			Status: http.StatusUnauthorized,
+		},
+		NoTecDocArticlesFound: {
+			Msg:    "товары не найдены, проверьте корректно ли переданы параметры",
+			Status: http.StatusUnauthorized,
+		},
+		NoTecDocBrandFound: {
+			Msg:    "бренд не найден, проверьте корректно ли переданы параметры",
 			Status: http.StatusUnauthorized,
 		},
 	}
