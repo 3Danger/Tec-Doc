@@ -8,7 +8,9 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
 	_ "tec-doc/docs"
+	"tec-doc/internal/tec-doc/config"
 	"tec-doc/internal/tec-doc/model"
+	"tec-doc/pkg/clients/services"
 	"tec-doc/pkg/metrics"
 )
 
@@ -19,6 +21,10 @@ type Service interface {
 	GetProductsHistory(ctx context.Context, uploadID int64, limit int, offset int) ([]model.Product, error)
 	GetArticles(ctx context.Context, dataSupplierID int, article string) ([]model.Article, error)
 	GetBrand(ctx context.Context, brandName string) (*model.Brand, error)
+
+	Scope() *config.Scope
+	Abac() services.ABAC
+	Suppliers() services.Suppliers
 }
 
 type Server interface {

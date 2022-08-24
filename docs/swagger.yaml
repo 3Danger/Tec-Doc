@@ -7,6 +7,12 @@ definitions:
       status:
         type: integer
     type: object
+  model.GetProductsHistoryRequest:
+    properties:
+      UploadID:
+        example: 1
+        type: integer
+    type: object
   model.Product:
     properties:
       article:
@@ -67,7 +73,7 @@ info:
   title: Tec-Doc API
   version: "1.0"
 paths:
-  /api/excel_template:
+  /excel_template:
     get:
       description: download excel table template
       operationId: excel_template
@@ -83,7 +89,7 @@ paths:
         required: true
         type: string
       produces:
-      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      - application/vnd.ms-excel
       responses:
         "200":
           description: OK
@@ -98,9 +104,9 @@ paths:
       summary: ExcelTemplate
       tags:
       - excel
-  /api/load_from_excel:
+  /load_from_excel:
     post:
-      description: for upload excel table with products into
+      description: upload excel table containing products info
       operationId: load_from_excel
       parameters:
       - description: excel file
@@ -136,19 +142,13 @@ paths:
       summary: LoadFromExcel
       tags:
       - excel
-  /api/product_history:
+  /product_history:
     post:
       consumes:
       - application/json
-      description: getting product list
+      description: get product list
       operationId: products_history
       parameters:
-      - description: ID of the task sender
-        in: body
-        name: upload_id
-        required: true
-        schema:
-          type: integer
       - description: limit of contents
         in: query
         name: limit
@@ -169,6 +169,12 @@ paths:
         name: X-Supplier-Id
         required: true
         type: string
+      - description: The input body.<br /> UploadID is ID of previously uploaded task.
+        in: body
+        name: InputBody
+        required: true
+        schema:
+          $ref: '#/definitions/model.GetProductsHistoryRequest'
       produces:
       - application/json
       responses:
@@ -185,9 +191,9 @@ paths:
       summary: GetProductsHistory
       tags:
       - product
-  /api/task_history:
+  /task_history:
     get:
-      description: getting task list
+      description: get task list
       operationId: supplier_task_history
       parameters:
       - description: limit of contents

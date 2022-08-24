@@ -16,11 +16,11 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/excel_template": {
+        "/excel_template": {
             "get": {
                 "description": "download excel table template",
                 "produces": [
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    "application/vnd.ms-excel"
                 ],
                 "tags": [
                     "excel"
@@ -62,9 +62,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/load_from_excel": {
+        "/load_from_excel": {
             "post": {
-                "description": "for upload excel table with products into",
+                "description": "upload excel table containing products info",
                 "produces": [
                     "application/json"
                 ],
@@ -118,9 +118,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/product_history": {
+        "/product_history": {
             "post": {
-                "description": "getting product list",
+                "description": "get product list",
                 "consumes": [
                     "application/json"
                 ],
@@ -133,15 +133,6 @@ const docTemplate = `{
                 "summary": "GetProductsHistory",
                 "operationId": "products_history",
                 "parameters": [
-                    {
-                        "description": "ID of the task sender",
-                        "name": "upload_id",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
                     {
                         "type": "string",
                         "description": "limit of contents",
@@ -169,6 +160,15 @@ const docTemplate = `{
                         "name": "X-Supplier-Id",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "description": "The input body.\u003cbr /\u003e UploadID is ID of previously uploaded task.",
+                        "name": "InputBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GetProductsHistoryRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -190,9 +190,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/task_history": {
+        "/task_history": {
             "get": {
-                "description": "getting task list",
+                "description": "get task list",
                 "produces": [
                     "application/json"
                 ],
@@ -260,6 +260,15 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "integer"
+                }
+            }
+        },
+        "model.GetProductsHistoryRequest": {
+            "type": "object",
+            "properties": {
+                "UploadID": {
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },

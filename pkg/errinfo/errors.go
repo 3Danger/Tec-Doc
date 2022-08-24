@@ -11,17 +11,20 @@ type errInf struct {
 }
 
 var (
-	InternalServerErr   = errors.New("internal server error")
-	InvalidExcelData    = errors.New("invalid excel data")
-	InvalidExcelEmpty   = errors.New("invalid excel empty")
-	InvalidNotFile      = errors.New("invalid, file not found in request")
-	InvalidTaskID       = errors.New("invalid task id")
-	InvalidSupplierID   = errors.New("invalid supplier id")
-	InvalidUserID       = errors.New("invalid supplier id")
+	InternalServerErr       = errors.New("internal server error")
+	InvalidExcelData        = errors.New("invalid excel data")
+	InvalidExcelEmpty       = errors.New("invalid excel empty")
+	InvalidNotFile          = errors.New("invalid, file not found in request")
+	InvalidTaskID           = errors.New("invalid task id")
+	InvalidSupplierID       = errors.New("invalid supplier id")
+	InvalidUserID           = errors.New("invalid supplier id")
 	InvalidUserOrSupplierID = errors.New("invalid user or supplier id")
-	InvalidLimit        = errors.New("invalid limit")
-	InvalidOffset       = errors.New("invalid offset")
-	InvalidTecDocParams = errors.New("invalid tecdoc params")
+	InvalidLimit            = errors.New("invalid limit")
+	InvalidOffset           = errors.New("invalid offset")
+	InvalidTecDocParams     = errors.New("invalid tecdoc params")
+	SupplierIsNotUUID       = errors.New("supplier is not uuid")
+	FailOldSupplierID       = errors.New("can't get old supplier ID")
+	CheckAcessError         = errors.New("check access error")
 
 	constErrs = map[error]errInf{
 		InternalServerErr: {
@@ -67,6 +70,18 @@ var (
 		InvalidTecDocParams: {
 			Msg:    "Некорректные название бренда и номер артикула",
 			Status: http.StatusBadRequest,
+		},
+		SupplierIsNotUUID: {
+			Msg:    "ID поставщика не является UUID",
+			Status: http.StatusUnauthorized,
+		},
+		FailOldSupplierID: {
+			Msg:    "нельзя получить старый ID поставщика",
+			Status: http.StatusUnauthorized,
+		},
+		CheckAcessError: {
+			Msg:    "ошибка доступа, проверьте имеются ли необходимые права",
+			Status: http.StatusUnauthorized,
 		},
 	}
 )

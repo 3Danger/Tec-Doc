@@ -1,11 +1,12 @@
 ARG GO_VER
 ARG ALPINE_VER
-FROM nexus.wildberries.ru/library/golang:${GO_VER}-alpine as builder
+FROM harbor.wildberries.ru/docker-hub-proxy/library/golang:${GO_VER}-alpine${ALPINE_VER} as builder
+ARG VERSION
 WORKDIR /src
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -mod=vendor -a -installsuffix cgo -o app ./cmd/tec-doc-api
 
-FROM nexus.wildberries.ru/library/alpine:${ALPINE_VER}
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app -ldflags "-X 'main.version=${VERSION}'" ./cmd/tec-doc-api
+FROM harbor.wildberries.ru/docker-hub-proxy/library/alpine:${ALPINE_VER}
 WORKDIR /root/
 COPY --from=builder /src/app .
 CMD ["./app"]
