@@ -2,6 +2,7 @@ package externalserver
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 	"io"
@@ -177,14 +178,22 @@ func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
 	brand, err := e.service.GetBrand(rq.Brand)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
-		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
+		if errors.Is(err, errinfo.NoTecDocBrandFound) {
+			c.JSON(errinfo.GetErrorInfo(err))
+		} else {
+			c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
+		}
 		return
 	}
 
 	articles, err := e.service.GetArticles(brand.SupplierId, rq.ArticleNumber)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
-		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
+		if errors.Is(err, errinfo.NoTecDocArticlesFound) {
+			c.JSON(errinfo.GetErrorInfo(err))
+		} else {
+			c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
+		}
 		return
 	}
 
