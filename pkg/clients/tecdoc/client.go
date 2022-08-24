@@ -2,49 +2,53 @@ package tecdoc
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"tec-doc/internal/tec-doc/config"
 	"tec-doc/internal/tec-doc/model"
-	"time"
 )
 
 type Client interface {
-	GetArticles(ctx context.Context, tecDocCfg config.TecDocClientConfig, dataSupplierID int, article string) ([]model.Article, error)
-	GetBrand(ctx context.Context, tecDocCfg config.TecDocClientConfig, brandName string) (*model.Brand, error)
+	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
+	GetBrand(brandName string) (*model.Brand, error)
 }
 
 type tecDocClient struct {
+	tecDocCfg config.TecDocClientConfig
 	http.Client
 	baseURL string
 }
 
-func NewClient(baseURL string, timeout time.Duration) *tecDocClient {
+func NewClient(baseURL string, tecDocCfg config.TecDocClientConfig) *tecDocClient {
 	return &tecDocClient{
-		Client:  http.Client{Timeout: timeout},
-		baseURL: baseURL,
+		Client:    http.Client{Timeout: tecDocCfg.Timeout},
+		baseURL:   baseURL,
+		tecDocCfg: tecDocCfg,
 	}
 }
 
-func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocClientConfig, brandName string) (*model.Brand, error) {
+func (c *tecDocClient) GetBrand(brandName string) (*model.Brand, error) {
 	reqBodyReader := bytes.NewReader([]byte(fmt.Sprintf(
-		`{"getBrands":{"articleCountry":"ru", "lang":"ru", "provider":%d}}`, tecDocCfg.ProviderId)))
+		`{"getBrands":{"articleCountry":"ru", "lang":"ru", "provider":%d}}`, c.tecDocCfg.ProviderId)))
 
-	req, err := http.NewRequest(http.MethodPost, tecDocCfg.URL, reqBodyReader)
+	req, err := http.NewRequest(http.MethodPost, c.tecDocCfg.URL, reqBodyReader)
 	if err != nil {
 		return nil, fmt.Errorf("can't create new request: %v", err)
 	}
 
-	req.Header = http.Header{"Content-Type": {"application/json"}, "X-Api-Key": {tecDocCfg.XApiKey}}
+	req.Header = http.Header{"Content-Type": {"application/json"}, "X-Api-Key": {c.tecDocCfg.XApiKey}}
 
 	resp, err := c.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("can't get response: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("request failed with status code: %d", resp.StatusCode)
+	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -78,7 +82,7 @@ func (c *tecDocClient) GetBrand(ctx context.Context, tecDocCfg config.TecDocClie
 	return nil, fmt.Errorf("no brand found")
 }
 
-func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocClientConfig, dataSupplierID int, article string) ([]model.Article, error) {
+func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.Article, error) {
 	reqBodyReader := bytes.NewReader([]byte(fmt.Sprintf(
 		`{
 			"getArticles": {
@@ -95,14 +99,14 @@ func (c *tecDocClient) GetArticles(ctx context.Context, tecDocCfg config.TecDocC
 				"includeArticleCriteria": true,
     			"includeImages": true
 			}
-		}`, tecDocCfg.ProviderId, article, dataSupplierID)))
+		}`, c.tecDocCfg.ProviderId, article, dataSupplierID)))
 
-	req, err := http.NewRequest(http.MethodPost, tecDocCfg.URL, reqBodyReader)
+	req, err := http.NewRequest(http.MethodPost, c.tecDocCfg.URL, reqBodyReader)
 	if err != nil {
 		return nil, fmt.Errorf("can't create new request: %w", err)
 	}
 
-	req.Header = http.Header{"Content-Type": {"application/json"}, "X-Api-Key": {tecDocCfg.XApiKey}}
+	req.Header = http.Header{"Content-Type": {"application/json"}, "X-Api-Key": {c.tecDocCfg.XApiKey}}
 
 	resp, err := c.Do(req)
 	if err != nil {

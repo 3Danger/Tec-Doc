@@ -19,20 +19,23 @@ import (
 
 // @host localhost:8002
 // @BasePath /
-func initConfig() (*config.Config, *zerolog.Logger, error) {
+func initConfig() (*config.Config, *zerolog.Logger, *metrics.Metrics, error) {
 	var conf config.Config
 	if err := envconfig.Process("", &conf); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	logger, err := l.InitLogger(conf.LogLevel)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return &conf, &logger, nil
+
+	mts := metrics.NewMetrics("external", "HttpServer")
+
+	return &conf, &logger, mts, nil
 }
 
 func main() {
-	conf, logger, err := initConfig()
+	conf, logger, mts, err := initConfig()
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
@@ -42,7 +45,6 @@ func main() {
 		return sig.Listen(ctx)
 	})
 
-	mts := metrics.NewMetrics("external", "HttpServer")
 	svc := service.New(ctx, conf, logger, mts)
 	logger.Info().Msg("service starting..")
 	erg.Go(func() error {
