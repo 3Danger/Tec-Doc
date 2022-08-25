@@ -10,7 +10,7 @@ import (
 )
 
 // Applicability получение списка применимости
-func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets map[int]models.LinkageTargets, err error) {
+func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets []models.LinkageTargets, err error) {
 	type (
 		// DataFirstResponse для записи ответа первого запроса
 		DataFirstResponse struct {
@@ -27,12 +27,15 @@ func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets map[in
 		}
 		// LinkageTargetsResponse для записи результата
 		LinkageTargetsResponse struct {
+			Total          int                     `json:"total"`
 			LinkageTargets []models.LinkageTargets `json:"linkageTargets"`
 			Status         int                     `json:"status"`
 		}
 
 		// GetLinkageTargetsResponse для запроса
 		GetLinkageTargets struct {
+			PerPage              int              `json:"perPage"`
+			Page                 int              `json:"page"`
 			LinkageTargetCountry string           `json:"linkageTargetCountry"`
 			Lang                 string           `json:"lang"`
 			LinkageTargetIds     []map[string]any `json:"linkageTargetIds"`
@@ -64,6 +67,7 @@ func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets map[in
 		}
 	}
 
+	var length int
 	var LinkageTargetsBody []GetLinkageTargetsResponse
 	{
 		var linkageTargetIds []map[string]any
@@ -72,39 +76,44 @@ func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets map[in
 				linkageTargetIds = append(linkageTargetIds, map[string]any{"type": "P", "id": data.LinkingTargetId})
 			}
 		}
-		steps := len(linkageTargetIds) / LIMIT
+		length = len(linkageTargetIds)
+		steps := length / LIMIT
 		for i := 0; i < steps; i++ {
 			start, end := i*LIMIT, (i+1)*LIMIT
 			LinkageTargetsBody = append(LinkageTargetsBody, GetLinkageTargetsResponse{GetLinkageTargets{
+				LIMIT, 1,
 				"RU", "ru",
 				linkageTargetIds[start:end]},
 			})
 		}
 		LinkageTargetsBody = append(LinkageTargetsBody, GetLinkageTargetsResponse{GetLinkageTargets{
+			LIMIT, 1,
 			"RU", "ru",
 			linkageTargetIds[steps*LIMIT:]},
 		})
 	}
 
-	linkageTargets = make(map[int]models.LinkageTargets, len(LinkageTargetsBody)*LIMIT)
+	linkageTargets = make([]models.LinkageTargets, 0, length)
 	for _, targets := range LinkageTargetsBody {
 		var requestByte []byte
-		if requestByte, err = json.Marshal(targets); err != nil {
-			return nil, err
-		}
+		targets.GetLinkageTargets.Page = 1
 
-		var linkageTargetsResponse LinkageTargetsResponse
-		if err = c.doRequest(http.MethodPost, bytes.NewReader(requestByte), &linkageTargetsResponse); err != nil {
-			return nil, err
-		}
-		if linkageTargetsResponse.Status != http.StatusOK {
-			return nil, fmt.Errorf("bad status code %d", responseFirst.Status)
-		}
-		for _, target := range linkageTargetsResponse.LinkageTargets {
-			linkageTargets[target.LinkageTargetId] = target
+		var linkageTargetsResponse = LinkageTargetsResponse{Total: LIMIT << 1}
+		for arrivedCount := 0; arrivedCount < linkageTargetsResponse.Total; {
+			if requestByte, err = json.Marshal(targets); err != nil {
+				return nil, err
+			}
+			if err = c.doRequest(http.MethodPost, bytes.NewReader(requestByte), &linkageTargetsResponse); err != nil {
+				return nil, err
+			}
+			if linkageTargetsResponse.Status != http.StatusOK {
+				return nil, fmt.Errorf("bad status code %d", responseFirst.Status)
+			}
+			linkageTargets = append(linkageTargets, linkageTargetsResponse.LinkageTargets...)
+			arrivedCount += len(linkageTargetsResponse.LinkageTargets)
+			targets.GetLinkageTargets.Page++
 		}
 	}
-
 	return linkageTargets, nil
 }
 
