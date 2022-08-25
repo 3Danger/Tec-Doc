@@ -49,7 +49,7 @@ type Article struct {
 	PackageWidth              *ArticleCriteria  `json:"packageWidth,omitempty"`
 	PackageHeight             *ArticleCriteria  `json:"packageHeight,omitempty"`
 	PackageDepth              *ArticleCriteria  `json:"packageDepth,omitempty"`
-	LinkageTargets            []interface{}     `json:"linkageTargets,omitempty"`
+	LinkageTargets            []LinkageTargets  `json:"linkageTargets,omitempty"`
 	Images                    []string          `json:"images,omitempty"`
 	ComparableNumbers         []interface{}     `json:"comparableNumbers,omitempty"`
 	AssemblyGroupFacets       []string          `json:"assemblyGroupFacets,omitempty"`
@@ -96,6 +96,14 @@ type Image struct {
 type OEM struct {
 	ArticleNumber string `json:"articleNumber"`
 	MfrName       string `json:"mfrName"`
+}
+
+type LinkageTargets struct {
+	LinkageTargetId        int    `json:"linkageTargetId"`
+	MfrName                string `json:"mfrName"`
+	VehicleModelSeriesName string `json:"vehicleModelSeriesName"`
+	BeginYearMonth         string `json:"beginYearMonth"`
+	EndYearMonth           string `json:"endYearMonth"`
 }
 
 type AssemblyGroupFacets struct {

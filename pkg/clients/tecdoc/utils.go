@@ -1,6 +1,8 @@
 package tecdoc
 
-import "tec-doc/internal/tec-doc/model"
+import (
+	"tec-doc/pkg/clients/model"
+)
 
 func convertArticleCriteriaRaw(cr model.ArticleCriteriaRaw) model.ArticleCriteria {
 	return model.ArticleCriteria{

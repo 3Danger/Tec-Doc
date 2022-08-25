@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
-	"tec-doc/internal/tec-doc/model"
+	"tec-doc/pkg/clients/model"
 	"testing"
 	"time"
 

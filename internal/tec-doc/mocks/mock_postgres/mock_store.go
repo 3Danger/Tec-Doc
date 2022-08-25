@@ -7,8 +7,8 @@ package mock_postgres
 import (
 	context "context"
 	reflect "reflect"
-	model "tec-doc/internal/tec-doc/model"
 	postgres "tec-doc/internal/tec-doc/store/postgres"
+	"tec-doc/pkg/clients/model"
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"

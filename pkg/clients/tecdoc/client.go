@@ -2,17 +2,15 @@ package tecdoc
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"tec-doc/internal/tec-doc/config"
-	"tec-doc/internal/tec-doc/model"
+	"tec-doc/pkg/clients/model"
 )
 
 type Client interface {
-	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
 	GetBrand(brandName string) (*model.Brand, error)
+	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
 }
 
 type tecDocClient struct {
@@ -30,31 +28,6 @@ func NewClient(baseURL string, tecDocCfg config.TecDocClientConfig) *tecDocClien
 }
 
 func (c *tecDocClient) GetBrand(brandName string) (*model.Brand, error) {
-	reqBodyReader := bytes.NewReader([]byte(fmt.Sprintf(
-		`{"getBrands":{"articleCountry":"ru", "lang":"ru", "provider":%d}}`, c.tecDocCfg.ProviderId)))
-
-	req, err := http.NewRequest(http.MethodPost, c.tecDocCfg.URL, reqBodyReader)
-	if err != nil {
-		return nil, fmt.Errorf("can't create new request: %v", err)
-	}
-
-	req.Header = http.Header{"Content-Type": {"application/json"}, "X-Api-Key": {c.tecDocCfg.XApiKey}}
-
-	resp, err := c.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("can't get response: %w", err)
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("request failed with status code: %d", resp.StatusCode)
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("can't read response")
-	}
-
 	type respStruct struct {
 		Data struct {
 			Array []model.Brand `json:"array"`
@@ -62,18 +35,21 @@ func (c *tecDocClient) GetBrand(brandName string) (*model.Brand, error) {
 		Status int `json:"status"`
 	}
 
-	var r respStruct
+	var (
+		reqBody = []byte(fmt.Sprintf(
+			`{"getBrands":{"articleCountry":"ru", "lang":"ru", "provider":%d}}`, c.tecDocCfg.ProviderId))
+		resp respStruct
+	)
 
-	err = json.Unmarshal(body, &r)
+	err := c.doRequest(http.MethodPost, bytes.NewReader(reqBody), &resp)
 	if err != nil {
-		return nil, fmt.Errorf("can't unmarshal body: %w", err)
+		return nil, err
+	}
+	if resp.Status != http.StatusOK {
+		return nil, fmt.Errorf("request failed with status code: %d", resp.Status)
 	}
 
-	if r.Status != http.StatusOK {
-		return nil, fmt.Errorf("request failed with status code: %d", r.Status)
-	}
-
-	for _, brand := range r.Data.Array {
+	for _, brand := range resp.Data.Array {
 		if brand.Brand == brandName {
 			return &brand, nil
 		}
@@ -83,62 +59,80 @@ func (c *tecDocClient) GetBrand(brandName string) (*model.Brand, error) {
 }
 
 func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.Article, error) {
-	reqBodyReader := bytes.NewReader([]byte(fmt.Sprintf(
-		`{
+	var (
+		firstReq = []byte(fmt.Sprintf(
+			`{
 			  "getArticles": {
 				"articleCountry": "RU",
-				"provider": 0,
 				"searchQuery": "%s",
 				"searchType": 0,
 				"dataSupplierIds": %d,
 				"lang": "ru",
-				"perPage": 10,
-				"page": 1,
-				"includeGenericArticles": true,
-				"includeOEMNumbers": true,
-				"includeArticleCriteria": true,
-				"includeImages": true,
-				"assemblyGroupFacetOptions": {"enabled": true, "assemblyGroupType": "P", "includeCompleteTree": false},
-				"includeComparableNumbers": true
 			}
-}`, article, dataSupplierID)))
+		}`, article, dataSupplierID))
 
-	req, err := http.NewRequest(http.MethodPost, c.tecDocCfg.URL, reqBodyReader)
+		firstResp = struct {
+			TotalMatchingArticles int `json:"totalMatchingArticles"`
+			Status                int `json:"status"`
+		}{
+			0,
+			0,
+		}
+	)
+
+	err := c.doRequest(http.MethodPost, bytes.NewReader(firstReq), &firstResp)
 	if err != nil {
-		return nil, fmt.Errorf("can't create new request: %w", err)
+		return nil, err
 	}
 
-	req.Header = http.Header{"Content-Type": {"application/json"}, "X-Api-Key": {c.tecDocCfg.XApiKey}}
-	resp, err := c.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("can't get response: %w", err)
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("can't read response")
+	if firstResp.Status != http.StatusOK {
+		return nil, fmt.Errorf("request failed with status code: %d", firstResp.Status)
 	}
 
-	var r model.TecDocResponse
-
-	err = json.Unmarshal(body, &r)
-	if err != nil {
-		return nil, fmt.Errorf("can't unmarshal body: %w", err)
-	}
-
-	if r.Status != http.StatusOK {
-		return nil, fmt.Errorf("request failed with status code: %d", r.Status)
-	}
-
-	if len(r.Articles) == 0 {
+	if firstResp.TotalMatchingArticles == 0 {
 		return nil, fmt.Errorf("no articles found")
 	}
 
-	return ConvertArticleFromRaw(r.Articles, r.AssemblyGroupFacets), nil
+	const LIMIT = 100
+	var (
+		stepsNum = firstResp.TotalMatchingArticles/LIMIT + 1
+		articles = make([]model.Article, 0)
+	)
+
+	for pageNum := 0; pageNum < stepsNum; pageNum++ {
+		mainReq := []byte(fmt.Sprintf(
+			`{
+                          "getArticles": {
+                                "articleCountry": "RU",
+                                "provider": 0,
+                                "searchQuery": "%s",
+                                "searchType": 0,
+                                "dataSupplierIds": %d,
+                                "lang": "ru",
+                                "perPage": %d,
+                                "page": %d,
+                                "includeGenericArticles": true,
+                                "includeOEMNumbers": true,
+                                "includeArticleCriteria": true,
+                                "includeImages": true,
+                                "assemblyGroupFacetOptions": {"enabled": true, "assemblyGroupType": "P", "includeCompleteTree": false},
+                                "includeComparableNumbers": true
+                        }
+				}`, article, dataSupplierID, LIMIT, pageNum+1))
+		var mainResp model.TecDocResponse
+		err := c.doRequest(http.MethodPost, bytes.NewReader(mainReq), &mainResp)
+		if err != nil {
+			return nil, err
+		}
+		if mainResp.Status != http.StatusOK {
+			return nil, fmt.Errorf("request failed with status code: %d", mainResp.Status)
+		}
+		articles = append(articles, c.ConvertArticleFromRaw(mainResp.Articles, mainResp.AssemblyGroupFacets)...)
+	}
+	return articles, nil
 }
 
-func ConvertArticleFromRaw(rawArticles []model.ArticleRaw, facets model.AssemblyGroupFacets) []model.Article {
+func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw, facets model.AssemblyGroupFacets) []model.Article {
 	articles := make([]model.Article, 0)
 	for _, rawArticle := range rawArticles {
 		var a model.Article
@@ -148,10 +142,8 @@ func ConvertArticleFromRaw(rawArticles []model.ArticleRaw, facets model.Assembly
 
 		if len(rawArticle.GenericArticles) > 0 {
 			a.GenericArticleDescription = rawArticle.GenericArticles[0].GenericArticleDescription
-
-			//TODO
-			//legacyID := rawArticle.GenericArticles[0].LegacyArticleID
-			//a.LinkageTargets = getLinkageTargets(legacyID)
+			legacyID := rawArticle.GenericArticles[0].LegacyArticleID
+			a.LinkageTargets, _ = c.Applicability(legacyID)
 		}
 
 		for _, oem := range rawArticle.OemNumbers {

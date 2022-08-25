@@ -21,6 +21,7 @@ var (
 		"internal/tec-doc/web/internalserver/server.go",
 		"internal/tec-doc/store/postgres/store.go",
 	}
+	swagFile = "./cmd/tec-doc/main.go"
 )
 
 //goland:noinspection GoBoolExpressions
@@ -34,6 +35,20 @@ func init() {
 	if runtime.GOOS == "windows" {
 		app += ".exe"
 	}
+}
+
+//Init all
+func All() (err error) {
+	if err = Mock(); err != nil {
+		return err
+	}
+	if err = Swag(); err != nil {
+		return err
+	}
+	if err = Build(); err != nil {
+		return err
+	}
+	return
 }
 
 // Runs go mod download and then installs the binary.
@@ -54,7 +69,13 @@ func Mock() (err error) {
 		if err = sh.Run("mockgen", "-source", sc, "-destination", destination); err != nil {
 			return err
 		}
-		fmt.Println("destination:", destination)
+		fmt.Println("created mock:", destination)
 	}
 	return nil
+}
+
+//Swag doc regenerate
+func Swag() error {
+	fmt.Println("swag init -g " + swagFile)
+	return sh.Run("swag", "init", "-g", swagFile)
 }
