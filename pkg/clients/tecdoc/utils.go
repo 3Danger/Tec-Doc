@@ -14,3 +14,12 @@ func convertArticleCriteriaRaw(cr model.ArticleCriteriaRaw) model.ArticleCriteri
 		FormattedValue:          cr.FormattedValue,
 	}
 }
+
+func contains(arr []string, s string) bool {
+	for _, elem := range arr {
+		if elem == s {
+			return true
+		}
+	}
+	return false
+}

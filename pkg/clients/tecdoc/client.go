@@ -172,8 +172,6 @@ func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw, fac
 		for _, img := range rawArticle.Images {
 			var imgURL string
 			switch {
-			case img.ImageURL6400 != "":
-				imgURL = img.ImageURL6400
 			case img.ImageURL3200 != "":
 				imgURL = img.ImageURL3200
 			case img.ImageURL1600 == "":
@@ -194,7 +192,9 @@ func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw, fac
 
 		for _, facet := range facets.Counts {
 			if facet.Children == 0 {
-				a.AssemblyGroupFacets = append(a.AssemblyGroupFacets, facet.AssemblyGroupName)
+				if contains(a.AssemblyGroupFacets, facet.AssemblyGroupName) == false {
+					a.AssemblyGroupFacets = append(a.AssemblyGroupFacets, facet.AssemblyGroupName)
+				}
 			}
 		}
 		articles = append(articles, a)
