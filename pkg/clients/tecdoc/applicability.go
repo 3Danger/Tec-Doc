@@ -4,49 +4,95 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
+	"sync"
 	"tec-doc/pkg/clients/models"
 )
 
+// LIMIT Лимит на единицу запроса
+const LIMIT = 100
+
 // Applicability получение списка применимости
-func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets []models.LinkageTargets, err error) {
-	type (
-		// DataFirstResponse для записи ответа первого запроса
-		DataFirstResponse struct {
-			Data struct {
-				Array []struct {
-					ArticleLinkages struct {
-						LinkingTargetId []struct {
-							LinkingTargetId int `json:"linkingTargetId"`
-						} `json:"array"`
-					} `json:"articleLinkages"`
-				} `json:"array"`
-			} `json:"data"`
-			Status int `json:"status"`
-		}
-		// LinkageTargetsResponse для записи результата
-		LinkageTargetsResponse struct {
-			Total          int                     `json:"total"`
-			LinkageTargets []models.LinkageTargets `json:"linkageTargets"`
-			Status         int                     `json:"status"`
-		}
+func (c *tecDocClient) Applicability(legacyArticleId int) ([]models.LinkageTargets, error) {
+	linkageTargetsBodies, err := c.getLinkageTargetsResponse(legacyArticleId)
+	if err != nil {
+		return nil, err
+	}
 
-		// GetLinkageTargetsResponse для запроса
-		GetLinkageTargets struct {
-			PerPage              int              `json:"perPage"`
-			Page                 int              `json:"page"`
-			LinkageTargetCountry string           `json:"linkageTargetCountry"`
-			Lang                 string           `json:"lang"`
-			LinkageTargetIds     []map[string]any `json:"linkageTargetIds"`
+	length := len(linkageTargetsBodies)
+	targetCh := make(chan []models.LinkageTargets, length)
+	errChan := make(chan error, length+1)
+	wg := new(sync.WaitGroup)
+
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer close(targetCh)
+		defer close(errChan)
+		for i := range linkageTargetsBodies {
+			wg.Add(1)
+			go func(wg *sync.WaitGroup, LinkageTargets models.GetLinkageTargetsResponse) {
+				defer wg.Done()
+				targets, err := c.getLinkageTargets(LinkageTargets)
+				if err != nil {
+					errChan <- err
+					return
+				}
+				targetCh <- targets
+			}(wg, linkageTargetsBodies[i])
 		}
-		GetLinkageTargetsResponse struct {
-			GetLinkageTargets GetLinkageTargets `json:"getLinkageTargets"`
-		}
+		wg.Done()
+		wg.Wait()
+		errChan <- nil
+	}(wg)
+	linkageTargets := make([]models.LinkageTargets, 0, length*LIMIT)
+	for target := range targetCh {
+		linkageTargets = append(linkageTargets, target...)
+	}
+	if err = <-errChan; err != nil {
+		return nil, err
+	}
+	return linkageTargets, nil
+}
+
+func (c *tecDocClient) getLinkageTargetsResponse(legacyArticleId int) ([]models.GetLinkageTargetsResponse, error) {
+	var (
+		LinkageTargetsBody []models.GetLinkageTargetsResponse
+		linkages           []models.ArticleLinkages
+		err                error
 	)
+	if linkages, err = c.getArticleLinkedAllLinkingTarget4(legacyArticleId); err != nil {
+		return nil, err
+	}
+	var linkageTargetIds []map[string]any
+	for _, array := range linkages {
+		for _, data := range array.ArticleLinkages.LinkingTargetId {
+			linkageTargetIds = append(linkageTargetIds, map[string]any{
+				"type": "P",
+				"id":   data.LinkingTargetId,
+			})
+		}
+	}
+	steps := len(linkageTargetIds) / LIMIT
+	for i := 0; i < steps; i++ {
+		start, end := i*LIMIT, (i+1)*LIMIT
+		LinkageTargetsBody = append(LinkageTargetsBody, models.GetLinkageTargetsResponse{
+			GetLinkageTargets: models.GetLinkageTargets{
+				PerPage: LIMIT, Page: 1,
+				LinkageTargetCountry: "RU", Lang: "ru",
+				LinkageTargetIds: linkageTargetIds[start:end]},
+		})
+	}
+	LinkageTargetsBody = append(LinkageTargetsBody, models.GetLinkageTargetsResponse{
+		GetLinkageTargets: models.GetLinkageTargets{
+			PerPage: LIMIT, Page: 1,
+			LinkageTargetCountry: "RU", Lang: "ru",
+			LinkageTargetIds: linkageTargetIds[steps*LIMIT:]},
+	})
+	return LinkageTargetsBody, nil
+}
 
-	const LIMIT = 100
-	var responseFirst DataFirstResponse
+func (c *tecDocClient) getArticleLinkedAllLinkingTarget4(legacyArticleId int) ([]models.ArticleLinkages, error) {
+	var responseFirst models.Data
 	{
 		requestBody := bytes.NewReader([]byte(fmt.Sprintf(
 			`{
@@ -59,82 +105,37 @@ func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets []mode
 						}
 					}`, legacyArticleId)))
 
-		if err = c.doRequest(http.MethodPost, requestBody, &responseFirst); err != nil {
+		if err := c.doRequest(http.MethodPost, requestBody, &responseFirst); err != nil {
 			return nil, err
 		}
 		if responseFirst.Status != 200 {
 			return nil, fmt.Errorf("bad status code %d", responseFirst.Status)
 		}
 	}
-
-	var length int
-	var LinkageTargetsBody []GetLinkageTargetsResponse
-	{
-		var linkageTargetIds []map[string]any
-		for _, array := range responseFirst.Data.Array {
-			for _, data := range array.ArticleLinkages.LinkingTargetId {
-				linkageTargetIds = append(linkageTargetIds, map[string]any{"type": "P", "id": data.LinkingTargetId})
-			}
-		}
-		length = len(linkageTargetIds)
-		steps := length / LIMIT
-		for i := 0; i < steps; i++ {
-			start, end := i*LIMIT, (i+1)*LIMIT
-			LinkageTargetsBody = append(LinkageTargetsBody, GetLinkageTargetsResponse{GetLinkageTargets{
-				LIMIT, 1,
-				"RU", "ru",
-				linkageTargetIds[start:end]},
-			})
-		}
-		LinkageTargetsBody = append(LinkageTargetsBody, GetLinkageTargetsResponse{GetLinkageTargets{
-			LIMIT, 1,
-			"RU", "ru",
-			linkageTargetIds[steps*LIMIT:]},
-		})
-	}
-
-	linkageTargets = make([]models.LinkageTargets, 0, length)
-	for _, targets := range LinkageTargetsBody {
-		var requestByte []byte
-		targets.GetLinkageTargets.Page = 1
-
-		var linkageTargetsResponse = LinkageTargetsResponse{Total: LIMIT << 1}
-		for arrivedCount := 0; arrivedCount < linkageTargetsResponse.Total; {
-			if requestByte, err = json.Marshal(targets); err != nil {
-				return nil, err
-			}
-			if err = c.doRequest(http.MethodPost, bytes.NewReader(requestByte), &linkageTargetsResponse); err != nil {
-				return nil, err
-			}
-			if linkageTargetsResponse.Status != http.StatusOK {
-				return nil, fmt.Errorf("bad status code %d", responseFirst.Status)
-			}
-			linkageTargets = append(linkageTargets, linkageTargetsResponse.LinkageTargets...)
-			arrivedCount += len(linkageTargetsResponse.LinkageTargets)
-			targets.GetLinkageTargets.Page++
-		}
-	}
-	return linkageTargets, nil
+	return responseFirst.Data.Array, nil
 }
 
-// doRequest делает запрос и заполняет данными JSON структуру outStructPtr. аналог BindJSON() из gin
-func (c *tecDocClient) doRequest(method string, body io.Reader, outStructPtr interface{}) (err error) {
-	var (
-		response *http.Response
-		request  *http.Request
-	)
-	if request, err = http.NewRequest(method, c.tecDocCfg.URL, body); err != nil {
-		return fmt.Errorf("can't create new request: %w", err)
+// getLinkageTargets
+// максимальный размер массива внутри структуры LinkageTargetIds = 100 (указал в константе LIMIT)
+func (c *tecDocClient) getLinkageTargets(LinkageTargetsBody models.GetLinkageTargetsResponse) (linkageTargets []models.LinkageTargets, err error) {
+	var length = len(LinkageTargetsBody.GetLinkageTargets.LinkageTargetIds)
+	linkageTargets = make([]models.LinkageTargets, 0, length)
+	LinkageTargetsBody.GetLinkageTargets.Page = 1
+	var linkageTargetsResponse = models.LinkageTargetsResponse{Total: length}
+	for arrivedCount := 0; arrivedCount < linkageTargetsResponse.Total; {
+		var requestByte []byte
+		if requestByte, err = json.Marshal(LinkageTargetsBody); err != nil {
+			return nil, err
+		}
+		if err = c.doRequest(http.MethodPost, bytes.NewReader(requestByte), &linkageTargetsResponse); err != nil {
+			return nil, err
+		}
+		if linkageTargetsResponse.Status != http.StatusOK {
+			return nil, fmt.Errorf("bad status code %d", linkageTargetsResponse.Status)
+		}
+		arrivedCount += len(linkageTargetsResponse.LinkageTargets)
+		linkageTargets = append(linkageTargets, linkageTargetsResponse.LinkageTargets...)
+		LinkageTargetsBody.GetLinkageTargets.Page++
 	}
-	request.Header = http.Header{"Content-Type": {"application/json"}, "X-Api-Key": {c.tecDocCfg.XApiKey}}
-	if response, err = c.Do(request); err != nil {
-		return err
-	}
-	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad status code %d", response.StatusCode)
-	}
-	if err = json.NewDecoder(response.Body).Decode(&outStructPtr); err != nil {
-		return err
-	}
-	return nil
+	return linkageTargets, nil
 }
