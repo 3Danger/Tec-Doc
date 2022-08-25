@@ -31,15 +31,11 @@ func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets map[in
 			Status         int                     `json:"status"`
 		}
 
-		// GetLinkageTargetsResponse для записи ответа второго запроса
-		LinkageTargetIds struct {
-			Type string `json:"type"`
-			Id   int    `json:"id"`
-		}
+		// GetLinkageTargetsResponse для запроса
 		GetLinkageTargets struct {
-			LinkageTargetCountry string             `json:"linkageTargetCountry"`
-			Lang                 string             `json:"lang"`
-			LinkageTargetIds     []LinkageTargetIds `json:"linkageTargetIds"`
+			LinkageTargetCountry string           `json:"linkageTargetCountry"`
+			Lang                 string           `json:"lang"`
+			LinkageTargetIds     []map[string]any `json:"linkageTargetIds"`
 		}
 		GetLinkageTargetsResponse struct {
 			GetLinkageTargets GetLinkageTargets `json:"getLinkageTargets"`
@@ -70,10 +66,10 @@ func (c *tecDocClient) Applicability(legacyArticleId int) (linkageTargets map[in
 
 	var LinkageTargetsBody []GetLinkageTargetsResponse
 	{
-		var linkageTargetIds []LinkageTargetIds
+		var linkageTargetIds []map[string]any
 		for _, array := range responseFirst.Data.Array {
 			for _, data := range array.ArticleLinkages.LinkingTargetId {
-				linkageTargetIds = append(linkageTargetIds, LinkageTargetIds{"P", data.LinkingTargetId})
+				linkageTargetIds = append(linkageTargetIds, map[string]any{"type": "P", "id": data.LinkingTargetId})
 			}
 		}
 		steps := len(linkageTargetIds) / LIMIT
