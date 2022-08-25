@@ -8,8 +8,8 @@ import (
 	context "context"
 	io "io"
 	reflect "reflect"
-	model "tec-doc/internal/tec-doc/model"
 	postgres "tec-doc/internal/tec-doc/store/postgres"
+	"tec-doc/pkg/clients/model"
 
 	gin "github.com/gin-gonic/gin"
 	gomock "github.com/golang/mock/gomock"

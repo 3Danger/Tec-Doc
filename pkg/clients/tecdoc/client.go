@@ -7,12 +7,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"tec-doc/internal/tec-doc/config"
-	"tec-doc/internal/tec-doc/model"
+	"tec-doc/pkg/clients/model"
 )
 
 type Client interface {
-	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
 	GetBrand(brandName string) (*model.Brand, error)
+	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
 }
 
 type tecDocClient struct {
@@ -135,10 +135,10 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
 		return nil, fmt.Errorf("no articles found")
 	}
 
-	return ConvertArticleFromRaw(r.Articles, r.AssemblyGroupFacets), nil
+	return c.ConvertArticleFromRaw(r.Articles, r.AssemblyGroupFacets), nil
 }
 
-func ConvertArticleFromRaw(rawArticles []model.ArticleRaw, facets model.AssemblyGroupFacets) []model.Article {
+func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw, facets model.AssemblyGroupFacets) []model.Article {
 	articles := make([]model.Article, 0)
 	for _, rawArticle := range rawArticles {
 		var a model.Article
@@ -148,10 +148,8 @@ func ConvertArticleFromRaw(rawArticles []model.ArticleRaw, facets model.Assembly
 
 		if len(rawArticle.GenericArticles) > 0 {
 			a.GenericArticleDescription = rawArticle.GenericArticles[0].GenericArticleDescription
-
-			//TODO
-			//legacyID := rawArticle.GenericArticles[0].LegacyArticleID
-			//a.LinkageTargets = getLinkageTargets(legacyID)
+			legacyID := rawArticle.GenericArticles[0].LegacyArticleID
+			a.LinkageTargets, _ = c.Applicability(legacyID)
 		}
 
 		for _, oem := range rawArticle.OemNumbers {

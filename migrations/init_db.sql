@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS tasks (
      products_total     INT
 );
 
+CREATE INDEX ON tasks(supplier_id);
+
 CREATE TABLE IF NOT EXISTS products_buffer (
    id                   BIGSERIAL PRIMARY KEY,
    upload_id            BIGINT,
@@ -28,6 +30,8 @@ CREATE TABLE IF NOT EXISTS products_buffer (
    errorResponse        TEXT
 );
 
+CREATE INDEX ON products_buffer(upload_id);
+
 CREATE TABLE IF NOT EXISTS products_history (
     id                   BIGSERIAL PRIMARY KEY,
     upload_id            BIGINT,
@@ -44,3 +48,5 @@ CREATE TABLE IF NOT EXISTS products_history (
     status               INT,
     errorResponse        TEXT
 );
+
+CREATE INDEX ON products_history(upload_id);

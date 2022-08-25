@@ -13,9 +13,9 @@ import (
 	"net/url"
 	"strconv"
 	mockExternalServer "tec-doc/internal/tec-doc/mocks/mock_externalserver"
-	"tec-doc/internal/tec-doc/model"
 	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/internal/tec-doc/web/externalserver/middleware"
+	"tec-doc/pkg/clients/model"
 	"testing"
 	"time"
 )

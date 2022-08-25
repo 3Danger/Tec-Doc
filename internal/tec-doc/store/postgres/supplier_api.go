@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v4"
-	"tec-doc/internal/tec-doc/model"
+	"tec-doc/pkg/clients/model"
 	"time"
 )
 
