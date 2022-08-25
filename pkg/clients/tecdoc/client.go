@@ -62,14 +62,14 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
 	var (
 		firstReq = []byte(fmt.Sprintf(
 			`{
-			  "getArticles": {
-				"articleCountry": "RU",
-				"searchQuery": "%s",
-				"searchType": 0,
-				"dataSupplierIds": %d,
-				"lang": "ru",
-			}
-		}`, article, dataSupplierID))
+						  "getArticles": {
+							"articleCountry": "RU",
+							"searchQuery": "%s",
+							"searchType": 0,
+							"dataSupplierIds": %d,
+							"lang": "ru",
+						}
+					}`, article, dataSupplierID))
 
 		firstResp = struct {
 			TotalMatchingArticles int `json:"totalMatchingArticles"`
@@ -102,7 +102,7 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
 	for pageNum := 0; pageNum < stepsNum; pageNum++ {
 		mainReq := []byte(fmt.Sprintf(
 			`{
-                          "getArticles": {
+						"getArticles": {
                                 "articleCountry": "RU",
                                 "provider": 0,
                                 "searchQuery": "%s",
@@ -197,9 +197,7 @@ func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw, fac
 				a.AssemblyGroupFacets = append(a.AssemblyGroupFacets, facet.AssemblyGroupName)
 			}
 		}
-
 		articles = append(articles, a)
 	}
-
 	return articles
 }
