@@ -139,6 +139,8 @@ type Product struct {
 	UploadID        int64     `json:"uploadId"`
 	Article         string    `json:"article"`
 	ArticleSupplier string    `json:"articleSupplier"`
+	Brand           string    `json:"brand"`
+	Barcode         string    `json:"barcode"`
 	Subject         string    `json:"subject"`
 	Price           int       `json:"price"`
 	UploadDate      time.Time `json:"uploadDate"`

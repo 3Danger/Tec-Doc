@@ -33,20 +33,15 @@ func (e *externalHttpServer) loadFromExcel(bodyData io.Reader) (products []model
 }
 
 func (e *externalHttpServer) parseExcelRow(p *model.Product, row []string) (err error) {
-	if len(row) < 7 {
+	if len(row) < 5 {
 		return errors.New("row is invalid")
 	}
-	//TODO fields
-	//if p.CardNumber, err = strconv.Atoi(row[0]); err != nil {
-	//	return err
-	//}
-	p.Article = row[1]
-	p.ArticleSupplier = row[2]
-	//p.Brand = row[3]
-	//p.SKU = row[4]
-	//p.Category = row[5]
-	if p.Price, err = strconv.Atoi(row[6]); err != nil {
+	p.Brand = row[0]
+	p.ArticleSupplier = row[1]
+	p.Article = row[2]
+	if p.Price, err = strconv.Atoi(row[3]); err != nil {
 		return err
 	}
+	p.Barcode = row[4]
 	return nil
 }
