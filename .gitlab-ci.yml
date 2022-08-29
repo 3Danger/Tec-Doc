@@ -8,7 +8,7 @@ variables:
   CI_TMPL_PROJECT_VERSION: *ci_tmpl_vers
   # ci vars
 
-  GO_VER: "1.17"
+  GO_VER: "1.18"
   ALPINE_VER: "3.13"
   CI_TMPL_HELM_CHART_NAME: "common-deploy"
   CI_TMPL_HELM_CHART_VERSION: 2.1.3
