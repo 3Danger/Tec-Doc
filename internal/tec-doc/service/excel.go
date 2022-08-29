@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/gin-gonic/gin"
 	exl "github.com/xuri/excelize/v2"
-	"tec-doc/internal/tec-doc/model"
+	"tec-doc/pkg/clients/model"
 	"time"
 )
 

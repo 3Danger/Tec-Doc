@@ -23,7 +23,7 @@ func New(bindingPort string) *internalHttpServer {
 	serv.router = gin.Default()
 	serv.configureRouter()
 	serv.server = &http.Server{
-		Addr:    ":" + bindingPort,
+		Addr:    bindingPort,
 		Handler: serv.router,
 	}
 	return serv

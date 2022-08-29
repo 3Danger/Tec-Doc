@@ -5,7 +5,7 @@ import (
 	exl "github.com/xuri/excelize/v2"
 	"io"
 	"strconv"
-	"tec-doc/internal/tec-doc/model"
+	"tec-doc/pkg/clients/model"
 )
 
 func (e *externalHttpServer) loadFromExcel(bodyData io.Reader) (products []model.Product, err error) {

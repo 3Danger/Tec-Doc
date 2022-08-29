@@ -7,7 +7,7 @@ import (
 	"net/http"
 	_ "tec-doc/docs"
 	"tec-doc/internal/tec-doc/config"
-	"tec-doc/internal/tec-doc/model"
+	"tec-doc/pkg/clients/model"
 	"tec-doc/pkg/clients/services"
 	"tec-doc/pkg/metrics"
 )
@@ -68,7 +68,8 @@ func New(bindingPort string, service Service, logger *zerolog.Logger, mts *metri
 		logger:  logger,
 		metrics: mts,
 		server: http.Server{
-			Addr: bindingPort,
+			Addr:    bindingPort,
+			Handler: router,
 		},
 	}
 	serv.configureRouter()

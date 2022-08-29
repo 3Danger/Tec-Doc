@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"tec-doc/internal/tec-doc/model"
+	"tec-doc/pkg/clients/model"
 )
 
 func (s *Service) GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error) {

@@ -7,9 +7,9 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog"
 	"tec-doc/internal/tec-doc/config"
-	"tec-doc/internal/tec-doc/model"
 	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/pkg/clients/content"
+	"tec-doc/pkg/clients/model"
 	"time"
 )
 
