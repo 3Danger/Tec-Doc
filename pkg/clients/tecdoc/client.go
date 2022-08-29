@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"tec-doc/internal/tec-doc/config"
+	"tec-doc/pkg/errinfo"
 	"tec-doc/pkg/model"
 )
 
@@ -43,7 +44,7 @@ func (c *tecDocClient) GetBrand(brandName string) (*model.Brand, error) {
 
 	err := c.doRequest(http.MethodPost, bytes.NewReader(reqBody), &resp)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to do request: %w", err)
 	}
 	if resp.Status != http.StatusOK {
 		return nil, fmt.Errorf("request failed with status code: %d", resp.Status)
@@ -90,7 +91,11 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
 	}
 
 	if firstResp.TotalMatchingArticles == 0 {
-		return nil, fmt.Errorf("no articles found")
+		return nil, errinfo.NoTecDocArticlesFound
+	}
+
+	if firstResp.TotalMatchingArticles > 1 {
+		return nil, errinfo.NoTecDocBrandFound
 	}
 
 	const LIMIT = 100
@@ -129,6 +134,7 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
 		}
 		articles = append(articles, c.ConvertArticleFromRaw(mainResp.Articles, mainResp.AssemblyGroupFacets)...)
 	}
+
 	return articles, nil
 }
 

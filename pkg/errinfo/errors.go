@@ -11,24 +11,29 @@ type errInf struct {
 }
 
 var (
-	InternalServerErr       = errors.New("internal server error")
-	InvalidExcelData        = errors.New("invalid excel data")
-	InvalidExcelEmpty       = errors.New("invalid excel empty")
-	InvalidNotFile          = errors.New("invalid, file not found in request")
-	InvalidTaskID           = errors.New("invalid task id")
-	InvalidSupplierID       = errors.New("invalid supplier id")
-	InvalidUserID           = errors.New("invalid supplier id")
-	InvalidUserOrSupplierID = errors.New("invalid user or supplier id")
-	InvalidLimit            = errors.New("invalid limit")
-	InvalidOffset           = errors.New("invalid offset")
-	InvalidTecDocParams     = errors.New("invalid tecdoc params")
-	SupplierIsNotUUID       = errors.New("supplier is not uuid")
-	FailOldSupplierID       = errors.New("can't get old supplier ID")
-	CheckAcessError         = errors.New("check access error")
-	NoTecDocArticlesFound   = errors.New("no articles found")
-	NoTecDocBrandFound      = errors.New("no brand found")
+	InternalServerErr        = errors.New("internal server error")
+	InvalidExcelData         = errors.New("invalid excel data")
+	InvalidExcelEmpty        = errors.New("invalid excel empty")
+	InvalidNotFile           = errors.New("invalid, file not found in request")
+	InvalidTaskID            = errors.New("invalid task id")
+	InvalidSupplierID        = errors.New("invalid supplier id")
+	InvalidUserID            = errors.New("invalid supplier id")
+	InvalidUserOrSupplierID  = errors.New("invalid user or supplier id")
+	InvalidLimit             = errors.New("invalid limit")
+	InvalidOffset            = errors.New("invalid offset")
+	InvalidTecDocParams      = errors.New("invalid tecdoc params")
+	SupplierIsNotUUID        = errors.New("supplier is not uuid")
+	FailOldSupplierID        = errors.New("can't get old supplier ID")
+	CheckAcessError          = errors.New("check access error")
+	NoTecDocArticlesFound    = errors.New("no articles found")
+	MoreThanOneArticlesFound = errors.New("found more than 1")
+	NoTecDocBrandFound       = errors.New("no brand found")
 
 	constErrs = map[error]errInf{
+		MoreThanOneArticlesFound: {
+			Msg:    "Количество найденных артикулов по запросу больше 1",
+			Status: http.StatusBadRequest,
+		},
 		InternalServerErr: {
 			Msg:    "Внутренняя ошибка на сервере, обратитесь к разработчикам",
 			Status: http.StatusInternalServerError,
