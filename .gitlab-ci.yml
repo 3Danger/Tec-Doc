@@ -19,15 +19,16 @@ variables:
   # list of clusters for deploy
   CI_TMPL_KUBE_CLUSTERS_DEV: "k8s.dldevel"
   CI_TMPL_KUBE_CLUSTERS_STAGE: "k8s.stage-dp"
-  CI_TMPL_KUBE_CLUSTERS_PROD: "k8s.portal-dl,k8s.portal-dp"
+  CI_TMPL_KUBE_CLUSTERS_PROD: "k8s.portal-dl,k8s.portal-dp,k8s.prod-dl"
 
   REGISTRY_PROJECT: portals
   VAULT_JWT_AUTH: "jwt2"
   VAULT_JWT_ROLE_K8S_DLDEVEL: k8s_clusters-k8s.dldevel-$CI_TMPL_HELM_RELEASE_NAMESPACE
   VAULT_JWT_ROLE_K8S_STAGE_DP: k8s_clusters-k8s.stage-dp-$CI_TMPL_HELM_RELEASE_NAMESPACE
   VAULT_JWT_ROLE_K8S_PORTAL_DL: k8s_clusters-k8s.portal-dl-$CI_TMPL_HELM_RELEASE_NAMESPACE
+  VAULT_JWT_ROLE_K8S_PROD_DL: k8s_clusters-k8s.prod-dl-$CI_TMPL_HELM_RELEASE_NAMESPACE
   VAULT_JWT_ROLE_K8S_PORTAL_DP: k8s_clusters-k8s.portal-dp-$CI_TMPL_HELM_RELEASE_NAMESPACE
 
 
 include:
-  - {<<: *repo, file: /pipelines/go.yml}
+  - { <<: *repo, file: /pipelines/go.yml }
