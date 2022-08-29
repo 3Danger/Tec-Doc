@@ -8,7 +8,7 @@ import (
 
 func (s *store) GetOldestTask(ctx context.Context, tx Transaction) (int64, error) {
 	var (
-		getOldestTaskQuery = `SELECT id FROM tasks WHERE status=$1 or status=$2 ORDER BY upload_date ASC LIMIT 1;`
+		getOldestTaskQuery = `SELECT id FROM tasks.tasks  WHERE status=$1 or status=$2 ORDER BY upload_date ASC LIMIT 1;`
 		executor           Executor
 		t                  model.Task
 	)
@@ -33,7 +33,7 @@ func (s *store) GetOldestTask(ctx context.Context, tx Transaction) (int64, error
 func (s *store) GetProductsBufferWithStatus(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int, status int) ([]model.Product, error) {
 	var (
 		getProductsBufferQuery = `SELECT id, upload_id, article, card_number, provider_article, manufacturer_article, brand, sku, category, price,
-	upload_date, update_date, status, errorresponse FROM products_buffer WHERE upload_id = $1 and status=$2 LIMIT $3 OFFSET $4;`
+	upload_date, update_date, status, errorresponse FROM tasks.products_buffer WHERE upload_id = $1 and status=$2 LIMIT $3 OFFSET $4;`
 		executor       Executor
 		productsBuffer = make([]model.Product, 0)
 	)
@@ -69,7 +69,7 @@ func (s *store) GetProductsBufferWithStatus(ctx context.Context, tx Transaction,
 func (s *store) UpdateProductStatus(ctx context.Context, tx Transaction, productID int64, status int) error {
 
 	var (
-		updateProductStatusQuery = `UPDATE products_buffer SET status=$1 WHERE id=$2;`
+		updateProductStatusQuery = `UPDATE tasks.products_buffer SET status=$1 WHERE id=$2;`
 		executor                 Executor
 	)
 
@@ -95,7 +95,7 @@ func (s *store) UpdateProductStatus(ctx context.Context, tx Transaction, product
 
 func (s *store) UpdateTaskProductsNumber(ctx context.Context, tx Transaction, uploadID, productsFailed, productsProcessed int64) error {
 	var (
-		updateTaskProductsNumberQuery = `UPDATE tasks SET products_failed=products_failed + $1, products_processed=products_processed + $2
+		updateTaskProductsNumberQuery = `UPDATE tasks.tasks SET products_failed=products_failed + $1, products_processed=products_processed + $2
                   WHERE id=$3;`
 		executor Executor
 	)
@@ -121,7 +121,7 @@ func (s *store) UpdateTaskProductsNumber(ctx context.Context, tx Transaction, up
 
 func (s *store) UpdateTaskStatus(ctx context.Context, tx Transaction, uploadID int64, status int) error {
 	var (
-		updateTaskStatusQuery = `UPDATE task SET status=$1 WHERE id=$2;`
+		updateTaskStatusQuery = `UPDATE tasks.tasks SET status=$1 WHERE id=$2;`
 		executor              Executor
 	)
 

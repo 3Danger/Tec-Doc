@@ -1,4 +1,4 @@
-CREATE SCHEMA if not exists tasks;
+CREATE SCHEMA IF NOT EXISTS tasks;
 
 CREATE TABLE IF NOT EXISTS tasks.tasks (
      id                 BIGSERIAL PRIMARY KEY,
