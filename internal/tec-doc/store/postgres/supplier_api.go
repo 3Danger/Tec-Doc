@@ -12,7 +12,7 @@ func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID int64
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	var (
-		createTaskQuery = `INSERT INTO tasks (supplier_id, user_id, upload_date, update_date, IP, status, products_processed, products_failed, products_total)
+		createTaskQuery = `INSERT INTO tasks.tasks (supplier_id, user_id, upload_date, update_date, IP, status, products_processed, products_failed, products_total)
 							VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;`
 		executor Executor
 		taskID   int64
@@ -38,7 +38,7 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supp
 	defer cancel()
 	var (
 		getSupplierTaskHistoryQuery = `SELECT id, supplier_id, user_id, upload_date, update_date, status, products_processed, products_failed, products_total
-								FROM tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`
+								FROM tasks.tasks  WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`
 		executor    Executor
 		taskHistory = make([]model.Task, 0)
 	)
@@ -76,7 +76,7 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 	defer cancel()
 	var (
 		getProductsFromHistoryQuery = `SELECT id, upload_id, article, card_number, provider_article, manufacturer_article, brand, sku, category, price,
-	upload_date, update_date, status, errorresponse FROM products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
+	upload_date, update_date, status, errorresponse FROM tasks.products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 		executor        Executor
 		productsHistory []model.Product
 	)
@@ -152,7 +152,7 @@ func (s *store) GetProductsBuffer(ctx context.Context, tx Transaction, uploadID 
 	defer cancel()
 	var (
 		getProductsBufferQuery = `SELECT id, upload_id, article, card_number, provider_article, manufacturer_article, brand, sku, category, price,
-	upload_date, update_date, status, errorresponse FROM products_buffer WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
+	upload_date, update_date, status, errorresponse FROM tasks.products_buffer WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 		executor       Executor
 		productsBuffer = make([]model.Product, 0)
 	)
@@ -227,7 +227,7 @@ func (s *store) DeleteFromBuffer(ctx context.Context, tx Transaction, uploadID i
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	var (
-		deleteFromBufferQuery = `DELETE FROM products_buffer WHERE upload_id=$1;`
+		deleteFromBufferQuery = `DELETE FROM tasks.products_buffer WHERE upload_id=$1;`
 		executor              Executor
 	)
 

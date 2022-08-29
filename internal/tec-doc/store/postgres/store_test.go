@@ -45,7 +45,7 @@ func TestStore_GetProductsHistory(t *testing.T) {
 				p.Brand, p.SKU, p.Category, p.Price, p.UploadDate, p.UpdateDate, p.Status, "")
 		}
 		mockPool.ExpectQuery("SELECT "+strings.Join(namesFields, ", ")+
-			" FROM products_history WHERE upload_id = \\$1 LIMIT \\$2 OFFSET \\$3").
+			" FROM tasks.products_history WHERE upload_id = \\$1 LIMIT \\$2 OFFSET \\$3").
 			WithArgs(args.UploadID, args.limit, args.offset).WillReturnRows(rows).WillReturnError(err)
 	}
 
@@ -144,7 +144,7 @@ func TestStore_GetSupplierTaskHistory(t *testing.T) {
 				rows := mockPool.NewRows([]string{"id", "supplier_id", "user_id", "IP",
 					"upload_date", "update_date", "status", "products_processed", "products_failed", "products_total"}).AddRow(
 					t.ID, t.SupplierID, t.UserID, t.IP, t.UploadDate, t.UpdateDate, t.Status, t.ProductsProcessed, t.ProductsFailed, t.ProductsTotal)
-				mockPool.ExpectQuery(regexp.QuoteMeta(`SELECT id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total FROM tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`)).WithArgs(args.supplierID, args.limit, args.offset).WillReturnRows(rows)
+				mockPool.ExpectQuery(regexp.QuoteMeta(`SELECT id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total FROM tasks.tasks  WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`)).WithArgs(args.supplierID, args.limit, args.offset).WillReturnRows(rows)
 			},
 		},
 		{
@@ -156,7 +156,7 @@ func TestStore_GetSupplierTaskHistory(t *testing.T) {
 				rows := mockPool.NewRows([]string{"id", "supplier_id", "user_id", "IP",
 					"upload_date", "update_date", "status", "products_processed", "products_failed", "products_total"}).AddRow(
 					t.ID, t.SupplierID, t.UserID, t.IP, t.UploadDate, t.UpdateDate, t.Status, t.ProductsProcessed, t.ProductsFailed, t.ProductsTotal)
-				mockPool.ExpectQuery(regexp.QuoteMeta(`SELECT id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total FROM tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`)).WithArgs(args.supplierID, args.limit, args.offset).WillReturnRows(rows)
+				mockPool.ExpectQuery(regexp.QuoteMeta(`SELECT id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total FROM tasks.tasks  WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`)).WithArgs(args.supplierID, args.limit, args.offset).WillReturnRows(rows)
 			},
 		},
 		{
@@ -164,7 +164,7 @@ func TestStore_GetSupplierTaskHistory(t *testing.T) {
 			input: args{context.Background(), mockPool, int64(1), 0, 0},
 			want:  nil,
 			mock: func(args args, tasks []model.Task) {
-				mockPool.ExpectQuery(regexp.QuoteMeta(`id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total FROM tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`)).WithArgs(args.supplierID, args.limit, args.offset).WillReturnError(pgxmock.ErrCancelled)
+				mockPool.ExpectQuery(regexp.QuoteMeta(`id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total FROM tasks.tasks  WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`)).WithArgs(args.supplierID, args.limit, args.offset).WillReturnError(pgxmock.ErrCancelled)
 			},
 			wantErr: true,
 		},
@@ -177,7 +177,7 @@ func TestStore_GetSupplierTaskHistory(t *testing.T) {
 				rows := mockPool.NewRows([]string{"id", "supplier_id", "user_id", "IP",
 					"upload_date", "update_date", "status", "products_processed", "products_failed", "products_total"}).AddRow(
 					t.ID, t.SupplierID, t.IP, t.UserID, t.UploadDate, t.UpdateDate, t.Status, t.ProductsProcessed, t.ProductsFailed, t.ProductsTotal)
-				mockPool.ExpectQuery(regexp.QuoteMeta(`SELECT id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total FROM tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`)).WithArgs(args.supplierID, args.limit, args.offset).WillReturnRows(rows)
+				mockPool.ExpectQuery(regexp.QuoteMeta(`SELECT id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total FROM tasks.tasks  WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`)).WithArgs(args.supplierID, args.limit, args.offset).WillReturnRows(rows)
 			},
 			wantErr: true,
 		},
@@ -189,7 +189,7 @@ func TestStore_GetSupplierTaskHistory(t *testing.T) {
 				rows := mockPool.NewRows([]string{"id", "supplier_id", "user_id", "IP",
 					"upload_date", "update_date", "status", "products_processed", "products_failed", "products_total", "err"}).AddRow(
 					tasks[0].ID, tasks[0].SupplierID, tasks[0].UserID, tasks[0].IP, tasks[0].UploadDate, tasks[0].UpdateDate, tasks[0].Status, tasks[0].ProductsProcessed, tasks[0].ProductsFailed, tasks[0].ProductsTotal, "err")
-				mockPool.ExpectQuery(regexp.QuoteMeta(`SELECT id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total FROM tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`)).WithArgs(args.supplierID, args.limit, args.offset).WillReturnRows(rows)
+				mockPool.ExpectQuery(regexp.QuoteMeta(`SELECT id, supplier_id, user_id, IP, upload_date, update_date, status, products_processed, products_failed, products_total FROM tasks.tasks  WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`)).WithArgs(args.supplierID, args.limit, args.offset).WillReturnRows(rows)
 			},
 			wantErr: true,
 		},
