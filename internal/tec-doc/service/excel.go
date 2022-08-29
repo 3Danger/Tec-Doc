@@ -34,7 +34,7 @@ func (s *Service) ExcelTemplateForClient() ([]byte, error) {
 	// Set values
 	_ = f.SetCellValue(nameSheet, "A1", "Номер карточки")
 	_ = f.SetCellValue(nameSheet, "B1", "Артикул поставщика (уникальный артикул)")
-	_ = f.SetCellValue(nameSheet, "C1", "Артикул производителя")
+	_ = f.SetCellValue(nameSheet, "C1", "Артикул производителя (артикул tec-doc)")
 	_ = f.SetCellValue(nameSheet, "D1", "Бренд")
 	_ = f.SetCellValue(nameSheet, "E1", "SKU")
 	_ = f.SetCellValue(nameSheet, "F1", "Категория товара")
