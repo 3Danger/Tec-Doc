@@ -119,9 +119,7 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
                                 "includeGenericArticles": true,
                                 "includeOEMNumbers": true,
                                 "includeArticleCriteria": true,
-                                "includeImages": true,
-                                "assemblyGroupFacetOptions": {"enabled": true, "assemblyGroupType": "P", "includeCompleteTree": false},
-                                "includeComparableNumbers": true
+                                "includeImages": true
                         }
 				}`, article, dataSupplierID, LIMIT, pageNum+1))
 		var mainResp model.TecDocResponse
