@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sync"
-	"tec-doc/pkg/clients/model"
+	"tec-doc/pkg/clients/models"
 )
 
 // LIMIT Лимит на единицу запроса
@@ -18,7 +17,6 @@ func (c *tecDocClient) Applicability(legacyArticleId int) ([]model.LinkageTarget
 	if err != nil {
 		return nil, err
 	}
-
 	length := len(linkageTargetsBodies)
 	targetCh := make(chan []model.LinkageTargets, length)
 	errChan := make(chan error, length+1)
