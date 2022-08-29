@@ -132,19 +132,20 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
 		if mainResp.Status != http.StatusOK {
 			return nil, fmt.Errorf("request failed with status code: %d", mainResp.Status)
 		}
-		articles = append(articles, c.ConvertArticleFromRaw(mainResp.Articles, mainResp.AssemblyGroupFacets)...)
+		articles = append(articles, c.ConvertArticleFromRaw(mainResp.Articles)...)
 	}
 
 	return articles, nil
 }
 
-func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw, facets model.AssemblyGroupFacets) []model.Article {
+func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw) []model.Article {
 	articles := make([]model.Article, 0)
 	for _, rawArticle := range rawArticles {
 		var a model.Article
 
 		a.ArticleNumber = rawArticle.ArticleNumber
 		a.MfrName = rawArticle.MfrName
+		a.CrossNumbers, _ = c.GetCrossNumbers(a.ArticleNumber)
 
 		if len(rawArticle.GenericArticles) > 0 {
 			a.GenericArticleDescription = rawArticle.GenericArticles[0].GenericArticleDescription
@@ -159,18 +160,10 @@ func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw, fac
 
 		for _, criteria := range rawArticle.ArticleCriterias {
 			convCriteria := convertArticleCriteriaRaw(criteria)
-			switch criteria.CriteriaID {
-			case 212:
-				a.Weight = &convCriteria
-			case 1620:
-				a.PackageLength = &convCriteria
-			case 1621:
-				a.PackageWidth = &convCriteria
-			case 1622:
-				a.PackageHeight = &convCriteria
-			case 3653:
-				a.PackageDepth = &convCriteria
-			default:
+			if criteria.CriteriaID == 212 || criteria.CriteriaID == 1620 || criteria.CriteriaID == 1621 ||
+				criteria.CriteriaID == 1622 || criteria.CriteriaID == 1623 || criteria.CriteriaID == 3653 {
+				a.PackageArticleCriteria = append(a.PackageArticleCriteria, convCriteria)
+			} else {
 				a.ArticleCriteria = append(a.ArticleCriteria, convCriteria)
 			}
 		}
@@ -195,15 +188,50 @@ func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw, fac
 			}
 			a.Images = append(a.Images, imgURL)
 		}
-
-		for _, facet := range facets.Counts {
-			if facet.Children == 0 {
-				if contains(a.AssemblyGroupFacets, facet.AssemblyGroupName) == false {
-					a.AssemblyGroupFacets = append(a.AssemblyGroupFacets, facet.AssemblyGroupName)
-				}
-			}
-		}
 		articles = append(articles, a)
 	}
 	return articles
+}
+
+func (c *tecDocClient) GetCrossNumbers(articleNumber string) ([]model.CrossNumbers, error) {
+	type respStruct struct {
+		Articles []struct {
+			ArticleNumber string `json:"articleNumber"`
+			MfrName       string `json:"mfrName"`
+		} `json:"articles"`
+		Status int `json:"status"`
+	}
+
+	var (
+		reqBody = []byte(fmt.Sprintf(
+			`{
+						"getArticles": {
+							"articleCountry": "RU",
+							"searchQuery": "%s",
+							"searchType": 3,
+							"lang": "ru",
+						}
+					}`, articleNumber))
+		resp         respStruct
+		crossNumbers = make([]model.CrossNumbers, 0)
+	)
+
+	err := c.doRequest(http.MethodPost, bytes.NewReader(reqBody), &resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do request: %w", err)
+	}
+
+	if resp.Status != http.StatusOK {
+		return nil, fmt.Errorf("request failed with status code: %d", resp.Status)
+	}
+
+	for _, replaceArticle := range resp.Articles {
+		if replaceArticle.ArticleNumber != articleNumber {
+			crossNumbers = append(crossNumbers, model.CrossNumbers{
+				ArticleNumber: replaceArticle.ArticleNumber,
+				MfrName:       replaceArticle.MfrName})
+		}
+	}
+
+	return crossNumbers, nil
 }
