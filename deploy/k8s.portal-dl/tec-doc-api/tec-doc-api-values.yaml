@@ -1,7 +1,7 @@
 # Enviroment (like as cluser name)
 environment: portal-dl
 
-replicaCount: 2
+replicaCount: 1
 
 ports:
   - name: metrics
