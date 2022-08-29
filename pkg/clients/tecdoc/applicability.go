@@ -18,7 +18,6 @@ func (c *tecDocClient) Applicability(legacyArticleId int) ([]model.LinkageTarget
 	if err != nil {
 		return nil, err
 	}
-
 	length := len(linkageTargetsBodies)
 	targetCh := make(chan []model.LinkageTargets, length)
 	errChan := make(chan error, length+1)
