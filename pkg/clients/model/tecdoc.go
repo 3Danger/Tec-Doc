@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"tec-doc/pkg/clients/models"
+	"time"
+)
 
 type Brand struct {
 	SupplierId int    `json:"dataSupplierId"`
@@ -39,20 +42,20 @@ type ArticleRaw struct {
 }
 
 type Article struct {
-	ArticleNumber             string            `json:"articleNumber,omitempty"`
-	MfrName                   string            `json:"mfrName,omitempty"`
-	GenericArticleDescription string            `json:"genericArticleDescription,omitempty"`
-	OEMnumbers                []OEM             `json:"oemNumbers,omitempty"`
-	ArticleCriteria           []ArticleCriteria `json:"articleCriteria,omitempty"`
-	Weight                    *ArticleCriteria  `json:"weight,omitempty"`
-	PackageLength             *ArticleCriteria  `json:"packageLength,omitempty"`
-	PackageWidth              *ArticleCriteria  `json:"packageWidth,omitempty"`
-	PackageHeight             *ArticleCriteria  `json:"packageHeight,omitempty"`
-	PackageDepth              *ArticleCriteria  `json:"packageDepth,omitempty"`
-	LinkageTargets            []LinkageTargets  `json:"linkageTargets,omitempty"`
-	Images                    []string          `json:"images,omitempty"`
-	ComparableNumbers         []interface{}     `json:"comparableNumbers,omitempty"`
-	AssemblyGroupFacets       []string          `json:"assemblyGroupFacets,omitempty"`
+	ArticleNumber             string                  `json:"articleNumber,omitempty"`
+	MfrName                   string                  `json:"mfrName,omitempty"`
+	GenericArticleDescription string                  `json:"genericArticleDescription,omitempty"`
+	OEMnumbers                []OEM                   `json:"oemNumbers,omitempty"`
+	ArticleCriteria           []ArticleCriteria       `json:"articleCriteria,omitempty"`
+	Weight                    *ArticleCriteria        `json:"weight,omitempty"`
+	PackageLength             *ArticleCriteria        `json:"packageLength,omitempty"`
+	PackageWidth              *ArticleCriteria        `json:"packageWidth,omitempty"`
+	PackageHeight             *ArticleCriteria        `json:"packageHeight,omitempty"`
+	PackageDepth              *ArticleCriteria        `json:"packageDepth,omitempty"`
+	LinkageTargets            []models.LinkageTargets `json:"linkageTargets,omitempty"`
+	Images                    []string                `json:"images,omitempty"`
+	ComparableNumbers         []interface{}           `json:"comparableNumbers,omitempty"`
+	AssemblyGroupFacets       []string                `json:"assemblyGroupFacets,omitempty"`
 }
 
 type ArticleCriteriaRaw struct {

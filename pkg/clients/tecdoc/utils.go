@@ -1,6 +1,10 @@
 package tecdoc
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 	"tec-doc/pkg/clients/model"
 )
 
@@ -22,11 +26,7 @@ func contains(arr []string, s string) bool {
 		}
 	}
 	return false
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-)
+}
 
 // doRequest делает запрос и заполняет данными JSON структуру outStructPtr. аналог BindJSON() из gin
 func (c *tecDocClient) doRequest(method string, body io.Reader, outStructPtr interface{}) (err error) {
