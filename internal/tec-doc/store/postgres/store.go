@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/jackc/pgconn"
 	"tec-doc/internal/tec-doc/config"
@@ -86,14 +87,14 @@ func NewPool(ctx context.Context, cfg *config.PostgresConfig) (*pgxpool.Pool, er
 
 	connConf, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("failed to parse config")
 	}
 
 	connConf.MaxConns = cfg.MaxConns
 	connConf.MinConns = cfg.MinConns
 	pool, err := pgxpool.ConnectConfig(ctx, connConf)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("failed to connect config")
 	}
 	return pool, nil
 }

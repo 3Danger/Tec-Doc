@@ -123,14 +123,14 @@ func (s *store) SaveIntoBuffer(ctx context.Context, tx Transaction, products []m
 	}
 
 	for i, pr := range products {
-		rows[i] = []interface{}{pr.UploadID, pr.Article, pr.ArticleSupplier, pr.Price,
+		rows[i] = []interface{}{pr.UploadID, pr.Article, pr.ArticleSupplier, pr.Brand, pr.Barcode, pr.Price,
 			time.Now().UTC(), time.Now().UTC(), pr.Status, pr.ErrorResponse}
 	}
 
 	copyCount, err := executor.CopyFrom(
 		ctx,
-		pgx.Identifier{"products_buffer"},
-		[]string{"upload_id", "article", "article_supplier", "price", "upload_date", "update_date", "status", "errorresponse"},
+		pgx.Identifier{"tasks", "products_buffer"},
+		[]string{"upload_id", "article", "article_supplier", "brand", "barcode", "price", "upload_date", "update_date", "status", "errorresponse"},
 		pgx.CopyFromRows(rows),
 	)
 
@@ -202,7 +202,7 @@ func (s *store) SaveProductsToHistory(ctx context.Context, tx Transaction, produ
 
 	copyCount, err := executor.CopyFrom(
 		ctx,
-		pgx.Identifier{"products_history"},
+		pgx.Identifier{"tasks", "products_history"},
 		[]string{"upload_id", "article", "article_supplier", "price", "upload_date", "update_date", "status", "errorresponse"},
 		pgx.CopyFromRows(rows),
 	)

@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS tasks.products_buffer (
    upload_id            BIGINT,
    article              TEXT,
    article_supplier     TEXT,
+   brand                TEXT,
+   barcode              TEXT,
    price                INT,
    upload_date          TIMESTAMPTZ,
    update_date          TIMESTAMPTZ,

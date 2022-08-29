@@ -1,7 +1,7 @@
 # Enviroment (like as cluser name)
-environment: portal-dl
+environment: prod-dl
 
-replicaCount: 2
+replicaCount: 1
 
 ports:
   - name: metrics
@@ -10,7 +10,7 @@ ports:
   - name: api
     containerPort: 8000
     protocol: TCP
-  
+
 service:
   type: NodePort # Обязательный параметр для новых кластеров
   externalTrafficPolicy: Local # Обязательный параметр для новых кластеров

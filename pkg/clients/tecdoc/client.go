@@ -149,6 +149,7 @@ func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw) []m
 
 		a.ArticleNumber = rawArticle.ArticleNumber
 		a.MfrName = rawArticle.MfrName
+		a.GenericArticleDescription = rawArticle.GenericArticles[0].GenericArticleDescription
 
 		if a.CrossNumbers, err = c.GetCrossNumbers(a.ArticleNumber); err != nil {
 			c.logger.Error().Err(err).Send()
