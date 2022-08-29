@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 	postgres "tec-doc/internal/tec-doc/store/postgres"
-	"tec-doc/pkg/clients/model"
+	"tec-doc/pkg/model"
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"tec-doc/internal/tec-doc/config"
-	"tec-doc/pkg/clients/model"
+	"tec-doc/pkg/model"
 )
 
 type Client interface {

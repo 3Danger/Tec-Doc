@@ -5,12 +5,12 @@ import (
 )
 
 type GetProductsHistoryRequest struct {
-	UploadID int64 `json:"UploadID" example:"1"`
+	UploadID int64 `json:"uploadID" example:"1"`
 }
 
 type GetTecDocArticlesRequest struct {
-	Brand         string `json:"Brand"`
-	ArticleNumber string `json:"ArticleNumber"`
+	Brand         string `json:"brand"`
+	ArticleNumber string `json:"articleNumber"`
 }
 
 type Brand struct {

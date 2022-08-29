@@ -1,8 +1,8 @@
 package service
 
 import (
-	"tec-doc/pkg/clients/model"
 	"tec-doc/pkg/errinfo"
+	"tec-doc/pkg/model"
 )
 
 func (s *Service) GetArticles(dataSupplierID int, article string) ([]model.Article, error) {

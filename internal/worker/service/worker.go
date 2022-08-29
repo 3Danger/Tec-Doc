@@ -9,7 +9,7 @@ import (
 	"tec-doc/internal/tec-doc/config"
 	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/pkg/clients/content"
-	"tec-doc/pkg/clients/model"
+	"tec-doc/pkg/model"
 	"time"
 )
 

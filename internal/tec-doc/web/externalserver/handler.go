@@ -8,8 +8,8 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"tec-doc/pkg/clients/model"
 	"tec-doc/pkg/errinfo"
+	"tec-doc/pkg/model"
 )
 
 // @Summary ExcelTemplate

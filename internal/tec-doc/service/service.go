@@ -7,10 +7,10 @@ import (
 	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/internal/tec-doc/web/externalserver"
 	"tec-doc/internal/tec-doc/web/internalserver"
-	"tec-doc/pkg/clients/model"
 	"tec-doc/pkg/clients/services"
 	"tec-doc/pkg/clients/tecdoc"
 	"tec-doc/pkg/metrics"
+	"tec-doc/pkg/model"
 	"time"
 )
 
