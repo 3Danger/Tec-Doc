@@ -52,8 +52,8 @@ func (e *externalHttpServer) configureRouter() {
 	api := e.router.Group("/api")
 	{
 		//api.Use(e.Authorize)
-		api.GET("/excel_template", e.ExcelTemplate)
-		api.POST("/load_from_excel", e.LoadFromExcel)
+		api.GET("/excel", e.ExcelTemplate)
+		api.POST("/excel", e.LoadFromExcel)
 		api.GET("/task_history", e.GetSupplierTaskHistory)
 		api.POST("/product_history", e.GetProductsHistory)
 		api.GET("/articles/enrichment", e.GetTecDocArticles)
