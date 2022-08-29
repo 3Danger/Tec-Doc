@@ -149,7 +149,7 @@ func (s *store) GetProductsBuffer(ctx context.Context, tx Transaction, uploadID 
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	var (
-		getProductsBufferQuery = `SELECT id, upload_id, article, article, article_supplier, price,
+		getProductsBufferQuery = `SELECT id, upload_id, article, article_supplier, price,
 		upload_date, update_date, status, errorresponse FROM tasks.products_buffer WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 		executor       Executor
 		productsBuffer = make([]model.Product, 0)
