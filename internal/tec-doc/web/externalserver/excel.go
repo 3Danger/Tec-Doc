@@ -36,14 +36,15 @@ func (e *externalHttpServer) parseExcelRow(p *model.Product, row []string) (err 
 	if len(row) < 7 {
 		return errors.New("row is invalid")
 	}
-	if p.CardNumber, err = strconv.Atoi(row[0]); err != nil {
-		return err
-	}
-	p.ProviderArticle = row[1]
-	p.ManufacturerArticle = row[2]
-	p.Brand = row[3]
-	p.SKU = row[4]
-	p.Category = row[5]
+	//TODO fields
+	//if p.CardNumber, err = strconv.Atoi(row[0]); err != nil {
+	//	return err
+	//}
+	p.Article = row[1]
+	p.ArticleSupplier = row[2]
+	//p.Brand = row[3]
+	//p.SKU = row[4]
+	//p.Category = row[5]
 	if p.Price, err = strconv.Atoi(row[6]); err != nil {
 		return err
 	}

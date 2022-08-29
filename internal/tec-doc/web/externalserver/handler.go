@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"tec-doc/internal/tec-doc/model"
+	"tec-doc/pkg/clients/model"
 	"tec-doc/pkg/errinfo"
 )
 

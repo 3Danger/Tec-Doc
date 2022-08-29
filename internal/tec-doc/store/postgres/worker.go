@@ -52,8 +52,7 @@ func (s *store) GetProductsBufferWithStatus(ctx context.Context, tx Transaction,
 
 	for rows.Next() {
 		var p model.Product
-		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.CardNumber, &p.ProviderArticle, &p.ManufacturerArticle, &p.Brand,
-			&p.SKU, &p.Category, &p.Price, &p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
+		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.ArticleSupplier, &p.Price, &p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
 		if err != nil {
 			return nil, fmt.Errorf("can't get products from buffer: %w", err)
 		}
