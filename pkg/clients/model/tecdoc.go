@@ -126,20 +126,16 @@ type Task struct {
 }
 
 type Product struct {
-	ID                  int64     `json:"id"`
-	UploadID            int64     `json:"uploadId"`
-	CardNumber          int       `json:"cardNumber"`
-	Article             string    `json:"article"`
-	ProviderArticle     string    `json:"providerArticle"`
-	ManufacturerArticle string    `json:"manufacturerArticle"`
-	Brand               string    `json:"brand"`
-	SKU                 string    `json:"sku"`
-	Category            string    `json:"category"`
-	Price               int       `json:"price"`
-	UploadDate          time.Time `json:"uploadDate"`
-	UpdateDate          time.Time `json:"updateDate"`
-	Status              int       `json:"status"`
-	ErrorResponse       string    `json:"errorResponse"`
+	ID              int64     `json:"id"`
+	UploadID        int64     `json:"uploadId"`
+	Article         string    `json:"article"`
+	ArticleSupplier string    `json:"articleSupplier"`
+	Subject         string    `json:"subject"`
+	Price           int       `json:"price"`
+	UploadDate      time.Time `json:"uploadDate"`
+	UpdateDate      time.Time `json:"updateDate"`
+	Status          int       `json:"status"`
+	ErrorResponse   string    `json:"errorResponse"`
 }
 
 type LinkageTargets struct {
