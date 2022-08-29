@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS tasks (
+CREATE SCHEMA if not exists tasks;
+
+CREATE TABLE IF NOT EXISTS tasks.tasks (
      id                 BIGSERIAL PRIMARY KEY,
      supplier_id        BIGINT,
      user_id            BIGINT,
@@ -11,18 +13,13 @@ CREATE TABLE IF NOT EXISTS tasks (
      products_total     INT
 );
 
-CREATE INDEX ON tasks(supplier_id);
+CREATE INDEX ON tasks.tasks(supplier_id);
 
-CREATE TABLE IF NOT EXISTS products_buffer (
+CREATE TABLE IF NOT EXISTS tasks.products_buffer (
    id                   BIGSERIAL PRIMARY KEY,
    upload_id            BIGINT,
    article              TEXT,
-   card_number          INT,
-   provider_article     TEXT,
-   manufacturer_article TEXT,
-   brand                TEXT,
-   sku                  TEXT,
-   category             TEXT,
+   article_supplier     TEXT,
    price                INT,
    upload_date          TIMESTAMPTZ,
    update_date          TIMESTAMPTZ,
@@ -30,9 +27,9 @@ CREATE TABLE IF NOT EXISTS products_buffer (
    errorResponse        TEXT
 );
 
-CREATE INDEX ON products_buffer(upload_id);
+CREATE INDEX ON tasks.products_buffer(upload_id);
 
-CREATE TABLE IF NOT EXISTS products_history (
+CREATE TABLE IF NOT EXISTS tasks.products_history (
     id                   BIGSERIAL PRIMARY KEY,
     upload_id            BIGINT,
     article              TEXT,
@@ -49,4 +46,4 @@ CREATE TABLE IF NOT EXISTS products_history (
     errorResponse        TEXT
 );
 
-CREATE INDEX ON products_history(upload_id);
+CREATE INDEX ON tasks.products_history(upload_id);
