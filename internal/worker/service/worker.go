@@ -39,16 +39,16 @@ func New(ctx context.Context, conf *config.Config, log *zerolog.Logger) *service
 	}
 }
 
-func (s *service) TaskWorkerRun(ctx context.Context, conf config.WorkerConfig) error {
+func (s *service) TaskWorkerRun(ctx context.Context) error {
 	s.log.Info().Msg("starting product card worker")
-	tick := time.NewTicker(conf.Timer)
+	tick := time.NewTicker(time.Second * 30)
 
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-tick.C:
-			err := s.RunProductCreation(ctx, conf)
+			err := s.RunProductCreation(ctx)
 			if err != nil {
 				s.log.Err(err).Send()
 				time.Sleep(5 * time.Second)
@@ -57,7 +57,7 @@ func (s *service) TaskWorkerRun(ctx context.Context, conf config.WorkerConfig) e
 	}
 }
 
-func (s *service) RunProductCreation(ctx context.Context, conf config.WorkerConfig) error {
+func (s *service) RunProductCreation(ctx context.Context) error {
 	uploadID, err := s.store.GetOldestTask(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("can't get oldest task: %w", err)
@@ -69,7 +69,7 @@ func (s *service) RunProductCreation(ctx context.Context, conf config.WorkerConf
 	}
 
 	//TODO offset
-	products, err := s.store.GetProductsBufferWithStatus(ctx, nil, uploadID, postgres.StatusNew, conf.Offset, 0)
+	products, err := s.store.GetProductsBufferWithStatus(ctx, nil, uploadID, postgres.StatusNew, 1000, 0)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			_ = s.store.UpdateTaskStatus(ctx, nil, uploadID, postgres.StatusCompleted)
