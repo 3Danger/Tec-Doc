@@ -19,10 +19,9 @@ type Brand struct {
 }
 
 type TecDocResponse struct {
-	TotalMatchingArticles int                 `json:"totalMatchingArticles"`
-	Articles              []ArticleRaw        `json:"articles"`
-	Status                int                 `json:"status"`
-	AssemblyGroupFacets   AssemblyGroupFacets `json:"assemblyGroupFacets"`
+	TotalMatchingArticles int          `json:"totalMatchingArticles"`
+	Articles              []ArticleRaw `json:"articles"`
+	Status                int          `json:"status"`
 }
 
 type ArticleRaw struct {
@@ -41,7 +40,6 @@ type ArticleRaw struct {
 	} `json:"oemNumbers"`
 	ArticleCriterias   []ArticleCriteriaRaw `json:"articleCriteria"`
 	Images             []Image              `json:"images"`
-	ComparableNumbers  []interface{}        `json:"comparableNumbers"`
 	SearchQueryMatches []struct {
 		MatchType   string `json:"matchType"`
 		Description string `json:"description"`
@@ -54,16 +52,11 @@ type Article struct {
 	MfrName                   string            `json:"mfrName,omitempty"`
 	GenericArticleDescription string            `json:"genericArticleDescription,omitempty"`
 	OEMnumbers                []OEM             `json:"oemNumbers,omitempty"`
+	CrossNumbers              []CrossNumbers    `json:"crossNumbers,omitempty"`
 	ArticleCriteria           []ArticleCriteria `json:"articleCriteria,omitempty"`
-	Weight                    *ArticleCriteria  `json:"weight,omitempty"`
-	PackageLength             *ArticleCriteria  `json:"packageLength,omitempty"`
-	PackageWidth              *ArticleCriteria  `json:"packageWidth,omitempty"`
-	PackageHeight             *ArticleCriteria  `json:"packageHeight,omitempty"`
-	PackageDepth              *ArticleCriteria  `json:"packageDepth,omitempty"`
+	PackageArticleCriteria    []ArticleCriteria `json:"packageArticleCriteria"`
 	LinkageTargets            []LinkageTargets  `json:"linkageTargets,omitempty"`
 	Images                    []string          `json:"images,omitempty"`
-	ComparableNumbers         []interface{}     `json:"comparableNumbers,omitempty"`
-	AssemblyGroupFacets       []string          `json:"assemblyGroupFacets,omitempty"`
 }
 
 type ArticleCriteriaRaw struct {
@@ -109,16 +102,9 @@ type OEM struct {
 	MfrName       string `json:"mfrName"`
 }
 
-type AssemblyGroupFacets struct {
-	Total  int `json:"total"`
-	Counts []struct {
-		AssemblyGroupNodeID int    `json:"assemblyGroupNodeId"`
-		AssemblyGroupName   string `json:"assemblyGroupName"`
-		AssemblyGroupType   string `json:"assemblyGroupType"`
-		Children            int    `json:"children,omitempty"`
-		Count               int    `json:"count"`
-		ParentNodeID        int    `json:"parentNodeId,omitempty"`
-	} `json:"counts"`
+type CrossNumbers struct {
+	ArticleNumber string `json:"articleNumber"`
+	MfrName       string `json:"mfrName"`
 }
 
 type Task struct {
