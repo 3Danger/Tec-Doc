@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sync"
 	"tec-doc/pkg/clients/models"
 )
 
@@ -18,38 +17,14 @@ func (c *tecDocClient) Applicability(legacyArticleId int) ([]models.LinkageTarge
 	if err != nil {
 		return nil, err
 	}
-
 	length := len(linkageTargetsBodies)
-	targetCh := make(chan []models.LinkageTargets, length)
-	errChan := make(chan error, length+1)
-	wg := new(sync.WaitGroup)
-
-	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
-		defer close(targetCh)
-		defer close(errChan)
-		for i := range linkageTargetsBodies {
-			wg.Add(1)
-			go func(wg *sync.WaitGroup, LinkageTargets models.GetLinkageTargetsResponse) {
-				defer wg.Done()
-				targets, err := c.getLinkageTargets(LinkageTargets)
-				if err != nil {
-					errChan <- err
-					return
-				}
-				targetCh <- targets
-			}(wg, linkageTargetsBodies[i])
-		}
-		wg.Done()
-		wg.Wait()
-		errChan <- nil
-	}(wg)
 	linkageTargets := make([]models.LinkageTargets, 0, length*LIMIT)
-	for target := range targetCh {
-		linkageTargets = append(linkageTargets, target...)
-	}
-	if err = <-errChan; err != nil {
-		return nil, err
+	for i := range linkageTargetsBodies {
+		targets, err := c.getLinkageTargets(linkageTargetsBodies[i])
+		if err != nil {
+			return nil, err
+		}
+		linkageTargets = append(linkageTargets, targets...)
 	}
 	return linkageTargets, nil
 }
