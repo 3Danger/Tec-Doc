@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgconn"
 	"tec-doc/internal/tec-doc/config"
-	"tec-doc/pkg/clients/model"
+	"tec-doc/pkg/model"
 	"time"
 
 	"github.com/jackc/pgx/v4"

@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"tec-doc/pkg/clients/model"
+	"tec-doc/pkg/model"
 )
 
 func (s *store) GetOldestTask(ctx context.Context, tx Transaction) (int64, error) {

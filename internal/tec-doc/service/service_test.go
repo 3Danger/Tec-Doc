@@ -12,7 +12,7 @@ import (
 	"tec-doc/internal/tec-doc/mocks/mock_internalserver"
 	"tec-doc/internal/tec-doc/mocks/mock_postgres"
 	"tec-doc/internal/tec-doc/store/postgres"
-	"tec-doc/pkg/clients/model"
+	"tec-doc/pkg/model"
 	"testing"
 	"time"
 )

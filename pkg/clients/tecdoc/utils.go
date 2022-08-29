@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"tec-doc/pkg/clients/model"
+	"tec-doc/pkg/model"
 )
 
 func convertArticleCriteriaRaw(cr model.ArticleCriteriaRaw) model.ArticleCriteria {

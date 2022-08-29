@@ -7,9 +7,9 @@ import (
 	"net/http"
 	_ "tec-doc/docs"
 	"tec-doc/internal/tec-doc/config"
-	"tec-doc/pkg/clients/model"
 	"tec-doc/pkg/clients/services"
 	"tec-doc/pkg/metrics"
+	"tec-doc/pkg/model"
 )
 
 type Service interface {
@@ -56,7 +56,7 @@ func (e *externalHttpServer) configureRouter() {
 		api.POST("/load_from_excel", e.LoadFromExcel)
 		api.GET("/task_history", e.GetSupplierTaskHistory)
 		api.POST("/product_history", e.GetProductsHistory)
-		api.GET("/tecdoc_articles", e.GetTecDocArticles)
+		api.GET("/articles/enrichment", e.GetTecDocArticles)
 	}
 }
 

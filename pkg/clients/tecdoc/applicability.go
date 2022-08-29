@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"tec-doc/pkg/clients/model"
+	"tec-doc/pkg/model"
 )
 
 // LIMIT Лимит на единицу запроса
