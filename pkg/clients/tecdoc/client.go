@@ -3,6 +3,7 @@ package tecdoc
 import (
 	"bytes"
 	"fmt"
+	"github.com/rs/zerolog"
 	"net/http"
 	"tec-doc/internal/tec-doc/config"
 	"tec-doc/pkg/errinfo"
@@ -18,13 +19,15 @@ type tecDocClient struct {
 	tecDocCfg config.TecDocClientConfig
 	http.Client
 	baseURL string
+	logger  *zerolog.Logger
 }
 
-func NewClient(baseURL string, tecDocCfg config.TecDocClientConfig) *tecDocClient {
+func NewClient(baseURL string, tecDocCfg config.TecDocClientConfig, log *zerolog.Logger) *tecDocClient {
 	return &tecDocClient{
 		Client:    http.Client{Timeout: tecDocCfg.Timeout},
 		baseURL:   baseURL,
 		tecDocCfg: tecDocCfg,
+		logger:    log,
 	}
 }
 
@@ -119,9 +122,7 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
                                 "includeGenericArticles": true,
                                 "includeOEMNumbers": true,
                                 "includeArticleCriteria": true,
-                                "includeImages": true,
-                                "assemblyGroupFacetOptions": {"enabled": true, "assemblyGroupType": "P", "includeCompleteTree": false},
-                                "includeComparableNumbers": true
+                                "includeImages": true
                         }
 				}`, article, dataSupplierID, LIMIT, pageNum+1))
 		var mainResp model.TecDocResponse
@@ -141,16 +142,22 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
 func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw) []model.Article {
 	articles := make([]model.Article, 0)
 	for _, rawArticle := range rawArticles {
-		var a model.Article
+		var (
+			a   model.Article
+			err error
+		)
 
 		a.ArticleNumber = rawArticle.ArticleNumber
 		a.MfrName = rawArticle.MfrName
-		a.CrossNumbers, _ = c.GetCrossNumbers(a.ArticleNumber)
+
+		if a.CrossNumbers, err = c.GetCrossNumbers(a.ArticleNumber); err != nil {
+			c.logger.Error().Err(err).Send()
+		}
 
 		if len(rawArticle.GenericArticles) > 0 {
-			a.GenericArticleDescription = rawArticle.GenericArticles[0].GenericArticleDescription
-			legacyID := rawArticle.GenericArticles[0].LegacyArticleID
-			a.LinkageTargets, _ = c.Applicability(legacyID)
+			if a.LinkageTargets, err = c.Applicability(rawArticle.GenericArticles[0].LegacyArticleID); err != nil {
+				c.logger.Error().Err(err).Send()
+			}
 		}
 
 		for _, oem := range rawArticle.OemNumbers {

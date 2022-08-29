@@ -57,7 +57,6 @@ type Article struct {
 	PackageArticleCriteria    []ArticleCriteria `json:"packageArticleCriteria"`
 	LinkageTargets            []LinkageTargets  `json:"linkageTargets,omitempty"`
 	Images                    []string          `json:"images,omitempty"`
-	AssemblyGroupFacets       []string          `json:"assemblyGroupFacets,omitempty"`
 }
 
 type ArticleCriteriaRaw struct {

@@ -59,7 +59,7 @@ func New(ctx context.Context, conf *config.Config, log *zerolog.Logger, mts *met
 		conf:         conf,
 		log:          log,
 		database:     store,
-		tecDocClient: tecdoc.NewClient(conf.TecDoc.URL, conf.TecDoc),
+		tecDocClient: tecdoc.NewClient(conf.TecDoc.URL, conf.TecDoc, log),
 	}
 	svc.internalServer = internalserver.New(conf.InternalServPort)
 	svc.externalServer = externalserver.New(conf.ExternalServPort, &svc, log, mts)
