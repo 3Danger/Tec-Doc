@@ -5,17 +5,13 @@ import (
 )
 
 func (s *Service) GetArticles(dataSupplierID int, article string) ([]model.Article, error) {
-	articles, err := s.tecDocClient.GetArticles(dataSupplierID, article)
-	if err != nil {
-		return nil, err
-	}
-	return articles, nil
+	return s.tecDocClient.GetArticles(dataSupplierID, article)
 }
 
 func (s *Service) GetBrand(brandName string) (*model.Brand, error) {
-	brand, err := s.tecDocClient.GetBrand(brandName)
-	if err != nil {
-		return nil, err
-	}
-	return brand, nil
+	return s.tecDocClient.GetBrand(brandName)
+}
+
+func (s *Service) Enrichment(product []model.Product) ([]model.ProductEnriched, error) {
+	return s.tecDocClient.Enrichment(product)
 }

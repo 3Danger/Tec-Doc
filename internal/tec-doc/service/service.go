@@ -29,6 +29,7 @@ type Store interface {
 type TecDocClient interface {
 	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
 	GetBrand(brandName string) (*model.Brand, error)
+	Enrichment(products []model.Product) (productsEnriched []model.ProductEnriched, err error)
 }
 
 type Server interface {

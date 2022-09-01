@@ -21,7 +21,7 @@ var (
 		"internal/tec-doc/web/internalserver/server.go",
 		"internal/tec-doc/store/postgres/store.go",
 	}
-	swagFile = "./cmd/tec-doc/main.go"
+	mainTecDoc = "./cmd/tec-doc-api/main.go"
 )
 
 //goland:noinspection GoBoolExpressions
@@ -37,7 +37,7 @@ func init() {
 	}
 }
 
-//Init all
+// Init all
 func All() (err error) {
 	if err = Mock(); err != nil {
 		return err
@@ -56,10 +56,10 @@ func Build() error {
 	if err := sh.Run("go", "mod", "download"); err != nil {
 		return err
 	}
-	return sh.Run("go", "build", "-o", app, "./cmd/tec-doc/main.go")
+	return sh.Run("go", "build", "-o", app, mainTecDoc)
 }
 
-//Generate mock
+// Generate mock
 func Mock() (err error) {
 	for _, sc := range sourceFiles {
 		dirPath, fileName := filepath.Split(sc)
@@ -74,8 +74,8 @@ func Mock() (err error) {
 	return nil
 }
 
-//Swag doc regenerate
+// Swag doc regenerate
 func Swag() error {
-	fmt.Println("swag init -g " + swagFile)
-	return sh.Run("swag", "init", "-g", swagFile)
+	fmt.Println("swag init -g " + mainTecDoc)
+	return sh.Run("swag", "init", "-g", mainTecDoc)
 }

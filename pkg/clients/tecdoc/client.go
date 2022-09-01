@@ -2,6 +2,7 @@ package tecdoc
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/rs/zerolog"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 type Client interface {
 	GetBrand(brandName string) (*model.Brand, error)
 	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
+	Enrichment(products []model.Product) (productsEnriched *model.ProductEnriched, err error)
 }
 
 type tecDocClient struct {
@@ -242,4 +244,39 @@ func (c *tecDocClient) GetCrossNumbers(articleNumber string) ([]model.CrossNumbe
 	}
 
 	return crossNumbers, nil
+}
+
+func (t *tecDocClient) Enrichment(products []model.Product) ([]model.ProductEnriched, error) {
+	productsEnrichment := make([]model.ProductEnriched, 0, len(products))
+	for i := range products {
+		prodRich, err := t.enrichment(&products[i])
+		if err != nil {
+			return nil, err
+		}
+		productsEnrichment = append(productsEnrichment, *prodRich)
+	}
+	return productsEnrichment, nil
+}
+
+func (t *tecDocClient) enrichment(product *model.Product) (productsEnriched *model.ProductEnriched, err error) {
+	var (
+		brand    *model.Brand
+		articles []model.Article
+	)
+	if brand, err = t.GetBrand(product.Brand); err != nil {
+		product.ErrorResponse = err.Error()
+		return nil, err
+	}
+	if articles, err = t.GetArticles(brand.SupplierId, product.Article); err != nil {
+		return nil, err
+	}
+	if len(articles) != 1 {
+		return nil, errors.New("articles too much")
+	}
+	productsEnriched = &model.ProductEnriched{
+		Product: *product,
+		Article: articles[0],
+	}
+	return productsEnriched, nil
+
 }

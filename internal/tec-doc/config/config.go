@@ -13,6 +13,7 @@ type Config struct {
 	Content          ContentClientConfig
 	TecDoc           TecDocClientConfig
 	Scope            Scope
+	Worker           WorkerConfig
 }
 
 type PostgresConfig struct {

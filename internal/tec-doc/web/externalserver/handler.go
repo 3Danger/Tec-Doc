@@ -16,7 +16,7 @@ import (
 // @Tags excel
 // @Description download excel table template
 // @ID excel_template
-// @Produce application/vnd.ms-excel
+// @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} byte
@@ -26,10 +26,56 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 	excelTemplate, err := e.service.ExcelTemplateForClient()
 	if err != nil {
 		e.logger.Error().Err(err).Send()
+		c.AbortWithStatusJSON(errinfo.GetErrorInfo(errinfo.InvalidExcelData))
+	}
+	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelTemplate)
+}
+
+// @Summary ProductsEnrichedExcel
+// @Tags excel
+// @Description Enrichment excel file
+// @ID enrich_excel
+// @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+// @Param excel_file formData file true "excel file"
+// Param X-User-Id header string true "ID of user"
+// @Param X-Supplier-Id header string true "ID of supplier"
+// @Success 200 {array} byte
+// @Failure 400 {object} string
+// @Failure 500 {object} string
+// @Router /excel/enrichment [post]
+func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
+	var (
+		err      error
+		uploadID model.UploadIdRequest
+		products []model.Product
+	)
+
+	if err := c.ShouldBindQuery(&uploadID); err != nil {
+		e.logger.Error().Err(err).Msg("can't to get uploadID from url param")
+		c.AbortWithStatusJSON(errinfo.GetErrorInfo(errinfo.InvalidTecDocParams))
+	}
+	file, _, err := c.Request.FormFile("excel_file")
+	defer func() { _ = file.Close() }()
+
+	if products, err = e.loadFromExcel(file); err != nil {
+		e.logger.Error().Err(err).Send()
+		if err.Error() == "empty data" || err == io.EOF {
+			c.JSON(errinfo.GetErrorInfo(errinfo.InvalidExcelEmpty))
+			return
+		}
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidExcelData))
 		return
 	}
-	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelTemplate)
+	excel, err := e.service.GetProductsEnrichedExcel(products)
+	if err != nil {
+		e.logger.Error().Err(err).Msg("can't to create excel enrichment file")
+		c.AbortWithStatusJSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
+	}
+	//{ //Посмотреть содержимое файла без танцев с бубном
+	//	dir, _ := os.UserHomeDir()
+	//	_ = ioutil.WriteFile(dir + "/excel_test_file.xlsx", excel, 0644)
+	//}
+	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excel)
 }
 
 // @Summary LoadFromExcel
@@ -86,12 +132,12 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param offset query string true "offset of contents"
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
-// @Param InputBody body model.GetProductsHistoryRequest true "The input body.<br /> UploadID is ID of previously uploaded task."
+// @Param InputBody body model.UploadIdRequest true "The input body.<br /> UploadID is ID of previously uploaded task."
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
 // @Router /product_history [post]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
-	var rq model.GetProductsHistoryRequest
+	var rq model.UploadIdRequest
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&rq); err != nil {
 		e.logger.Error().Err(err).Send()

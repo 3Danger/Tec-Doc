@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-type GetProductsHistoryRequest struct {
-	UploadID int64 `json:"uploadID" example:"1"`
+type UploadIdRequest struct {
+	UploadID int64 `json:"uploadID" form:"uploadID" example:"1"`
 }
 
 type GetTecDocArticlesRequest struct {
@@ -118,6 +118,11 @@ type Task struct {
 	ProductsProcessed int       `json:"productsProcessed"`
 	ProductsFailed    int       `json:"productsFailed"`
 	ProductsTotal     int       `json:"productsTotal"`
+}
+
+type ProductEnriched struct {
+	Product
+	Article
 }
 
 type Product struct {
