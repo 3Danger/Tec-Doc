@@ -1,6 +1,8 @@
 package service
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	exl "github.com/xuri/excelize/v2"
 	"tec-doc/pkg/model"
@@ -12,7 +14,7 @@ var styleExcelHeader = &exl.Style{
 	Font: &exl.Font{
 		Bold:   true,
 		Family: "Fira Sans Book",
-		Size:   10,
+		Size:   8,
 		Color:  "c21f6b"},
 	Lang: "ru",
 }
@@ -21,7 +23,7 @@ var styleExcel = &exl.Style{
 	Fill: exl.Fill{},
 	Font: &exl.Font{
 		Family: "Fira Sans Book",
-		Size:   8,
+		Size:   7,
 		Color:  "731a6f"},
 	Lang: "ru",
 }
@@ -85,4 +87,73 @@ func (s *Service) AddFromExcel(ctx *gin.Context, products []model.Product, suppl
 		return err
 	}
 	return nil
+}
+
+func (s *Service) GetProductsEnrichedExcel(productsPoor []model.Product) (data []byte, err error) {
+	var productsEnriched []model.ProductEnriched
+
+	if productsEnriched, err = s.tecDocClient.Enrichment(productsPoor); err != nil {
+		return nil, err
+	}
+
+	f := exl.NewFile()
+	defer func() { _ = f.Close() }()
+	f.SetSheetName(f.GetSheetName(0), "Details about products")
+	sw, err := f.NewStreamWriter(f.GetSheetName(0))
+
+	// Set width for columns
+	for i, w := range []float64{14, 15, 25, 25, 18, 13, 25, 50, 40, 40, 8, 40, 40} {
+		i++
+		if err = sw.SetColWidth(i, i, w); err != nil {
+			return nil, err
+		}
+	}
+	if err = sw.SetRow("A1", []interface{}{
+		"Бренд",
+		"Категория",
+		"Артикул поставщика (уникальный артикул)",
+		"Артикул производителя (артикул tec-doc)",
+		"Штрих-код",
+		"Цена товара",
+		"Описание",
+		"Cross numbers",
+		"Размерность",
+		"ArticleCriterias",
+		"PackageArticleCriterias",
+		"Применимости",
+		"Изображения",
+	}, exl.RowOpts{Height: 15},
+	); err != nil {
+		return nil, err
+	}
+
+	for i, p := range productsEnriched {
+		axis := fmt.Sprintf("A%d", i+2)
+		err = sw.SetRow(axis, []interface{}{
+			p.Product.Brand,
+			p.Product.Subject,
+			p.Product.ArticleSupplier,
+			p.Product.Article,
+			p.Product.Barcode,
+			p.Product.Price,
+			p.Article.GenericArticleDescription,
+			p.Article.OEMnumbers,
+			p.Article.CrossNumbers,
+			p.Article.ArticleCriteria,
+			p.Article.PackageArticleCriteria,
+			p.Article.LinkageTargets,
+			p.Article.Images},
+			exl.RowOpts{Height: 15})
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err = sw.Flush(); err != nil {
+		return nil, err
+	}
+	var buffer *bytes.Buffer
+	if buffer, err = f.WriteToBuffer(); err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
 }

@@ -14,6 +14,7 @@ var (
 	InternalServerErr        = errors.New("internal server error")
 	InvalidExcelData         = errors.New("invalid excel data")
 	InvalidExcelEmpty        = errors.New("invalid excel empty")
+	InvalidExcelLimit        = errors.New("invalid excel limit")
 	InvalidNotFile           = errors.New("invalid, file not found in request")
 	InvalidTaskID            = errors.New("invalid task id")
 	InvalidSupplierID        = errors.New("invalid supplier id")
@@ -44,6 +45,10 @@ var (
 		},
 		InvalidExcelEmpty: {
 			Msg:    "в таблице нет данных",
+			Status: http.StatusBadRequest,
+		},
+		InvalidExcelLimit: {
+			Msg:    "Превышен лимит объектов в таблице",
 			Status: http.StatusBadRequest,
 		},
 		InvalidNotFile: {

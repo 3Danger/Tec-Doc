@@ -38,11 +38,6 @@ type TecDocClientConfig struct {
 	ProviderId int           `envconfig:"TEC_DOC_CLIENT_PROVIDER_ID"`
 }
 
-type WorkerConfig struct {
-	Timer  time.Duration `envconfig:"WORKER_TIMER" default:"1h"`
-	Offset int           `envconfig:"WORKER_OFFSET" default:"1000"`
-}
-
 type Scope struct {
 	Scope                   string `envconfig:"SCOPE" default:"suppliers"`
 	ContentFeatureKey       string `envconfig:"CONTENT_FEATURE_KEY" default:"content"`
