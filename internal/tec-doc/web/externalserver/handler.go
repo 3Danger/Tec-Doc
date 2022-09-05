@@ -37,9 +37,7 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 // @Description Enrichment excel file, limit entiies in file = 10000
 // @ID enrich_excel
 // @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-// @Param excel_file formData file true "excel file"
-// Param X-User-Id header string true "ID of user"
-// @Param X-Supplier-Id header string true "ID of supplier"
+// @Param excel_file from body (array byte)
 // @Success 200 {array} byte
 // @Failure 400 {object} string
 // @Failure 500 {object} string
@@ -47,19 +45,10 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 	var (
 		err      error
-		uploadID model.UploadIdRequest
 		products []model.Product
 	)
 
-	if err := c.ShouldBindQuery(&uploadID); err != nil {
-		e.logger.Error().Err(err).Msg("can't to get uploadID from url param")
-		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTecDocParams))
-		return
-	}
-	file, _, err := c.Request.FormFile("excel_file")
-	defer func() { _ = file.Close() }()
-
-	if products, err = e.loadFromExcel(file); err != nil {
+	if products, err = e.loadFromExcel(c.Request.Body); err != nil {
 		e.logger.Error().Err(err).Send()
 		if err.Error() == "empty data" || err == io.EOF {
 			c.JSON(errinfo.GetErrorInfo(errinfo.InvalidExcelEmpty))
