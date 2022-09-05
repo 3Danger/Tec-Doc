@@ -70,12 +70,13 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
 			`{
 						  "getArticles": {
 							"articleCountry": "RU",
+							"provider": %d,
 							"searchQuery": "%s",
 							"searchType": 0,
 							"dataSupplierIds": %d,
 							"lang": "ru",
 						}
-					}`, article, dataSupplierID))
+					}`, c.tecDocCfg.ProviderId, article, dataSupplierID))
 
 		firstResp = struct {
 			TotalMatchingArticles int `json:"totalMatchingArticles"`
@@ -114,7 +115,7 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
 			`{
 						"getArticles": {
                                 "articleCountry": "RU",
-                                "provider": 0,
+                                "provider": %d,
                                 "searchQuery": "%s",
                                 "searchType": 0,
                                 "dataSupplierIds": %d,
@@ -126,7 +127,7 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
                                 "includeArticleCriteria": true,
                                 "includeImages": true
                         }
-				}`, article, dataSupplierID, LIMIT, pageNum+1))
+				}`, c.tecDocCfg.ProviderId, article, dataSupplierID, LIMIT, pageNum+1))
 		var mainResp model.TecDocResponse
 		err := c.doRequest(http.MethodPost, bytes.NewReader(mainReq), &mainResp)
 		if err != nil {
@@ -204,7 +205,40 @@ func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw) []m
 }
 
 func (c *tecDocClient) GetCrossNumbers(articleNumber string) ([]model.CrossNumbers, error) {
-	type respStruct struct {
+
+	type firstRespStruct struct {
+		TotalMatchingArticles int `json:"totalMatchingArticles"`
+		Status                int `json:"status"`
+	}
+
+	var (
+		firstReq = []byte(fmt.Sprintf(
+			`{
+						"getArticles": {
+							"articleCountry": "RU",
+        					"provider": %d,
+							"searchQuery": "%s",
+							"searchType": 3,
+							"lang": "ru",
+						}
+					}`, c.tecDocCfg.ProviderId, articleNumber))
+		firstResp firstRespStruct
+	)
+
+	err := c.doRequest(http.MethodPost, bytes.NewReader(firstReq), &firstResp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do first GetCrossNumbers request: %w", err)
+	}
+
+	if firstResp.Status != http.StatusOK {
+		return nil, fmt.Errorf("etCrossNumbers request failed with status code: %d", firstResp.Status)
+	}
+
+	if firstResp.TotalMatchingArticles == 0 {
+		return nil, fmt.Errorf("no comparable numbers found")
+	}
+
+	type mainRespStruct struct {
 		Articles []struct {
 			ArticleNumber string `json:"articleNumber"`
 			MfrName       string `json:"mfrName"`
@@ -212,37 +246,49 @@ func (c *tecDocClient) GetCrossNumbers(articleNumber string) ([]model.CrossNumbe
 		Status int `json:"status"`
 	}
 
+	const LIMIT = 100
 	var (
-		reqBody = []byte(fmt.Sprintf(
+		stepsNum        = firstResp.TotalMatchingArticles/LIMIT + 2
+		mainResp        mainRespStruct
+		crossNumbers    = make([]model.CrossNumbers, 0)
+		replaceArticles = make([]struct {
+			ArticleNumber string `json:"articleNumber"`
+			MfrName       string `json:"mfrName"`
+		}, 0)
+	)
+
+	for pageNum := 1; pageNum < stepsNum; pageNum++ {
+		mainReq := []byte(fmt.Sprintf(
 			`{
 						"getArticles": {
 							"articleCountry": "RU",
+        					"provider": %d,
 							"searchQuery": "%s",
 							"searchType": 3,
+							"perPage": %d,
+							"page":	%d,
 							"lang": "ru",
 						}
-					}`, articleNumber))
-		resp         respStruct
-		crossNumbers = make([]model.CrossNumbers, 0)
-	)
+					}`, c.tecDocCfg.ProviderId, articleNumber, LIMIT, pageNum))
+		err := c.doRequest(http.MethodPost, bytes.NewReader(mainReq), &mainResp)
+		if err != nil {
+			return nil, fmt.Errorf("failed to do main GetCrossNumbers request: %w", err)
+		}
 
-	err := c.doRequest(http.MethodPost, bytes.NewReader(reqBody), &resp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to do request: %w", err)
+		if mainResp.Status != http.StatusOK {
+			return nil, fmt.Errorf("main GetCrossNumbers request failed with status code: %d", mainResp.Status)
+		}
+
+		replaceArticles = append(replaceArticles, mainResp.Articles...)
 	}
 
-	if resp.Status != http.StatusOK {
-		return nil, fmt.Errorf("request failed with status code: %d", resp.Status)
-	}
-
-	for _, replaceArticle := range resp.Articles {
+	for _, replaceArticle := range replaceArticles {
 		if replaceArticle.ArticleNumber != articleNumber {
 			crossNumbers = append(crossNumbers, model.CrossNumbers{
 				ArticleNumber: replaceArticle.ArticleNumber,
 				MfrName:       replaceArticle.MfrName})
 		}
 	}
-
 	return crossNumbers, nil
 }
 
