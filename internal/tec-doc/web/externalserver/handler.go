@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
 	"strconv"
@@ -35,9 +34,9 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 // @Summary ProductsEnrichedExcel
 // @Tags excel
 // @Description Enrichment excel file, limit entiies in file = 10000
+// @Produce json
 // @ID enrich_excel
-// @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-// @Param excel_file from body (array byte)
+// @Param excel_file body []byte true "binary excel file"
 // @Success 200 {array} byte
 // @Failure 400 {object} string
 // @Failure 500 {object} string
@@ -81,8 +80,7 @@ func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 // @Tags excel
 // @Description upload excel table containing products info
 // @ID load_from_excel
-// @Produce json
-// @Param excel_file formData file true "excel file"
+// @Param excel_file body []byte true "binary excel file"
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {object} string
@@ -91,15 +89,7 @@ func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 // @Router /load_from_excel [post]
 func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	supplierID, userID := c.GetInt64("X-Supplier-Id"), c.GetInt64("X-User-Id")
-
-	file, _, err := c.Request.FormFile("excel_file")
-	if err != nil {
-		log.Error().Err(errinfo.InvalidNotFile).Send()
-		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidNotFile))
-		return
-	}
-	defer func() { _ = file.Close() }()
-	products, err := e.loadFromExcel(file)
+	products, err := e.loadFromExcel(c.Request.Body)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		if err.Error() == "empty data" || err == io.EOF {

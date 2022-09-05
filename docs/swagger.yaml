@@ -7,36 +7,26 @@ definitions:
       status:
         type: integer
     type: object
-  model.GetProductsHistoryRequest:
-    properties:
-      UploadID:
-        example: 1
-        type: integer
-    type: object
   model.Product:
     properties:
       article:
         type: string
-      brand:
+      articleSupplier:
         type: string
-      cardNumber:
-        type: integer
-      category:
+      barcode:
+        type: string
+      brand:
         type: string
       errorResponse:
         type: string
       id:
         type: integer
-      manufacturerArticle:
-        type: string
       price:
         type: integer
-      providerArticle:
-        type: string
-      sku:
-        type: string
       status:
         type: integer
+      subject:
+        type: string
       updateDate:
         type: string
       uploadDate:
@@ -67,12 +57,51 @@ definitions:
       userID:
         type: integer
     type: object
+  model.UploadIdRequest:
+    properties:
+      uploadID:
+        example: 1
+        type: integer
+    type: object
 host: localhost:8002
 info:
   contact: {}
   title: Tec-Doc API
   version: "1.0"
 paths:
+  /excel/enrichment:
+    post:
+      description: Enrichment excel file, limit entiies in file = 10000
+      operationId: enrich_excel
+      parameters:
+      - description: binary excel file
+        in: body
+        name: excel_file
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: ProductsEnrichedExcel
+      tags:
+      - excel
   /excel_template:
     get:
       description: download excel table template
@@ -89,7 +118,7 @@ paths:
         required: true
         type: string
       produces:
-      - application/vnd.ms-excel
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
       responses:
         "200":
           description: OK
@@ -109,11 +138,14 @@ paths:
       description: upload excel table containing products info
       operationId: load_from_excel
       parameters:
-      - description: excel file
-        in: formData
+      - description: binary excel file
+        in: body
         name: excel_file
         required: true
-        type: file
+        schema:
+          items:
+            type: integer
+          type: array
       - description: ID of user
         in: header
         name: X-User-Id
@@ -124,8 +156,6 @@ paths:
         name: X-Supplier-Id
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: OK
@@ -174,7 +204,7 @@ paths:
         name: InputBody
         required: true
         schema:
-          $ref: '#/definitions/model.GetProductsHistoryRequest'
+          $ref: '#/definitions/model.UploadIdRequest'
       produces:
       - application/json
       responses:

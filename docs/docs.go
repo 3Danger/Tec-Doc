@@ -16,11 +16,61 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/excel/enrichment": {
+            "post": {
+                "description": "Enrichment excel file, limit entiies in file = 10000",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "excel"
+                ],
+                "summary": "ProductsEnrichedExcel",
+                "operationId": "enrich_excel",
+                "parameters": [
+                    {
+                        "description": "binary excel file",
+                        "name": "excel_file",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/excel_template": {
             "get": {
                 "description": "download excel table template",
                 "produces": [
-                    "application/vnd.ms-excel"
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 ],
                 "tags": [
                     "excel"
@@ -65,9 +115,6 @@ const docTemplate = `{
         "/load_from_excel": {
             "post": {
                 "description": "upload excel table containing products info",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "excel"
                 ],
@@ -75,11 +122,16 @@ const docTemplate = `{
                 "operationId": "load_from_excel",
                 "parameters": [
                     {
-                        "type": "file",
-                        "description": "excel file",
+                        "description": "binary excel file",
                         "name": "excel_file",
-                        "in": "formData",
-                        "required": true
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
                     },
                     {
                         "type": "string",
@@ -167,7 +219,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.GetProductsHistoryRequest"
+                            "$ref": "#/definitions/model.UploadIdRequest"
                         }
                     }
                 ],
@@ -263,28 +315,19 @@ const docTemplate = `{
                 }
             }
         },
-        "model.GetProductsHistoryRequest": {
-            "type": "object",
-            "properties": {
-                "UploadID": {
-                    "type": "integer",
-                    "example": 1
-                }
-            }
-        },
         "model.Product": {
             "type": "object",
             "properties": {
                 "article": {
                     "type": "string"
                 },
-                "brand": {
+                "articleSupplier": {
                     "type": "string"
                 },
-                "cardNumber": {
-                    "type": "integer"
+                "barcode": {
+                    "type": "string"
                 },
-                "category": {
+                "brand": {
                     "type": "string"
                 },
                 "errorResponse": {
@@ -293,20 +336,14 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "manufacturerArticle": {
-                    "type": "string"
-                },
                 "price": {
                     "type": "integer"
                 },
-                "providerArticle": {
-                    "type": "string"
-                },
-                "sku": {
-                    "type": "string"
-                },
                 "status": {
                     "type": "integer"
+                },
+                "subject": {
+                    "type": "string"
                 },
                 "updateDate": {
                     "type": "string"
@@ -351,6 +388,15 @@ const docTemplate = `{
                 },
                 "userID": {
                     "type": "integer"
+                }
+            }
+        },
+        "model.UploadIdRequest": {
+            "type": "object",
+            "properties": {
+                "uploadID": {
+                    "type": "integer",
+                    "example": 1
                 }
             }
         }
