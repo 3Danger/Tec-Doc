@@ -58,7 +58,7 @@ func (e *externalHttpServer) configureRouter() {
 		api.POST("/excel", e.LoadFromExcel)
 		api.POST("/excel/enrichment", e.GetProductsEnrichedExcel)
 		api.GET("/task_history", e.GetSupplierTaskHistory)
-		api.POST("/product_history", e.GetProductsHistory)
+		api.GET("/product_history", e.GetProductsHistory)
 		api.POST("/articles/enrichment", e.GetTecDocArticles)
 	}
 }

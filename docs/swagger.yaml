@@ -7,6 +7,88 @@ definitions:
       status:
         type: integer
     type: object
+  model.Article:
+    properties:
+      articleCriteria:
+        items:
+          $ref: '#/definitions/model.ArticleCriteria'
+        type: array
+      articleNumber:
+        type: string
+      crossNumbers:
+        items:
+          $ref: '#/definitions/model.CrossNumbers'
+        type: array
+      genericArticleDescription:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      linkageTargets:
+        items:
+          $ref: '#/definitions/model.LinkageTargets'
+        type: array
+      mfrName:
+        type: string
+      oemNumbers:
+        items:
+          $ref: '#/definitions/model.OEM'
+        type: array
+      packageArticleCriteria:
+        items:
+          $ref: '#/definitions/model.ArticleCriteria'
+        type: array
+    type: object
+  model.ArticleCriteria:
+    properties:
+      criteriaAbbrDescription:
+        type: string
+      criteriaDescription:
+        type: string
+      criteriaType:
+        type: string
+      criteriaUnitDescription:
+        type: string
+      formattedValue:
+        type: string
+      rawValue:
+        type: string
+    type: object
+  model.CrossNumbers:
+    properties:
+      articleNumber:
+        type: string
+      mfrName:
+        type: string
+    type: object
+  model.GetTecDocArticlesRequest:
+    properties:
+      articleNumber:
+        type: string
+      brand:
+        type: string
+    type: object
+  model.LinkageTargets:
+    properties:
+      beginYearMonth:
+        type: string
+      endYearMonth:
+        type: string
+      linkageTargetId:
+        type: integer
+      mfrName:
+        type: string
+      vehicleModelSeriesName:
+        type: string
+    type: object
+  model.OEM:
+    properties:
+      articleNumber:
+        type: string
+      mfrName:
+        type: string
+    type: object
   model.Product:
     properties:
       article:
@@ -69,19 +151,17 @@ info:
   title: Tec-Doc API
   version: "1.0"
 paths:
-  /excel/enrichment:
-    post:
-      description: Enrichment excel file, limit entiies in file = 10000
-      operationId: enrich_excel
+  /articles/enrichment:
+    get:
+      description: get task list
+      operationId: articles_enrichment
       parameters:
-      - description: binary excel file
+      - description: brand && article - about product
         in: body
-        name: excel_file
+        name: request
         required: true
         schema:
-          items:
-            type: integer
-          type: array
+          $ref: '#/definitions/model.GetTecDocArticlesRequest'
       produces:
       - application/json
       responses:
@@ -89,20 +169,18 @@ paths:
           description: OK
           schema:
             items:
-              type: integer
+              items:
+                $ref: '#/definitions/model.Article'
+              type: array
             type: array
-        "400":
-          description: Bad Request
-          schema:
-            type: string
         "500":
           description: Internal Server Error
           schema:
-            type: string
-      summary: ProductsEnrichedExcel
+            $ref: '#/definitions/errinfo.errInf'
+      summary: GetTecDocArticles
       tags:
-      - excel
-  /excel_template:
+      - product
+  /excel:
     get:
       description: download excel table template
       operationId: excel_template
@@ -133,7 +211,6 @@ paths:
       summary: ExcelTemplate
       tags:
       - excel
-  /load_from_excel:
     post:
       description: upload excel table containing products info
       operationId: load_from_excel
@@ -172,8 +249,41 @@ paths:
       summary: LoadFromExcel
       tags:
       - excel
-  /product_history:
+  /excel/enrichment:
     post:
+      description: Enrichment excel file, limit entiies in file = 10000
+      operationId: enrich_excel
+      parameters:
+      - description: binary excel file
+        in: body
+        name: excel_file
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: ProductsEnrichedExcel
+      tags:
+      - excel
+  /product_history:
+    get:
       consumes:
       - application/json
       description: get product list

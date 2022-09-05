@@ -20,7 +20,7 @@ import (
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} byte
 // @Failure 500 {object} errinfo.errInf
-// @Router /excel_template [get]
+// @Router /excel [get]
 func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 	excelTemplate, err := e.service.ExcelTemplateForClient()
 	if err != nil {
@@ -86,7 +86,7 @@ func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 // @Success 200 {object} string
 // @Failure 400 {object} string
 // @Failure 500 {object} string
-// @Router /load_from_excel [post]
+// @Router /excel [post]
 func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	supplierID, userID := c.GetInt64("X-Supplier-Id"), c.GetInt64("X-User-Id")
 	products, err := e.loadFromExcel(c.Request.Body)
@@ -124,7 +124,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param InputBody body model.UploadIdRequest true "The input body.<br /> UploadID is ID of previously uploaded task."
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
-// @Router /product_history [post]
+// @Router /product_history [get]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 	var rq model.UploadIdRequest
 
@@ -201,6 +201,15 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	c.JSON(http.StatusOK, rawTasks)
 }
 
+// @Summary GetTecDocArticles
+// @Tags product
+// @Description get task list
+// @ID articles_enrichment
+// @Produce json
+// @Param request body model.GetTecDocArticlesRequest true "brand && article - about product"
+// @Success 200 {array} []model.Article
+// @Failure 500 {object} errinfo.errInf
+// @Router /articles/enrichment [get]
 func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
 	var rq model.GetTecDocArticlesRequest
 
