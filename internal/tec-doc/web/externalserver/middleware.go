@@ -5,7 +5,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"net/http"
 	"strconv"
-	"strings"
 	"tec-doc/pkg/errinfo"
 	m "tec-doc/pkg/metrics"
 	"time"
@@ -138,17 +137,4 @@ func (e *externalHttpServer) MiddleWareMetric(c *gin.Context) {
 		c.Request.URL.Path,
 		status,
 	).Inc()
-}
-
-func (e *externalHttpServer) corsMiddleware(ctx *gin.Context) {
-	ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	ctx.Writer.Header().Set("Access-Control-Allow-Methods", strings.Join([]string{
-		http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions,
-	}, ", "))
-	ctx.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Supplier-Id, X-User-Id")
-
-	if ctx.Request.Method == http.MethodOptions {
-		ctx.AbortWithStatus(204)
-		return
-	}
 }
