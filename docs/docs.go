@@ -17,7 +17,7 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/articles/enrichment": {
-            "get": {
+            "post": {
                 "description": "get task list",
                 "produces": [
                     "application/json"
@@ -63,30 +63,11 @@ const docTemplate = `{
         "/excel": {
             "get": {
                 "description": "download excel table template",
-                "produces": [
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                ],
                 "tags": [
                     "excel"
                 ],
                 "summary": "ExcelTemplate",
                 "operationId": "excel_template",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID of user",
-                        "name": "X-User-Id",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID of supplier",
-                        "name": "X-Supplier-Id",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -213,7 +194,7 @@ const docTemplate = `{
             }
         },
         "/product_history": {
-            "get": {
+            "post": {
                 "description": "get product list",
                 "consumes": [
                     "application/json"
@@ -575,8 +556,8 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8002",
-	BasePath:         "/",
-	Schemes:          []string{},
+	BasePath:         "/api/v1/",
+	Schemes:          []string{"http"},
 	Title:            "Tec-Doc API",
 	Description:      "",
 	InfoInstanceName: "swagger",

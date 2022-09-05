@@ -1,4 +1,7 @@
 {
+    "schemes": [
+        "http"
+    ],
     "swagger": "2.0",
     "info": {
         "title": "Tec-Doc API",
@@ -6,10 +9,10 @@
         "version": "1.0"
     },
     "host": "localhost:8002",
-    "basePath": "/",
+    "basePath": "/api/v1/",
     "paths": {
         "/articles/enrichment": {
-            "get": {
+            "post": {
                 "description": "get task list",
                 "produces": [
                     "application/json"
@@ -55,30 +58,11 @@
         "/excel": {
             "get": {
                 "description": "download excel table template",
-                "produces": [
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                ],
                 "tags": [
                     "excel"
                 ],
                 "summary": "ExcelTemplate",
                 "operationId": "excel_template",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID of user",
-                        "name": "X-User-Id",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID of supplier",
-                        "name": "X-Supplier-Id",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -205,7 +189,7 @@
             }
         },
         "/product_history": {
-            "get": {
+            "post": {
                 "description": "get product list",
                 "consumes": [
                     "application/json"

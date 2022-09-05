@@ -15,9 +15,6 @@ import (
 // @Tags excel
 // @Description download excel table template
 // @ID excel_template
-// @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-// @Param X-User-Id header string true "ID of user"
-// @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} byte
 // @Failure 500 {object} errinfo.errInf
 // @Router /excel [get]
@@ -124,7 +121,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param InputBody body model.UploadIdRequest true "The input body.<br /> UploadID is ID of previously uploaded task."
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
-// @Router /product_history [get]
+// @Router /product_history [post]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 	var rq model.UploadIdRequest
 
@@ -209,7 +206,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 // @Param request body model.GetTecDocArticlesRequest true "brand && article - about product"
 // @Success 200 {array} []model.Article
 // @Failure 500 {object} errinfo.errInf
-// @Router /articles/enrichment [get]
+// @Router /articles/enrichment [post]
 func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
 	var rq model.GetTecDocArticlesRequest
 

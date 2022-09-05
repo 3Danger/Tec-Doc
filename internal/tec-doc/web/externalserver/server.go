@@ -51,6 +51,7 @@ func (e *externalHttpServer) Stop() error {
 func (e *externalHttpServer) configureRouter() {
 	e.router.Use(gin.Recovery())
 	e.router.Use(e.MiddleWareMetric)
+	e.router.Use(e.corsMiddleware)
 	api := e.router.Group("/api/v1")
 	{
 		//api.Use(e.Authorize)
@@ -58,7 +59,7 @@ func (e *externalHttpServer) configureRouter() {
 		api.POST("/excel", e.LoadFromExcel)
 		api.POST("/excel/enrichment", e.GetProductsEnrichedExcel)
 		api.GET("/task_history", e.GetSupplierTaskHistory)
-		api.GET("/product_history", e.GetProductsHistory)
+		api.POST("/product_history", e.GetProductsHistory)
 		api.POST("/articles/enrichment", e.GetTecDocArticles)
 	}
 }

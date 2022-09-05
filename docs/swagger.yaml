@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api/v1/
 definitions:
   errinfo.errInf:
     properties:
@@ -152,7 +152,7 @@ info:
   version: "1.0"
 paths:
   /articles/enrichment:
-    get:
+    post:
       description: get task list
       operationId: articles_enrichment
       parameters:
@@ -184,19 +184,6 @@ paths:
     get:
       description: download excel table template
       operationId: excel_template
-      parameters:
-      - description: ID of user
-        in: header
-        name: X-User-Id
-        required: true
-        type: string
-      - description: ID of supplier
-        in: header
-        name: X-Supplier-Id
-        required: true
-        type: string
-      produces:
-      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
       responses:
         "200":
           description: OK
@@ -283,7 +270,7 @@ paths:
       tags:
       - excel
   /product_history:
-    get:
+    post:
       consumes:
       - application/json
       description: get product list
@@ -372,4 +359,6 @@ paths:
       summary: GetSupplierTaskHistory
       tags:
       - product
+schemes:
+- http
 swagger: "2.0"
