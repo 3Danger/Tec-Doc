@@ -13,7 +13,6 @@ type Config struct {
 	Content          ContentClientConfig
 	TecDoc           TecDocClientConfig
 	Scope            Scope
-	Worker           WorkerConfig
 }
 
 type PostgresConfig struct {
@@ -37,11 +36,6 @@ type TecDocClientConfig struct {
 	Timeout    time.Duration `envconfig:"TEC_DOC_CLIENT_TIMEOUT" default:"30s"`
 	XApiKey    string        `envconfig:"TEC_DOC_CLIENT_API_KEY"`
 	ProviderId int           `envconfig:"TEC_DOC_CLIENT_PROVIDER_ID"`
-}
-
-type WorkerConfig struct {
-	Timer  time.Duration `envconfig:"WORKER_TIMER" default:"1h"`
-	Offset int           `envconfig:"WORKER_OFFSET" default:"1000"`
 }
 
 type Scope struct {

@@ -26,14 +26,15 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 	excelTemplate, err := e.service.ExcelTemplateForClient()
 	if err != nil {
 		e.logger.Error().Err(err).Send()
-		c.AbortWithStatusJSON(errinfo.GetErrorInfo(errinfo.InvalidExcelData))
+		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidExcelData))
+		return
 	}
 	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelTemplate)
 }
 
 // @Summary ProductsEnrichedExcel
 // @Tags excel
-// @Description Enrichment excel file
+// @Description Enrichment excel file, limit entiies in file = 10000
 // @ID enrich_excel
 // @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 // @Param excel_file formData file true "excel file"
@@ -52,7 +53,8 @@ func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 
 	if err := c.ShouldBindQuery(&uploadID); err != nil {
 		e.logger.Error().Err(err).Msg("can't to get uploadID from url param")
-		c.AbortWithStatusJSON(errinfo.GetErrorInfo(errinfo.InvalidTecDocParams))
+		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTecDocParams))
+		return
 	}
 	file, _, err := c.Request.FormFile("excel_file")
 	defer func() { _ = file.Close() }()
@@ -66,10 +68,18 @@ func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidExcelData))
 		return
 	}
+
+	if len(products) > 10000 {
+		e.logger.Error().Err(errinfo.InvalidExcelLimit).Send()
+		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidExcelLimit))
+		return
+	}
+
 	excel, err := e.service.GetProductsEnrichedExcel(products)
 	if err != nil {
 		e.logger.Error().Err(err).Msg("can't to create excel enrichment file")
-		c.AbortWithStatusJSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
+		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
+		return
 	}
 	//{ //Посмотреть содержимое файла без танцев с бубном
 	//	dir, _ := os.UserHomeDir()
