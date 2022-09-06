@@ -5,6 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 	"net/http"
+	"os"
+	"tec-doc/pkg/ginLogger"
 )
 
 type Server interface {
@@ -20,7 +22,7 @@ type internalHttpServer struct {
 func New(bindingPort string) *internalHttpServer {
 	serv := new(internalHttpServer)
 
-	serv.router = gin.Default()
+	serv.router = gin.New()
 	serv.configureRouter()
 	serv.server = &http.Server{
 		Addr:    bindingPort,
@@ -31,6 +33,7 @@ func New(bindingPort string) *internalHttpServer {
 
 func (i *internalHttpServer) configureRouter() {
 	i.router.Use(gin.Recovery())
+	i.router.Use(ginLogger.Logger(os.Stdout))
 	i.router.GET("/health", i.Health)
 	i.router.GET("/readiness", i.Readiness)
 	i.router.GET("/metrics", i.Metrics)
