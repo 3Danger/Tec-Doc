@@ -63,7 +63,7 @@ func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 	excel, err := e.service.GetProductsEnrichedExcel(products)
 	if err != nil {
 		e.logger.Error().Err(err).Msg("can't to create excel enrichment file")
-		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
+		c.JSON(errinfo.GetErrorInfo(err))
 		return
 	}
 	//{ //Посмотреть содержимое файла без танцев с бубном
