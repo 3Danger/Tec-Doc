@@ -61,7 +61,7 @@ func (c *tecDocClient) GetBrand(brandName string) (*model.Brand, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("no brand found")
+	return nil, errinfo.NoTecDocBrandFound
 }
 
 func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.Article, error) {

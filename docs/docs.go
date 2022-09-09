@@ -16,33 +16,58 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/excel_template": {
+        "/articles/enrichment": {
+            "post": {
+                "description": "get task list",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product"
+                ],
+                "summary": "GetTecDocArticles",
+                "operationId": "articles_enrichment",
+                "parameters": [
+                    {
+                        "description": "brand \u0026\u0026 article - about product",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GetTecDocArticlesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/model.Article"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errinfo.errInf"
+                        }
+                    }
+                }
+            }
+        },
+        "/excel": {
             "get": {
                 "description": "download excel table template",
-                "produces": [
-                    "application/vnd.ms-excel"
-                ],
                 "tags": [
                     "excel"
                 ],
                 "summary": "ExcelTemplate",
                 "operationId": "excel_template",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID of user",
-                        "name": "X-User-Id",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID of supplier",
-                        "name": "X-Supplier-Id",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -60,14 +85,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/load_from_excel": {
+            },
             "post": {
                 "description": "upload excel table containing products info",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "excel"
                 ],
@@ -75,11 +95,16 @@ const docTemplate = `{
                 "operationId": "load_from_excel",
                 "parameters": [
                     {
-                        "type": "file",
-                        "description": "excel file",
+                        "description": "binary excel file",
                         "name": "excel_file",
-                        "in": "formData",
-                        "required": true
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
                     },
                     {
                         "type": "string",
@@ -101,6 +126,56 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/excel/enrichment": {
+            "post": {
+                "description": "Enrichment excel file, limit entiies in file = 10000",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "excel"
+                ],
+                "summary": "ProductsEnrichedExcel",
+                "operationId": "enrich_excel",
+                "parameters": [
+                    {
+                        "description": "binary excel file",
+                        "name": "excel_file",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
                         }
                     },
                     "400": {
@@ -167,7 +242,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.GetProductsHistoryRequest"
+                            "$ref": "#/definitions/model.UploadIdRequest"
                         }
                     }
                 ],
@@ -263,12 +338,129 @@ const docTemplate = `{
                 }
             }
         },
-        "model.GetProductsHistoryRequest": {
+        "model.Article": {
             "type": "object",
             "properties": {
-                "UploadID": {
-                    "type": "integer",
-                    "example": 1
+                "articleCriteria": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ArticleCriteria"
+                    }
+                },
+                "articleNumber": {
+                    "type": "string"
+                },
+                "crossNumbers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.CrossNumbers"
+                    }
+                },
+                "genericArticleDescription": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "linkageTargets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.LinkageTargets"
+                    }
+                },
+                "mfrName": {
+                    "type": "string"
+                },
+                "oemNumbers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.OEM"
+                    }
+                },
+                "packageArticleCriteria": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ArticleCriteria"
+                    }
+                }
+            }
+        },
+        "model.ArticleCriteria": {
+            "type": "object",
+            "properties": {
+                "criteriaAbbrDescription": {
+                    "type": "string"
+                },
+                "criteriaDescription": {
+                    "type": "string"
+                },
+                "criteriaType": {
+                    "type": "string"
+                },
+                "criteriaUnitDescription": {
+                    "type": "string"
+                },
+                "formattedValue": {
+                    "type": "string"
+                },
+                "rawValue": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.CrossNumbers": {
+            "type": "object",
+            "properties": {
+                "articleNumber": {
+                    "type": "string"
+                },
+                "mfrName": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.GetTecDocArticlesRequest": {
+            "type": "object",
+            "properties": {
+                "articleNumber": {
+                    "type": "string"
+                },
+                "brand": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.LinkageTargets": {
+            "type": "object",
+            "properties": {
+                "beginYearMonth": {
+                    "type": "string"
+                },
+                "endYearMonth": {
+                    "type": "string"
+                },
+                "linkageTargetId": {
+                    "type": "integer"
+                },
+                "mfrName": {
+                    "type": "string"
+                },
+                "vehicleModelSeriesName": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.OEM": {
+            "type": "object",
+            "properties": {
+                "articleNumber": {
+                    "type": "string"
+                },
+                "mfrName": {
+                    "type": "string"
                 }
             }
         },
@@ -278,13 +470,13 @@ const docTemplate = `{
                 "article": {
                     "type": "string"
                 },
-                "brand": {
+                "articleSupplier": {
                     "type": "string"
                 },
-                "cardNumber": {
-                    "type": "integer"
+                "barcode": {
+                    "type": "string"
                 },
-                "category": {
+                "brand": {
                     "type": "string"
                 },
                 "errorResponse": {
@@ -293,20 +485,14 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "manufacturerArticle": {
-                    "type": "string"
-                },
                 "price": {
                     "type": "integer"
                 },
-                "providerArticle": {
-                    "type": "string"
-                },
-                "sku": {
-                    "type": "string"
-                },
                 "status": {
                     "type": "integer"
+                },
+                "subject": {
+                    "type": "string"
                 },
                 "updateDate": {
                     "type": "string"
@@ -353,6 +539,15 @@ const docTemplate = `{
                     "type": "integer"
                 }
             }
+        },
+        "model.UploadIdRequest": {
+            "type": "object",
+            "properties": {
+                "uploadID": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
         }
     }
 }`
@@ -361,8 +556,8 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8002",
-	BasePath:         "/",
-	Schemes:          []string{},
+	BasePath:         "/api/v1/",
+	Schemes:          []string{"http"},
 	Title:            "Tec-Doc API",
 	Description:      "",
 	InfoInstanceName: "swagger",
