@@ -10,6 +10,7 @@ import (
 	"tec-doc/internal/tec-doc/config"
 	l "tec-doc/internal/tec-doc/logger"
 	"tec-doc/internal/worker/service"
+	"tec-doc/pkg/sig"
 )
 
 func initConfig() (*config.Config, *zerolog.Logger, error) {
@@ -38,11 +39,14 @@ func main() {
 		log.Fatal().Err(err).Send()
 	}
 	errGr, ctx := errgroup.WithContext(context.Background())
+	errGr.Go(func() error {
+		return sig.Listen(ctx)
+	})
 	srvc := service.New(ctx, conf, logger)
 
 	//TODO timer
 	errGr.Go(func() error {
-		return srvc.TaskWorkerRun(ctx, conf.Worker)
+		return srvc.TaskWorkerRun(ctx)
 	})
 
 	if err := errGr.Wait(); err != nil {

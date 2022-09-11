@@ -9,7 +9,7 @@ import (
 )
 
 func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 	var (
 		createTaskQuery = `INSERT INTO tasks.tasks (supplier_id, user_id, upload_date, update_date, IP, status, products_processed, products_failed, products_total)
@@ -34,7 +34,7 @@ func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID int64
 }
 
 func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supplierID int64, limit int, offset int) ([]model.Task, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 	var (
 		getSupplierTaskHistoryQuery = `SELECT id, supplier_id, user_id, upload_date, update_date, status, products_processed, products_failed, products_total
@@ -72,7 +72,7 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supp
 }
 
 func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int) ([]model.Product, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 	var (
 		getProductsFromHistoryQuery = `SELECT id, upload_id, article, article, manufacturer_article, brand, sku, category, price,
@@ -110,7 +110,7 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 }
 
 func (s *store) SaveIntoBuffer(ctx context.Context, tx Transaction, products []model.Product) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 	var (
 		executor Executor
@@ -146,7 +146,7 @@ func (s *store) SaveIntoBuffer(ctx context.Context, tx Transaction, products []m
 }
 
 func (s *store) GetProductsBuffer(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int) ([]model.Product, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 	var (
 		getProductsBufferQuery = `SELECT id, upload_id, article, article_supplier, price,
@@ -184,7 +184,7 @@ func (s *store) GetProductsBuffer(ctx context.Context, tx Transaction, uploadID 
 }
 
 func (s *store) SaveProductsToHistory(ctx context.Context, tx Transaction, products []model.Product) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 	var (
 		executor Executor
@@ -219,7 +219,7 @@ func (s *store) SaveProductsToHistory(ctx context.Context, tx Transaction, produ
 }
 
 func (s *store) DeleteFromBuffer(ctx context.Context, tx Transaction, uploadID int64) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 	var (
 		deleteFromBufferQuery = `DELETE FROM tasks.products_buffer WHERE upload_id=$1;`

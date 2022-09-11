@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
 	"strconv"
@@ -69,13 +68,9 @@ func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 	excel, err := e.service.GetProductsEnrichedExcel(products)
 	if err != nil {
 		e.logger.Error().Err(err).Msg("can't to create excel enrichment file")
-		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
+		c.JSON(errinfo.GetErrorInfo(err))
 		return
 	}
-	//{ //Посмотреть содержимое файла без танцев с бубном
-	//	dir, _ := os.UserHomeDir()
-	//	_ = ioutil.WriteFile(dir + "/excel_test_file.xlsx", excel, 0644)
-	//}
 	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excel)
 }
 
@@ -96,7 +91,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 
 	file, _, err := c.Request.FormFile("excel_file")
 	if err != nil {
-		log.Error().Err(errinfo.InvalidNotFile).Send()
+		e.logger.Error().Err(err).Msg("Request.FormFile(\"excel_file\")")
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidNotFile))
 		return
 	}

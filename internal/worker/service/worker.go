@@ -3,21 +3,26 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog"
 	"tec-doc/internal/tec-doc/config"
 	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/pkg/clients/content"
+	"tec-doc/pkg/clients/tecdoc"
 	"tec-doc/pkg/model"
 	"time"
 )
+
+type Enricher interface {
+	Enrichment(products []model.Product) (productsEnriched []model.ProductEnriched, err error)
+}
 
 type service struct {
 	log           *zerolog.Logger
 	conf          *config.Config
 	store         postgres.Store
 	contentClient content.ClientSource
+	enricher      Enricher // for Enrichment products
 }
 
 func New(ctx context.Context, conf *config.Config, log *zerolog.Logger) *service {
@@ -31,98 +36,138 @@ func New(ctx context.Context, conf *config.Config, log *zerolog.Logger) *service
 		log:   log,
 		conf:  conf,
 		store: store,
+		//TODO change client to REST
 		contentClient: content.ClientSource{
 			ClientJsonRPC: content.New("contentClient",
 				*log,
-				"http://source.content-card.svc.k8s.stage-dp/source/migration"),
+				"http://source.content-card.svc.k8s.stage-dp"),
 		},
+		enricher: tecdoc.NewClient(conf.TecDoc.URL, conf.TecDoc, log),
 	}
 }
 
-func (s *service) TaskWorkerRun(ctx context.Context) error {
+func (s *service) TaskWorkerRun(ctx context.Context) (err error) {
 	s.log.Info().Msg("starting product card worker")
-	tick := time.NewTicker(time.Second * 30)
+	var (
+		tick     = time.NewTicker(time.Second * 10)
+		uplaodID int64
+		pe       []model.ProductEnriched
+	)
 
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-tick.C:
-			err := s.RunProductCreation(ctx)
-			if err != nil {
-				s.log.Err(err).Send()
+			if pe, uplaodID, err = s.getProductsEnriched(ctx); err != nil {
 				time.Sleep(5 * time.Second)
+				continue
+			}
+			if len(pe) > 0 {
+				if err = s.runProductCreation(ctx, pe, uplaodID); err != nil {
+					time.Sleep(5 * time.Second)
+				}
 			}
 		}
 	}
 }
 
-func (s *service) RunProductCreation(ctx context.Context) error {
-	uploadID, err := s.store.GetOldestTask(ctx, nil)
+func (s *service) getProductsEnriched(ctx context.Context) (pe []model.ProductEnriched, uploadID int64, err error) {
+	if uploadID, err = s.store.GetOldestTask(ctx, nil); errors.Is(err, pgx.ErrNoRows) {
+		return nil, 0, nil
+	}
 	if err != nil {
-		return fmt.Errorf("can't get oldest task: %w", err)
+		s.log.Error().Err(err).Str("store", "can't get oldest task")
+		return nil, 0, err
 	}
 
-	err = s.store.UpdateTaskStatus(ctx, nil, uploadID, postgres.StatusProcess)
+	var products []model.Product
+	//TODO restore limin and offset to 1000 and 0
+	products, err = s.store.GetProductsBufferWithStatus(ctx, nil, uploadID, 1, 0, postgres.StatusNew)
 	if err != nil {
-		return fmt.Errorf("can't update task status: %w", err)
+		s.log.Error().Err(err).Str("store", "can't get products from buffer")
+		return
 	}
 
-	//TODO offset
-	products, err := s.store.GetProductsBufferWithStatus(ctx, nil, uploadID, postgres.StatusNew, 1000, 0)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			_ = s.store.UpdateTaskStatus(ctx, nil, uploadID, postgres.StatusCompleted)
-			return nil
+	if len(products) == 0 {
+		var tx postgres.Transaction
+		if tx, err = s.store.Transaction(ctx); err != nil {
+			s.log.Error().Err(err).Str("store", "can't create a transaction")
+			return
 		}
-		return fmt.Errorf("can't get products from buffer: %w", err)
-	}
-
-	for _, pr := range products {
-		if err := s.CreateProductCard(ctx, uploadID, pr); err != nil {
-			return fmt.Errorf("can't create product card: %w", err)
+		defer func() { _ = tx.Rollback(ctx) }()
+		if err = s.store.MoveProductsToHistoryByUploadId(ctx, tx, uploadID); err != nil {
+			s.log.Error().Err(err).Str("store", "can't move products from buffer to history")
+			return
 		}
+		if err = s.store.UpdateTaskStatus(ctx, tx, uploadID, postgres.StatusCompleted); err != nil {
+			s.log.Error().Err(err).Str("store", "can't update status task")
+			return
+		}
+		err = tx.Commit(ctx)
+		return nil, 0, err
 	}
-
-	return nil
+	pe, err = s.enricher.Enrichment(products)
+	return
 }
 
-func (s *service) CreateProductCard(ctx context.Context, uploadID int64, product model.Product) error {
-	tx, err := s.store.Transaction(ctx)
-	if err != nil {
-		return fmt.Errorf("can't init transaction: %w", err)
+func (s *service) runProductCreation(ctx context.Context, pe []model.ProductEnriched, uploadID int64) (err error) {
+	var tx postgres.Transaction
+	if tx, err = s.store.Transaction(ctx); err != nil {
+		s.log.Error().Err(err).Str("store", "can't create a transaction")
+		return err
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	productStatus := postgres.StatusCompleted
+	var processed, failed int64
+	for i := range pe {
+		if pe[i].Status != postgres.StatusError {
+			if err = s.CreateProductCard(ctx, tx, &pe[i]); err != nil {
+				s.log.Error().Err(err).Str("CreateProductCard", "can't upload")
+				pe[i].ErrorResponse = "не удалось сформировать карточку"
+				pe[i].Status = postgres.StatusError
+			}
+		}
+		if err = s.store.UpdateProductStatus(ctx, tx, pe[i].ID, pe[i].Status); err != nil {
+			s.log.Error().Err(err).Str("store", "can't update product status")
+			return err
+		}
+		if pe[i].Status == postgres.StatusError {
+			if err = s.store.UpdateProductBufferErrorResponse(ctx, tx, pe[i].Product); err != nil {
+				s.log.Error().Err(err).Str("store", "can't update product_buffer field errorResponse")
+			}
+			failed++
+			continue
+		}
+		processed++
+	}
+
+	if err = s.store.UpdateTaskProductsNumber(ctx, tx, uploadID, failed, processed); err != nil {
+		s.log.Error().Err(err).Str("store", "can't update task product number")
+		return err
+	}
+	if err = s.store.UpdateTaskStatus(ctx, tx, uploadID, postgres.StatusProcess); err != nil {
+		s.log.Error().Err(err).Str("store", "can't update task status")
+		return err
+	}
+	if err = tx.Commit(ctx); err != nil {
+		s.log.Error().Err(err).Str("store", "can't call Commit on transaction")
+		return err
+	}
+	return nil
+}
+
+func (s *service) CreateProductCard(ctx context.Context, tx postgres.Transaction, product *model.ProductEnriched) (err error) {
 
 	//TODO content Client, serviceUUID, X-Int-Supplier-Id
-	err = s.contentClient.Migration(ctx, nil)
-	if err != nil {
-		productStatus = postgres.StatusError
-	}
-
-	if err = s.store.UpdateProductStatus(ctx, tx, product.ID, productStatus); err != nil {
-		return fmt.Errorf("can't update product status: %w", err)
-	}
-
-	var (
-		failed    int64 = 0
-		processed int64 = 1
-	)
-
-	if productStatus == postgres.StatusError {
-		failed = 1
-		processed = 0
-	}
-
-	if err := s.store.UpdateTaskProductsNumber(ctx, tx, uploadID, failed, processed); err != nil {
-		return fmt.Errorf("can't update task product number: %w", err)
-	}
-
-	if err = tx.Commit(ctx); err != nil {
-		return fmt.Errorf("can't commit tx: %w", err)
-	}
-
+	//if err = s.contentClient.Migration(ctx, nil); err != nil {
+	//	productStatus = postgres.StatusError
+	//}
+	toUpload := s.makeUploadRequest(product)
+	_ = toUpload
+	//TODO create client
+	//if err = s.contentClient.Upload(ctx, "38627398", "x-supplier-id=fb25c9e9-cae8-52db-b68e-736c1466a3f5", product.ArticleSupplier, toUpload); err != nil {
+	//	return err
+	//}
 	return nil
 }

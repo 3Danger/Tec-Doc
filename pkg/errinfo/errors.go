@@ -108,8 +108,8 @@ var (
 
 func GetErrorInfo(err error) (int, string) {
 	info, found := constErrs[err]
-	if found {
-		return info.Status, info.Msg
+	if !found {
+		info, _ = constErrs[InternalServerErr]
 	}
-	return 0, ""
+	return info.Status, info.Msg
 }

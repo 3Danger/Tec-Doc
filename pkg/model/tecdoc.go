@@ -138,6 +138,7 @@ type Product struct {
 	UpdateDate      time.Time `json:"updateDate"`
 	Status          int       `json:"status"`
 	ErrorResponse   string    `json:"errorResponse"`
+	Set             int       `json:"set"`
 }
 
 type LinkageTargets struct {
