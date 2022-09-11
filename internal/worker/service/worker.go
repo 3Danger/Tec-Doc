@@ -5,9 +5,10 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog"
+	"io"
 	"tec-doc/internal/tec-doc/config"
 	"tec-doc/internal/tec-doc/store/postgres"
-	"tec-doc/pkg/clients/content"
+	"tec-doc/pkg/clients/contentCard"
 	"tec-doc/pkg/clients/tecdoc"
 	"tec-doc/pkg/model"
 	"time"
@@ -17,32 +18,40 @@ type Enricher interface {
 	Enrichment(products []model.Product) (productsEnriched []model.ProductEnriched, err error)
 }
 
+type Service interface {
+	TaskWorkerRun(ctx context.Context) (err error)
+}
+
 type service struct {
 	log           *zerolog.Logger
 	conf          *config.Config
 	store         postgres.Store
-	contentClient content.ClientSource
+	contentClient contentCard.ContentCardClient
 	enricher      Enricher // for Enrichment products
 }
 
-func New(ctx context.Context, conf *config.Config, log *zerolog.Logger) *service {
-	store, err := postgres.NewStore(ctx, &conf.Postgres)
-	if err != nil {
-		log.Error().Err(err).Send()
+func New(ctx context.Context, conf *config.Config, log *zerolog.Logger) Service {
+	var (
+		err           error
+		store         postgres.Store
+		contentClient contentCard.ContentCardClient
+	)
+	if store, err = postgres.NewStore(ctx, &conf.Postgres); err != nil {
+		log.Error().Err(err).Str("worker", "can't create store").Send()
+		return nil
+	}
+
+	if contentClient, err = contentCard.New(&conf.Content); err != nil {
+		log.Error().Err(err).Str("worker", "can't create client of contentCard").Send()
 		return nil
 	}
 
 	return &service{
-		log:   log,
-		conf:  conf,
-		store: store,
-		//TODO change client to REST
-		contentClient: content.ClientSource{
-			ClientJsonRPC: content.New("contentClient",
-				*log,
-				"http://source.content-card.svc.k8s.stage-dp"),
-		},
-		enricher: tecdoc.NewClient(conf.TecDoc.URL, conf.TecDoc, log),
+		log:           log,
+		conf:          conf,
+		store:         store,
+		contentClient: contentClient,
+		enricher:      tecdoc.NewClient(conf.TecDoc.URL, conf.TecDoc, log),
 	}
 }
 
@@ -82,8 +91,7 @@ func (s *service) getProductsEnriched(ctx context.Context) (pe []model.ProductEn
 	}
 
 	var products []model.Product
-	//TODO restore limin and offset to 1000 and 0
-	products, err = s.store.GetProductsBufferWithStatus(ctx, nil, uploadID, 1, 0, postgres.StatusNew)
+	products, err = s.store.GetProductsBufferWithStatus(ctx, nil, uploadID, 1000, 0, postgres.StatusNew)
 	if err != nil {
 		s.log.Error().Err(err).Str("store", "can't get products from buffer")
 		return
@@ -122,7 +130,7 @@ func (s *service) runProductCreation(ctx context.Context, pe []model.ProductEnri
 	var processed, failed int64
 	for i := range pe {
 		if pe[i].Status != postgres.StatusError {
-			if err = s.CreateProductCard(ctx, tx, &pe[i]); err != nil {
+			if err = s.CreateProductCard(&pe[i]); err != nil {
 				s.log.Error().Err(err).Str("CreateProductCard", "can't upload")
 				pe[i].ErrorResponse = "не удалось сформировать карточку"
 				pe[i].Status = postgres.StatusError
@@ -157,17 +165,19 @@ func (s *service) runProductCreation(ctx context.Context, pe []model.ProductEnri
 	return nil
 }
 
-func (s *service) CreateProductCard(ctx context.Context, tx postgres.Transaction, product *model.ProductEnriched) (err error) {
-
+func (s *service) CreateProductCard(product *model.ProductEnriched) error {
+	//TODO что это, для чего это ?
 	//TODO content Client, serviceUUID, X-Int-Supplier-Id
 	//if err = s.contentClient.Migration(ctx, nil); err != nil {
 	//	productStatus = postgres.StatusError
 	//}
-	toUpload := s.makeUploadRequest(product)
-	_ = toUpload
-	//TODO create client
-	//if err = s.contentClient.Upload(ctx, "38627398", "x-supplier-id=fb25c9e9-cae8-52db-b68e-736c1466a3f5", product.ArticleSupplier, toUpload); err != nil {
-	//	return err
-	//}
-	return nil
+	var (
+		body io.Reader
+		err  error
+	)
+
+	if body, err = s.makeUploadBody(product); err != nil {
+		return err
+	}
+	return s.contentClient.Upload(body)
 }

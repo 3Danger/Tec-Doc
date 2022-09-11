@@ -27,8 +27,9 @@ type PostgresConfig struct {
 }
 
 type ContentClientConfig struct {
-	URL     string        `envconfig:"CONTENT_CLIENT_URL"`
-	Timeout time.Duration `envconfig:"CONTENT_CLIENT_TIMEOUT" default:"30s"`
+	URL        string        `envconfig:"CONTENT_CLIENT_URL"`
+	Timeout    time.Duration `envconfig:"CONTENT_CLIENT_TIMEOUT" default:"30s"`
+	SupplierId string        `envconfig:"CONTENT_CLIENT_SUPPLIER_ID"`
 }
 
 type TecDocClientConfig struct {
