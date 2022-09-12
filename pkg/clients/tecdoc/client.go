@@ -196,17 +196,17 @@ func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw) []m
 			switch {
 			case img.ImageURL3200 != "":
 				imgURL = img.ImageURL3200
-			case img.ImageURL1600 == "":
+			case img.ImageURL1600 != "":
 				imgURL = img.ImageURL1600
-			case img.ImageURL800 == "":
+			case img.ImageURL800 != "":
 				imgURL = img.ImageURL800
-			case img.ImageURL400 == "":
+			case img.ImageURL400 != "":
 				imgURL = img.ImageURL400
-			case img.ImageURL200 == "":
+			case img.ImageURL200 != "":
 				imgURL = img.ImageURL200
-			case img.ImageURL100 == "":
+			case img.ImageURL100 != "":
 				imgURL = img.ImageURL100
-			case img.ImageURL50 == "":
+			case img.ImageURL50 != "":
 				imgURL = img.ImageURL50
 			}
 			a.Images = append(a.Images, imgURL)
