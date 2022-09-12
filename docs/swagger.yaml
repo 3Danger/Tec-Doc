@@ -7,36 +7,111 @@ definitions:
       status:
         type: integer
     type: object
-  model.GetProductsHistoryRequest:
+  model.Article:
     properties:
-      UploadID:
-        example: 1
-        type: integer
+      articleCriteria:
+        items:
+          $ref: '#/definitions/model.ArticleCriteria'
+        type: array
+      articleNumber:
+        type: string
+      crossNumbers:
+        items:
+          $ref: '#/definitions/model.CrossNumbers'
+        type: array
+      genericArticleDescription:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      linkageTargets:
+        items:
+          $ref: '#/definitions/model.LinkageTargets'
+        type: array
+      mfrName:
+        type: string
+      oemNumbers:
+        items:
+          $ref: '#/definitions/model.OEM'
+        type: array
+      packageArticleCriteria:
+        items:
+          $ref: '#/definitions/model.ArticleCriteria'
+        type: array
     type: object
-  model.Product:
+  model.ArticleCriteria:
     properties:
-      article:
+      criteriaAbbrDescription:
+        type: string
+      criteriaDescription:
+        type: string
+      criteriaType:
+        type: string
+      criteriaUnitDescription:
+        type: string
+      formattedValue:
+        type: string
+      rawValue:
+        type: string
+    type: object
+  model.CrossNumbers:
+    properties:
+      articleNumber:
+        type: string
+      mfrName:
+        type: string
+    type: object
+  model.GetTecDocArticlesRequest:
+    properties:
+      articleNumber:
         type: string
       brand:
         type: string
-      cardNumber:
+    type: object
+  model.LinkageTargets:
+    properties:
+      beginYearMonth:
+        type: string
+      endYearMonth:
+        type: string
+      linkageTargetId:
         type: integer
-      category:
+      mfrName:
+        type: string
+      vehicleModelSeriesName:
+        type: string
+    type: object
+  model.OEM:
+    properties:
+      articleNumber:
+        type: string
+      mfrName:
+        type: string
+    type: object
+  model.Product:
+    properties:
+      amount:
+        default: 1
+        type: integer
+      article:
+        type: string
+      articleSupplier:
+        type: string
+      barcode:
+        type: string
+      brand:
         type: string
       errorResponse:
         type: string
       id:
         type: integer
-      manufacturerArticle:
-        type: string
       price:
         type: integer
-      providerArticle:
-        type: string
-      sku:
-        type: string
       status:
         type: integer
+      subject:
+        type: string
       updateDate:
         type: string
       uploadDate:
@@ -44,12 +119,10 @@ definitions:
       uploadId:
         type: integer
     type: object
-  model.Task:
+  model.TaskPublic:
     properties:
       id:
         type: integer
-      ip:
-        type: string
       productsFailed:
         type: integer
       productsProcessed:
@@ -58,13 +131,13 @@ definitions:
         type: integer
       status:
         type: integer
-      supplierID:
-        type: integer
-      updateDate:
-        type: string
       uploadDate:
         type: string
-      userID:
+    type: object
+  model.UploadIdRequest:
+    properties:
+      uploadID:
+        example: 1
         type: integer
     type: object
 host: localhost:8002
@@ -73,7 +146,56 @@ info:
   title: Tec-Doc API
   version: "1.0"
 paths:
-  /excel_template:
+  /articles/enrichment:
+    post:
+      consumes:
+      - application/json
+      description: to enrichment product by brand and article
+      operationId: articles_enrichment
+      parameters:
+      - description: limit of contents
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset of contents
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: ID of user
+        in: header
+        name: X-User-Id
+        required: true
+        type: string
+      - description: ID of supplier
+        in: header
+        name: X-Supplier-Id
+        required: true
+        type: string
+      - description: The input body
+        in: body
+        name: InputBody
+        required: true
+        schema:
+          $ref: '#/definitions/model.GetTecDocArticlesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Article'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errinfo.errInf'
+      summary: GetTecDocArticles
+      tags:
+      - product
+  /excel:
     get:
       description: download excel table template
       operationId: excel_template
@@ -89,7 +211,7 @@ paths:
         required: true
         type: string
       produces:
-      - application/vnd.ms-excel
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
       responses:
         "200":
           description: OK
@@ -104,7 +226,6 @@ paths:
       summary: ExcelTemplate
       tags:
       - excel
-  /load_from_excel:
     post:
       description: upload excel table containing products info
       operationId: load_from_excel
@@ -142,6 +263,41 @@ paths:
       summary: LoadFromExcel
       tags:
       - excel
+  /excel/enrichment:
+    post:
+      description: Enrichment excel file, limit entiies in file = 10000
+      operationId: enrich_excel
+      parameters:
+      - description: excel file
+        in: formData
+        name: excel_file
+        required: true
+        type: file
+      - description: ID of supplier
+        in: header
+        name: X-Supplier-Id
+        required: true
+        type: string
+      produces:
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: ProductsEnrichedExcel
+      tags:
+      - excel
   /product_history:
     post:
       consumes:
@@ -174,7 +330,7 @@ paths:
         name: InputBody
         required: true
         schema:
-          $ref: '#/definitions/model.GetProductsHistoryRequest'
+          $ref: '#/definitions/model.UploadIdRequest'
       produces:
       - application/json
       responses:
@@ -223,7 +379,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.Task'
+              $ref: '#/definitions/model.TaskPublic'
             type: array
         "500":
           description: Internal Server Error

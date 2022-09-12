@@ -107,17 +107,21 @@ type CrossNumbers struct {
 	MfrName       string `json:"mfrName"`
 }
 
-type Task struct {
+type TaskPublic struct {
 	ID                int64     `json:"id"`
-	SupplierID        int64     `json:"supplierID"`
-	UserID            int64     `json:"userID"`
 	UploadDate        time.Time `json:"uploadDate"`
-	UpdateDate        time.Time `json:"updateDate"`
-	IP                string    `json:"ip"`
 	Status            int       `json:"status"`
 	ProductsProcessed int       `json:"productsProcessed"`
 	ProductsFailed    int       `json:"productsFailed"`
 	ProductsTotal     int       `json:"productsTotal"`
+}
+
+type Task struct {
+	SupplierID int64     `json:"supplierID"`
+	UpdateDate time.Time `json:"updateDate"`
+	IP         string    `json:"ip"`
+	UserID     int64     `json:"userID"`
+	TaskPublic
 }
 
 type ProductEnriched struct {
