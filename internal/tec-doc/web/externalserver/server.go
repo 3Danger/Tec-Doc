@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
+	"io"
 	"net/http"
 	_ "tec-doc/docs"
 	"tec-doc/internal/tec-doc/config"
@@ -16,6 +17,7 @@ type Service interface {
 	GetProductsEnrichedExcel(products []model.Product) (data []byte, err error)
 	ExcelTemplateForClient() ([]byte, error)
 	AddFromExcel(ctx *gin.Context, products []model.Product, supplierID int64, userID int64) error
+	LoadFromExcel(bodyData io.Reader) (products []model.Product, err error)
 	GetSupplierTaskHistory(ctx context.Context, supplierID int64, limit int, offset int) ([]model.Task, error)
 	GetProductsHistory(ctx context.Context, uploadID int64, limit int, offset int) ([]model.Product, error)
 	GetArticles(dataSupplierID int, article string) ([]model.Article, error)

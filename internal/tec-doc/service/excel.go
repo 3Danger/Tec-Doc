@@ -2,9 +2,12 @@ package service
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	exl "github.com/xuri/excelize/v2"
+	"io"
+	"strconv"
 	"tec-doc/pkg/model"
 	"time"
 )
@@ -57,11 +60,53 @@ func (s *Service) ExcelTemplateForClient() ([]byte, error) {
 	_ = f.SetCellValue(nameSheet, "C1", "Артикул производителя (артикул tec-doc)")
 	_ = f.SetCellValue(nameSheet, "D1", "Цена товара")
 	_ = f.SetCellValue(nameSheet, "E1", "Штрих-код")
+	_ = f.SetCellValue(nameSheet, "F1", "Комплектация")
 	buffer, err := f.WriteToBuffer()
 	if err != nil {
 		return nil, err
 	}
 	return buffer.Bytes(), nil
+}
+
+func (e *Service) LoadFromExcel(bodyData io.Reader) (products []model.Product, err error) {
+	var rows [][]string
+	f, err := exl.OpenReader(bodyData)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = f.Close() }()
+	list := f.GetSheetList()
+	if len(list) == 0 {
+		return nil, errors.New("empty data")
+	}
+	rows, err = f.GetRows("Products")
+	if len(rows) < 2 {
+		return nil, errors.New("empty data")
+	}
+	products = make([]model.Product, len(rows[1:]))
+	for i := range products {
+		if err = e.parseExcelRow(&products[i], rows[i+1]); err != nil {
+			return nil, err
+		}
+	}
+	return products, nil
+}
+
+func (e *Service) parseExcelRow(p *model.Product, row []string) (err error) {
+	if len(row) < 5 {
+		return errors.New("row is invalid")
+	}
+	p.Brand = row[0]
+	p.ArticleSupplier = row[1]
+	p.Article = row[2]
+	if p.Price, err = strconv.Atoi(row[3]); err != nil {
+		return err
+	}
+	p.Barcode = row[4]
+	if len(row) >= 6 {
+		p.Set = row[5]
+	}
+	return nil
 }
 
 func (s *Service) AddFromExcel(ctx *gin.Context, products []model.Product, supplierID int64, userID int64) error {
@@ -98,52 +143,68 @@ func (s *Service) GetProductsEnrichedExcel(productsPoor []model.Product) (data [
 
 	f := exl.NewFile()
 	defer func() { _ = f.Close() }()
+	style, err := f.NewStyle(styleExcel)
+	if err != nil {
+		return nil, err
+	}
 	f.SetSheetName(f.GetSheetName(0), "Details about products")
 	sw, err := f.NewStreamWriter(f.GetSheetName(0))
 
 	// Set width for columns
-	for i, w := range []float64{14, 15, 25, 25, 18, 13, 25, 50, 40, 40, 8, 40, 40} {
+	for i, w := range []float64{20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20} {
 		i++
 		if err = sw.SetColWidth(i, i, w); err != nil {
 			return nil, err
 		}
 	}
 	if err = sw.SetRow("A1", []interface{}{
+		"Предмет",
 		"Бренд",
 		"Категория",
-		"Артикул поставщика (уникальный артикул)",
-		"Артикул производителя (артикул tec-doc)",
-		"Штрих-код",
-		"Цена товара",
+		"Артикул товара",
+		"Артикул производителя",
+		"Штрихкод товара",
+		"Розничная цена, в руб",
+		"Наименование",
+		"ОЕМ номер",
+		"Вес с упаковкой (кг)",
+		"Высота упаковки",
+		"Глубина упаковки",
+		"Ширина упаковки",
 		"Описание",
-		"Cross numbers",
-		"Размерность",
-		"ArticleCriterias",
-		"PackageArticleCriterias",
-		"Применимости",
-		"Изображения",
+		"Марка автомобиля",
+		"Фото",
+		"Комплектация",
+		"Ошибки",
 	}, exl.RowOpts{Height: 15},
 	); err != nil {
 		return nil, err
 	}
 
 	for i, p := range productsEnriched {
+		ch := s.tecDocClient.ConvertToCharacteristics(&p)
 		axis := fmt.Sprintf("A%d", i+2)
 		err = sw.SetRow(axis, []interface{}{
-			p.Product.Brand,
-			p.Product.Subject,
-			p.Product.ArticleSupplier,
-			p.Product.Article,
-			p.Product.Barcode,
-			p.Product.Price,
-			p.Article.GenericArticleDescription,
-			p.Article.OEMnumbers,
-			p.Article.CrossNumbers,
-			p.Article.ArticleCriteria,
-			p.Article.PackageArticleCriteria,
-			p.Article.LinkageTargets,
-			p.Article.Images},
-			exl.RowOpts{Height: 15})
+			ch.Object,
+			ch.Brand,
+			ch.Subject,
+			ch.ArticleSupplier,
+			ch.Article,
+			ch.Barcode,
+			ch.Price,
+			ch.GenArticleDescr,
+			ch.OEMnumbers,
+			ch.Weight,
+			ch.Height,
+			ch.Depth,
+			ch.Width,
+			ch.Description,
+			ch.Targets,
+			ch.Photo,
+			ch.Set,
+			ch.ErrorResponse,
+		},
+			exl.RowOpts{Height: 15, StyleID: style})
 		if err != nil {
 			return nil, err
 		}

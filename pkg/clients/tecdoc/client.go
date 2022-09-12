@@ -17,6 +17,7 @@ type Client interface {
 	GetBrand(brandName string) (*model.Brand, error)
 	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
 	Enrichment(products []model.Product) (productsEnriched []model.ProductEnriched, err error)
+	ConvertToCharacteristics(pe *model.ProductEnriched) *model.ProductCharacteristics
 }
 
 type tecDocClient struct {
@@ -26,7 +27,7 @@ type tecDocClient struct {
 	logger  *zerolog.Logger
 }
 
-func NewClient(baseURL string, tecDocCfg config.TecDocClientConfig, log *zerolog.Logger) *tecDocClient {
+func NewClient(baseURL string, tecDocCfg config.TecDocClientConfig, log *zerolog.Logger) Client {
 	return &tecDocClient{
 		Client:    http.Client{Timeout: tecDocCfg.Timeout},
 		baseURL:   baseURL,

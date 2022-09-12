@@ -30,6 +30,7 @@ type TecDocClient interface {
 	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
 	GetBrand(brandName string) (*model.Brand, error)
 	Enrichment(products []model.Product) (productsEnriched []model.ProductEnriched, err error)
+	ConvertToCharacteristics(pe *model.ProductEnriched) *model.ProductCharacteristics
 }
 
 type Server interface {

@@ -138,7 +138,28 @@ type Product struct {
 	UpdateDate      time.Time `json:"updateDate"`
 	Status          int       `json:"status"`
 	ErrorResponse   string    `json:"errorResponse"`
-	Set             int       `json:"set" default:"1"`
+	Set             string    `json:"set" default:"1шт"`
+}
+
+type ProductCharacteristics struct {
+	Object          string  `json:"Предмет"`
+	Brand           string  `json:"Бренд"`
+	Subject         string  `json:"Категория"`
+	ArticleSupplier string  `json:"Артикул товара"`
+	Article         string  `json:"Артикул производителя"`
+	Barcode         string  `json:"Штрихкод товара"`
+	Price           int     `json:"Розничная цена, в руб"`
+	GenArticleDescr string  `json:"Наименование"`
+	OEMnumbers      string  `json:"ОЕМ номер"`
+	Weight          float64 `json:"Вес с упаковкой (кг)"`
+	Height          float64 `json:"Высота упаковки"`
+	Depth           float64 `json:"Глубина упаковки"`
+	Width           float64 `json:"Ширина упаковки"`
+	Description     string  `json:"Описание"`
+	Targets         string  `json:"Марка автомобиля"`
+	Photo           string  `json:"Фото"`
+	Set             string  `json:"Комплектация"`
+	ErrorResponse   string  `json:"Ошибки"`
 }
 
 type LinkageTargets struct {

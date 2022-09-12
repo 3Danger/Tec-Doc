@@ -16,6 +16,7 @@ import (
 
 type Enricher interface {
 	Enrichment(products []model.Product) (productsEnriched []model.ProductEnriched, err error)
+	ConvertToCharacteristics(pe *model.ProductEnriched) *model.ProductCharacteristics
 }
 
 type Service interface {
@@ -175,8 +176,8 @@ func (s *service) CreateProductCard(product *model.ProductEnriched) error {
 		body io.Reader
 		err  error
 	)
-
-	if body, err = s.makeUploadBody(product); err != nil {
+	characteristics := s.enricher.ConvertToCharacteristics(product)
+	if body, err = s.makeUploadBody(characteristics); err != nil {
 		return err
 	}
 	return s.contentClient.Upload(body)

@@ -49,7 +49,7 @@ func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 		products []model.Product
 	)
 
-	if products, err = e.loadFromExcel(c.Request.Body); err != nil {
+	if products, err = e.service.LoadFromExcel(c.Request.Body); err != nil {
 		e.logger.Error().Err(err).Send()
 		if err.Error() == "empty data" || err == io.EOF {
 			c.JSON(errinfo.GetErrorInfo(errinfo.InvalidExcelEmpty))
@@ -96,7 +96,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 		return
 	}
 	defer func() { _ = file.Close() }()
-	products, err := e.loadFromExcel(file)
+	products, err := e.service.LoadFromExcel(file)
 	if err != nil {
 		e.logger.Error().Err(err).Send()
 		if err.Error() == "empty data" || err == io.EOF {
