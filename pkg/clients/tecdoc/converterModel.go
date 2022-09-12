@@ -33,7 +33,7 @@ func (t *tecDocClient) ConvertToCharacteristics(pe *model.ProductEnriched) *mode
 		Description:     t.ArticleCriteria(pe.Article.ArticleCriteria),
 		Targets:         t.LinkageTargets(pe.Article.LinkageTargets),
 		Photo:           strings.Join(pe.Images, ";"),
-		Set:             pe.Product.Set,
+		Amount:          pe.Product.Amount,
 		ErrorResponse:   pe.ErrorResponse,
 	}
 	return result

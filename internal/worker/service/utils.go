@@ -27,7 +27,7 @@ func (s *service) makeUploadBody(pe *model.ProductCharacteristics) (body io.Read
 		M{"Описание": pe.Description},
 		M{"Марка автомобиля": pe.Targets},
 		M{"Фото": pe.Photo},
-		M{"Комплектация": pe.Set},
+		M{"Комплектация": pe.Amount},
 	}
 	bodyMap["vendorCode"] = pe.ArticleSupplier
 	bodyMap["characteristics"] = characteristics

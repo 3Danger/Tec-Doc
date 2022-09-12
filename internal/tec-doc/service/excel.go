@@ -8,8 +8,10 @@ import (
 	exl "github.com/xuri/excelize/v2"
 	"io"
 	"strconv"
+	"strings"
 	"tec-doc/pkg/model"
 	"time"
+	"unicode"
 )
 
 var styleExcelHeader = &exl.Style{
@@ -28,6 +30,10 @@ var styleExcel = &exl.Style{
 		Family: "Fira Sans Book",
 		Size:   7,
 		Color:  "731a6f"},
+	Alignment: &exl.Alignment{
+		Vertical: "center",
+		WrapText: true,
+	},
 	Lang: "ru",
 }
 
@@ -103,8 +109,11 @@ func (e *Service) parseExcelRow(p *model.Product, row []string) (err error) {
 		return err
 	}
 	p.Barcode = row[4]
-	if len(row) >= 6 {
-		p.Set = row[5]
+	if len(row) >= 6 && len(row[5]) != 0 {
+		n := strings.LastIndexFunc(row[5], func(r rune) bool { return unicode.IsNumber(r) })
+		if p.Amount, err = strconv.Atoi(row[5][:n+1]); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -201,7 +210,7 @@ func (s *Service) GetProductsEnrichedExcel(productsPoor []model.Product) (data [
 			ch.Description,
 			ch.Targets,
 			ch.Photo,
-			ch.Set,
+			ch.Amount,
 			ch.ErrorResponse,
 		},
 			exl.RowOpts{Height: 15, StyleID: style})

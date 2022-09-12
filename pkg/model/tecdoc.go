@@ -138,7 +138,7 @@ type Product struct {
 	UpdateDate      time.Time `json:"updateDate"`
 	Status          int       `json:"status"`
 	ErrorResponse   string    `json:"errorResponse"`
-	Set             string    `json:"set" default:"1шт"`
+	Amount          int       `json:"amount" default:"1"`
 }
 
 type ProductCharacteristics struct {
@@ -158,7 +158,7 @@ type ProductCharacteristics struct {
 	Description     string  `json:"Описание"`
 	Targets         string  `json:"Марка автомобиля"`
 	Photo           string  `json:"Фото"`
-	Set             string  `json:"Комплектация"`
+	Amount          int     `json:"Комплектация"`
 	ErrorResponse   string  `json:"Ошибки"`
 }
 

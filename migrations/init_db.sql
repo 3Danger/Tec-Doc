@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS tasks.products_buffer (
    price                INT,
    upload_date          TIMESTAMPTZ,
    update_date          TIMESTAMPTZ,
+   amount               INT,
    status               INT,
    errorResponse        TEXT
 );
@@ -43,6 +44,7 @@ CREATE TABLE IF NOT EXISTS tasks.products_history (
    price                INT,
    upload_date          TIMESTAMPTZ,
    update_date          TIMESTAMPTZ,
+   amount               INT,
    status               INT,
    errorResponse        TEXT
 );

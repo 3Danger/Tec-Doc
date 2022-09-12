@@ -75,8 +75,9 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 	var (
-		getProductsFromHistoryQuery = `SELECT id, upload_id, article, article, manufacturer_article, brand, sku, category, price,
-	upload_date, update_date, status, errorresponse FROM tasks.products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
+		getProductsFromHistoryQuery = `
+SELECT id, upload_id, article, article_supplier, brand, barcode, subject, price, upload_date, update_date, amount, status, errorresponse 
+FROM tasks.products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 		executor        Executor
 		productsHistory []model.Product
 	)
@@ -94,8 +95,7 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 
 	for rows.Next() {
 		var p model.Product
-		err = rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.ArticleSupplier, &p.Subject,
-			&p.Price, &p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
+		err = rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.ArticleSupplier, &p.Brand, &p.Barcode, &p.Subject, &p.Price, &p.UploadDate, &p.UpdateDate, &p.Amount, &p.Status, &p.ErrorResponse)
 		if err != nil {
 			return nil, fmt.Errorf("can't get products from history: %w", err)
 		}
@@ -123,14 +123,14 @@ func (s *store) SaveIntoBuffer(ctx context.Context, tx Transaction, products []m
 	}
 
 	for i, pr := range products {
-		rows[i] = []interface{}{pr.UploadID, pr.Article, pr.ArticleSupplier, pr.Brand, pr.Barcode, pr.Price,
-			time.Now().UTC(), time.Now().UTC(), pr.Status, pr.ErrorResponse}
+		rows[i] = []interface{}{pr.UploadID, pr.Article, pr.ArticleSupplier, pr.Brand, pr.Barcode, pr.Subject, pr.Price,
+			time.Now().UTC(), time.Now().UTC(), pr.Amount, pr.Status, pr.ErrorResponse}
 	}
 
 	copyCount, err := executor.CopyFrom(
 		ctx,
 		pgx.Identifier{"tasks", "products_buffer"},
-		[]string{"upload_id", "article", "article_supplier", "brand", "barcode", "price", "upload_date", "update_date", "status", "errorresponse"},
+		[]string{"upload_id", "article", "article_supplier", "brand", "barcode", "subject", "price", "upload_date", "update_date", "amount", "status", "errorresponse"},
 		pgx.CopyFromRows(rows),
 	)
 
@@ -149,8 +149,12 @@ func (s *store) GetProductsBuffer(ctx context.Context, tx Transaction, uploadID 
 	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 	var (
-		getProductsBufferQuery = `SELECT id, upload_id, article, article_supplier, price,
-		upload_date, update_date, status, errorresponse FROM tasks.products_buffer WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
+		getProductsBufferQuery = `
+SELECT
+	id, upload_id, article, article_supplier, brand, barcode, subject, price, upload_date, update_date, amount, status, errorresponse
+FROM 
+    tasks.products_buffer 
+WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 		executor       Executor
 		productsBuffer = make([]model.Product, 0)
 	)
@@ -169,14 +173,14 @@ func (s *store) GetProductsBuffer(ctx context.Context, tx Transaction, uploadID 
 
 	for rows.Next() {
 		var p model.Product
-		err := rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.ArticleSupplier, &p.Price, &p.UploadDate, &p.UpdateDate, &p.Status, &p.ErrorResponse)
+		err = rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.ArticleSupplier, &p.Brand, &p.Barcode, &p.Subject, &p.Price, &p.UploadDate, &p.UpdateDate, &p.Amount, &p.Status, &p.ErrorResponse)
 		if err != nil {
 			return nil, fmt.Errorf("can't get products from buffer: %w", err)
 		}
 		productsBuffer = append(productsBuffer, p)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("can't get products from buffer: %w", err)
 	}
 
@@ -203,7 +207,7 @@ func (s *store) SaveProductsToHistory(ctx context.Context, tx Transaction, produ
 	copyCount, err := executor.CopyFrom(
 		ctx,
 		pgx.Identifier{"tasks", "products_history"},
-		[]string{"upload_id", "article", "article_supplier", "price", "upload_date", "update_date", "status", "errorresponse"},
+		[]string{"upload_id", "article", "article_supplier", "brand", "barcode", "subject", "price", "upload_date", "update_date", "amount", "status", "errorresponse"},
 		pgx.CopyFromRows(rows),
 	)
 
