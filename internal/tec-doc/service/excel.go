@@ -124,7 +124,7 @@ func (s *Service) AddFromExcel(ctx *gin.Context, products []model.Product, suppl
 		return err
 	}
 
-	uploaderId, err := s.database.CreateTask(ctx, tx, supplierID, userID, ctx.ClientIP(), time.Now().UTC())
+	uploaderId, err := s.database.CreateTask(ctx, tx, supplierID, userID, int64(len(products)), ctx.ClientIP(), time.Now().UTC())
 	if err != nil {
 		_ = tx.Rollback(ctx)
 		return err

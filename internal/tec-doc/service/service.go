@@ -15,7 +15,7 @@ import (
 )
 
 type Store interface {
-	CreateTask(ctx context.Context, tx postgres.Transaction, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error)
+	CreateTask(ctx context.Context, tx postgres.Transaction, supplierID, userID, productsTotal int64, ip string, uploadDate time.Time) (int64, error)
 	SaveIntoBuffer(ctx context.Context, tx postgres.Transaction, products []model.Product) error
 	GetSupplierTaskHistory(ctx context.Context, tx postgres.Transaction, supplierID int64, limit int, offset int) ([]model.Task, error)
 	GetProductsBuffer(ctx context.Context, tx postgres.Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)

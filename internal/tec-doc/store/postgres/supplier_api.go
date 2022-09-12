@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error) {
+func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID, userID, productsTotal int64, ip string, uploadDate time.Time) (int64, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 	var (
@@ -24,7 +24,7 @@ func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID int64
 	}
 
 	row := executor.QueryRow(ctx, createTaskQuery, supplierID, userID,
-		uploadDate, uploadDate, ip, StatusNew, 0, 0, 0)
+		uploadDate, uploadDate, ip, StatusNew, 0, 0, productsTotal)
 
 	if err := row.Scan(&taskID); err != nil {
 		return 0, fmt.Errorf("can't create task:: %w", err)

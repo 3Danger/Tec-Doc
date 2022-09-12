@@ -135,6 +135,8 @@ func (s *service) runProductCreation(ctx context.Context, pe []model.ProductEnri
 				s.log.Error().Err(err).Str("CreateProductCard", "can't upload")
 				pe[i].ErrorResponse = "не удалось сформировать карточку"
 				pe[i].Status = postgres.StatusError
+			} else {
+				pe[i].Status = postgres.StatusCompleted
 			}
 		}
 		if err = s.store.UpdateProductStatus(ctx, tx, pe[i].ID, pe[i].Status); err != nil {
