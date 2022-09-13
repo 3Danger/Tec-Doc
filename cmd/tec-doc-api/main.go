@@ -18,6 +18,7 @@ import (
 // @descriptionAPI Tec-Doc server
 
 // @host localhost:8002
+// @schemes http
 // @BasePath /
 func initConfig() (*config.Config, *zerolog.Logger, *metrics.Metrics, error) {
 	var conf config.Config

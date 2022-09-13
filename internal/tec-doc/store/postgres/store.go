@@ -30,6 +30,7 @@ type Store interface {
 	SaveProductsToHistory(ctx context.Context, tx Transaction, products []model.Product) error
 	DeleteFromBuffer(ctx context.Context, tx Transaction, uploadID int64) error
 	GetProductsHistory(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
+	GetProductsHistoryWithStatus(ctx context.Context, tx Transaction, uploadID, status int64, limit int, offset int) ([]model.Product, error)
 
 	GetOldestTask(ctx context.Context, tx Transaction) (int64, error)
 	GetProductsBufferWithStatus(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int, status int) ([]model.Product, error)

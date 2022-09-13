@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/pkg/errinfo"
 	"tec-doc/pkg/model"
 )
@@ -16,12 +17,12 @@ import (
 // @Tags excel
 // @Description download excel table template
 // @ID excel_template
-// @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+// @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} byte
 // @Failure 500 {object} errinfo.errInf
-// @Router /excel [get]
+// @Router /api/v1/excel [get]
 func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 	excelTemplate, err := e.service.ExcelTemplateForClient()
 	if err != nil {
@@ -43,7 +44,7 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 // @Success 200 {array} byte
 // @Failure 400 {object} string
 // @Failure 500 {object} string
-// @Router /excel/enrichment [post]
+// @Router /api/v1/excel/enrichment [post]
 func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 	var (
 		err      error
@@ -75,6 +76,35 @@ func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 	c.Data(http.StatusOK, exl.ContentTypeSheetML, excel)
 }
 
+// @Summary ExcelProductsWithErrors
+// @Tags excel
+// @Description download excel table template
+// @ID excel_products_with_errors
+// @Produce json
+// @Param InputBody body model.UploadIdRequest true "The input body.<br /> UploadID is ID of previously uploaded task."
+// @Param X-User-Id header string true "ID of user"
+// @Param X-Supplier-Id header string true "ID of supplier"
+// @Success 200 {array} byte
+// @Failure 500 {object} errinfo.errInf
+// @Router /api/v1/excel/products/errors [post]
+func (s *externalHttpServer) ExcelProductsWithErrors(c *gin.Context) {
+	var (
+		err error
+		rq  model.UploadIdRequest
+	)
+	if err = c.ShouldBindJSON(&rq); err != nil {
+		s.logger.Error().Err(err).Send()
+		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTaskID))
+		return
+	}
+	var fileRaw []byte
+	if fileRaw, err = s.service.ExcelProductsHistoryWithStatus(c, rq.UploadID, postgres.StatusError); err != nil {
+		s.logger.Error().Err(err).Msg("can't create excel of products with errors")
+		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
+	}
+	c.Data(http.StatusOK, exl.ContentTypeSheetML, fileRaw)
+}
+
 // @Summary LoadFromExcel
 // @Tags excel
 // @Description upload excel table containing products info
@@ -86,7 +116,7 @@ func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 // @Success 200 {object} string
 // @Failure 400 {object} string
 // @Failure 500 {object} string
-// @Router /excel [post]
+// @Router /api/v1/excel [post]
 func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 	var (
 		supplierID, userID int64
@@ -131,7 +161,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param InputBody body model.UploadIdRequest true "The input body.<br /> UploadID is ID of previously uploaded task."
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
-// @Router /product_history [post]
+// @Router /api/v1/product_history [post]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 	//_, _, err := CredentialsFromContext(c)
 	//if err != nil {
@@ -184,7 +214,7 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} model.TaskPublic
 // @Failure 500 {object} errinfo.errInf
-// @Router /task_history [get]
+// @Router /api/v1/task_history [get]
 func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	var (
 		supplierID int64
@@ -235,7 +265,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 // @Param InputBody body model.GetTecDocArticlesRequest true "The input body"
 // @Success 200 {array} model.Article
 // @Failure 500 {object} errinfo.errInf
-// @Router /articles/enrichment [post]
+// @Router /api/v1/articles/enrichment [post]
 func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
 	//_, _, err := CredentialsFromContext(c)
 	//if err != nil {

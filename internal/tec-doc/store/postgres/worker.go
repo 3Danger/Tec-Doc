@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"tec-doc/pkg/model"
 	"time"
@@ -75,7 +76,7 @@ func (s *store) GetProductsBufferWithStatus(ctx context.Context, tx Transaction,
 		productsBuffer = append(productsBuffer, p)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("can't get products from buffer: %w", err)
 	}
 
@@ -186,14 +187,20 @@ SELECT
 FROM tasks.products_buffer AS b
 WHERE upload_id = $1;`
 
-	row := _tx.QueryRow(ctx, query, uploadId)
-	if err = row.Scan(); err != nil && !errors.Is(err, pgx.ErrNoRows) {
+	var res pgconn.CommandTag
+	if res, err = _tx.Exec(ctx, query, uploadId); err != nil {
 		return err
 	}
+	if res.RowsAffected() == 0 {
+		return fmt.Errorf("no rows were updated")
+	}
+
 	query = `DELETE FROM tasks.products_buffer WHERE upload_id = $1`
-	row = _tx.QueryRow(ctx, query, uploadId)
-	if err = row.Scan(); err != nil && !errors.Is(err, pgx.ErrNoRows) {
+	if res, err = _tx.Exec(ctx, query, uploadId); err != nil {
 		return err
+	}
+	if res.RowsAffected() == 0 {
+		return fmt.Errorf("no rows were updated")
 	}
 	if tx == nil {
 		return _tx.Commit(ctx)

@@ -22,6 +22,7 @@ type Store interface {
 	SaveProductsToHistory(ctx context.Context, tx postgres.Transaction, products []model.Product) error
 	DeleteFromBuffer(ctx context.Context, tx postgres.Transaction, uploadID int64) error
 	GetProductsHistory(ctx context.Context, tx postgres.Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
+	GetProductsHistoryWithStatus(ctx context.Context, tx postgres.Transaction, uploadID, status int64, limit int, offset int) ([]model.Product, error)
 	Transaction(ctx context.Context) (postgres.Transaction, error)
 	Stop()
 }

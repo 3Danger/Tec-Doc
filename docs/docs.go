@@ -16,7 +16,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/articles/enrichment": {
+        "/api/v1/articles/enrichment": {
             "post": {
                 "description": "to enrichment product by brand and article",
                 "consumes": [
@@ -88,11 +88,11 @@ const docTemplate = `{
                 }
             }
         },
-        "/excel": {
+        "/api/v1/excel": {
             "get": {
                 "description": "download excel table template",
                 "produces": [
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
                 ],
                 "tags": [
                     "excel"
@@ -188,7 +188,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/excel/enrichment": {
+        "/api/v1/excel/enrichment": {
             "post": {
                 "description": "Enrichment excel file, limit entiies in file = 10000",
                 "produces": [
@@ -240,7 +240,62 @@ const docTemplate = `{
                 }
             }
         },
-        "/product_history": {
+        "/api/v1/excel/products/errors": {
+            "post": {
+                "description": "download excel table template",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "excel"
+                ],
+                "summary": "ExcelProductsWithErrors",
+                "operationId": "excel_products_with_errors",
+                "parameters": [
+                    {
+                        "description": "The input body.\u003cbr /\u003e UploadID is ID of previously uploaded task.",
+                        "name": "InputBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UploadIdRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of user",
+                        "name": "X-User-Id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of supplier",
+                        "name": "X-Supplier-Id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errinfo.errInf"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/product_history": {
             "post": {
                 "description": "get product list",
                 "consumes": [
@@ -312,7 +367,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/task_history": {
+        "/api/v1/task_history": {
             "get": {
                 "description": "get task list",
                 "produces": [
@@ -596,7 +651,7 @@ var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8002",
 	BasePath:         "/",
-	Schemes:          []string{},
+	Schemes:          []string{"http"},
 	Title:            "Tec-Doc API",
 	Description:      "",
 	InfoInstanceName: "swagger",

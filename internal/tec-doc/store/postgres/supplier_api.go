@@ -76,7 +76,20 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 	defer cancel()
 	var (
 		getProductsFromHistoryQuery = `
-SELECT id, upload_id, article, article_supplier, brand, barcode, subject, price, upload_date, update_date, amount, status, errorresponse 
+SELECT 
+    	 id, 
+    	 upload_id, 
+COALESCE(article, ''), 
+COALESCE(article_supplier, ''), 
+    	 brand, 
+COALESCE(barcode, ''), 
+COALESCE(subject, ''), 
+COALESCE(price, 0), 
+		 upload_date, 
+	     update_date, 
+COALESCE(amount, 1),
+COALESCE(status, 0), 
+COALESCE(errorresponse, '') 
 FROM tasks.products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 		executor        Executor
 		productsHistory []model.Product
@@ -88,6 +101,57 @@ FROM tasks.products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 	}
 
 	rows, err := executor.Query(ctx, getProductsFromHistoryQuery, uploadID, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("can't get products from history: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var p model.Product
+		err = rows.Scan(&p.ID, &p.UploadID, &p.Article, &p.ArticleSupplier, &p.Brand, &p.Barcode, &p.Subject, &p.Price, &p.UploadDate, &p.UpdateDate, &p.Amount, &p.Status, &p.ErrorResponse)
+		if err != nil {
+			return nil, fmt.Errorf("can't get products from history: %w", err)
+		}
+		productsHistory = append(productsHistory, p)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("can't get products from history: %w", err)
+	}
+
+	return productsHistory, nil
+}
+
+func (s *store) GetProductsHistoryWithStatus(ctx context.Context, tx Transaction, uploadID, status int64, limit int, offset int) ([]model.Product, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
+	defer cancel()
+	var (
+		getProductsFromHistoryQuery = `
+SELECT 
+    	 id, 
+    	 upload_id, 
+COALESCE(article, ''), 
+COALESCE(article_supplier, ''), 
+    	 brand, 
+COALESCE(barcode, ''), 
+COALESCE(subject, ''), 
+COALESCE(price, 0), 
+		 upload_date, 
+	     update_date, 
+COALESCE(amount, 1),
+COALESCE(status, 0), 
+COALESCE(errorresponse, '') 
+FROM tasks.products_history WHERE upload_id = $1 AND status = $2 LIMIT $3 OFFSET $4;`
+		executor        Executor
+		productsHistory []model.Product
+	)
+
+	executor = s.pool
+	if tx != nil {
+		executor = tx
+	}
+
+	rows, err := executor.Query(ctx, getProductsFromHistoryQuery, uploadID, status, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("can't get products from history: %w", err)
 	}

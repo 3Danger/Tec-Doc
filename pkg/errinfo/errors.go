@@ -96,7 +96,7 @@ var (
 			Status: http.StatusUnauthorized,
 		},
 		NoTecDocArticlesFound: {
-			Msg:    "товары не найдены, проверьте корректно ли переданы параметры",
+			Msg:    "товары не найдены, проверьте корректно ли переданы бренд и артикул",
 			Status: http.StatusUnauthorized,
 		},
 		NoTecDocBrandFound: {

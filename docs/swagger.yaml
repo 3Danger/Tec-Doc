@@ -146,7 +146,7 @@ info:
   title: Tec-Doc API
   version: "1.0"
 paths:
-  /articles/enrichment:
+  /api/v1/articles/enrichment:
     post:
       consumes:
       - application/json
@@ -195,7 +195,7 @@ paths:
       summary: GetTecDocArticles
       tags:
       - product
-  /excel:
+  /api/v1/excel:
     get:
       description: download excel table template
       operationId: excel_template
@@ -211,7 +211,7 @@ paths:
         required: true
         type: string
       produces:
-      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml
       responses:
         "200":
           description: OK
@@ -263,7 +263,7 @@ paths:
       summary: LoadFromExcel
       tags:
       - excel
-  /excel/enrichment:
+  /api/v1/excel/enrichment:
     post:
       description: Enrichment excel file, limit entiies in file = 10000
       operationId: enrich_excel
@@ -298,7 +298,44 @@ paths:
       summary: ProductsEnrichedExcel
       tags:
       - excel
-  /product_history:
+  /api/v1/excel/products/errors:
+    post:
+      description: download excel table template
+      operationId: excel_products_with_errors
+      parameters:
+      - description: The input body.<br /> UploadID is ID of previously uploaded task.
+        in: body
+        name: InputBody
+        required: true
+        schema:
+          $ref: '#/definitions/model.UploadIdRequest'
+      - description: ID of user
+        in: header
+        name: X-User-Id
+        required: true
+        type: string
+      - description: ID of supplier
+        in: header
+        name: X-Supplier-Id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errinfo.errInf'
+      summary: ExcelProductsWithErrors
+      tags:
+      - excel
+  /api/v1/product_history:
     post:
       consumes:
       - application/json
@@ -347,7 +384,7 @@ paths:
       summary: GetProductsHistory
       tags:
       - product
-  /task_history:
+  /api/v1/task_history:
     get:
       description: get task list
       operationId: supplier_task_history
@@ -388,4 +425,6 @@ paths:
       summary: GetSupplierTaskHistory
       tags:
       - product
+schemes:
+- http
 swagger: "2.0"
