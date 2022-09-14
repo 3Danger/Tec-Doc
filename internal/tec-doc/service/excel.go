@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -37,38 +38,52 @@ var styleExcel = &exl.Style{
 	Lang: "ru",
 }
 
-func (s *Service) ExcelTemplateForClient() ([]byte, error) {
-	f := exl.NewFile()
-	defer func() { _ = f.Close() }()
-	nameSheet := "Products"
-	f.SetSheetName(f.GetSheetName(0), nameSheet)
-
-	// Set styles & length
-	styleHeaderId, err := f.NewStyle(styleExcelHeader)
-	if err != nil {
-		return nil, err
+func setExcelHeader(stream *exl.StreamWriter, style int, headers ...string) (err error) {
+	if len(headers) == 0 {
+		return errors.New("haven't headers")
 	}
-	styleId, err := f.NewStyle(styleExcel)
-	if err != nil {
-		return nil, err
+	// Set length of cell
+	for i, w := range headers {
+		if err = stream.SetColWidth(i+1, i+1, float64(len(w))*0.7); err != nil {
+			return err
+		}
 	}
-	_ = f.SetRowStyle(nameSheet, 1, 2, styleHeaderId)
-	_ = f.SetRowStyle(nameSheet, 2, 1000, styleId)
-	_ = f.SetRowHeight(nameSheet, 1, 20)
-	_ = f.SetColWidth(nameSheet, "A", "A", 9)
-	_ = f.SetColWidth(nameSheet, "B", "C", 42)
-	_ = f.SetColWidth(nameSheet, "D", "D", 15)
-	_ = f.SetColWidth(nameSheet, "E", "E", 20)
 
 	// Set values
-	_ = f.SetCellValue(nameSheet, "A1", "Бренд")
-	_ = f.SetCellValue(nameSheet, "B1", "Артикул поставщика (уникальный артикул)")
-	_ = f.SetCellValue(nameSheet, "C1", "Артикул производителя (артикул tec-doc)")
-	_ = f.SetCellValue(nameSheet, "D1", "Цена товара")
-	_ = f.SetCellValue(nameSheet, "E1", "Штрих-код")
-	_ = f.SetCellValue(nameSheet, "F1", "Комплектация")
-	buffer, err := f.WriteToBuffer()
-	if err != nil {
+	var _headers = make([]interface{}, 0, len(headers))
+	for i := range headers {
+		_headers = append(_headers, headers[i])
+	}
+	return stream.SetRow("A1", _headers, exl.RowOpts{20, false, style})
+}
+
+func (s *Service) ExcelTemplateForClient() ([]byte, error) {
+	var (
+		err  error
+		file = exl.NewFile()
+	)
+	defer func() { _ = file.Close() }()
+
+	file.SetSheetName(file.GetSheetName(0), "Продукты")
+	var stream *exl.StreamWriter
+	if stream, err = file.NewStreamWriter(file.GetSheetName(0)); err != nil {
+		return nil, err
+	}
+
+	var headers = []string{
+		"Бренд",
+		"Артикул поставщика (уникальный артикул)",
+		"Артикул производителя (артикул tec-doc)",
+		"Цена товара",
+		"Штрих-код",
+		"Комплектация",
+	}
+	if err = setExcelHeader(stream, 0, headers...); err != nil {
+		return nil, err
+	}
+
+	var buffer *bytes.Buffer
+	if buffer, err = file.WriteToBuffer(); err != nil {
 		return nil, err
 	}
 	return buffer.Bytes(), nil
@@ -109,6 +124,7 @@ func (e *Service) parseExcelRow(p *model.Product, row []string) (err error) {
 		return err
 	}
 	p.Barcode = row[4]
+	p.Amount = 1
 	if len(row) >= 6 && len(row[5]) != 0 {
 		n := strings.LastIndexFunc(row[5], func(r rune) bool { return unicode.IsNumber(r) })
 		if p.Amount, err = strconv.Atoi(row[5][:n+1]); err != nil {
@@ -145,28 +161,19 @@ func (s *Service) AddFromExcel(ctx *gin.Context, products []model.Product, suppl
 
 func (s *Service) GetProductsEnrichedExcel(productsPoor []model.Product) (data []byte, err error) {
 	var productsEnriched []model.ProductEnriched
-
 	if productsEnriched, err = s.tecDocClient.Enrichment(productsPoor); err != nil {
 		return nil, err
 	}
 
-	f := exl.NewFile()
-	defer func() { _ = f.Close() }()
-	style, err := f.NewStyle(styleExcel)
-	if err != nil {
+	var file = exl.NewFile()
+	defer func() { _ = file.Close() }()
+	file.SetSheetName(file.GetSheetName(0), "Детализация продуктов")
+	var stream *exl.StreamWriter
+	if stream, err = file.NewStreamWriter(file.GetSheetName(0)); err != nil {
 		return nil, err
 	}
-	f.SetSheetName(f.GetSheetName(0), "Details about products")
-	sw, err := f.NewStreamWriter(f.GetSheetName(0))
 
-	// Set width for columns
-	for i, w := range []float64{20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20} {
-		i++
-		if err = sw.SetColWidth(i, i, w); err != nil {
-			return nil, err
-		}
-	}
-	if err = sw.SetRow("A1", []interface{}{
+	var headers = []string{
 		"Предмет",
 		"Бренд",
 		"Категория",
@@ -185,15 +192,20 @@ func (s *Service) GetProductsEnrichedExcel(productsPoor []model.Product) (data [
 		"Фото",
 		"Комплектация",
 		"Ошибки",
-	}, exl.RowOpts{Height: 15},
-	); err != nil {
+	}
+
+	if err = setExcelHeader(stream, 0, headers...); err != nil {
 		return nil, err
 	}
 
+	var style int
+	if style, err = file.NewStyle(styleExcel); err != nil {
+		return nil, err
+	}
 	for i, p := range productsEnriched {
 		ch := s.tecDocClient.ConvertToCharacteristics(&p)
 		axis := fmt.Sprintf("A%d", i+2)
-		err = sw.SetRow(axis, []interface{}{
+		err = stream.SetRow(axis, []interface{}{
 			ch.Object,
 			ch.Brand,
 			ch.Subject,
@@ -218,12 +230,70 @@ func (s *Service) GetProductsEnrichedExcel(productsPoor []model.Product) (data [
 			return nil, err
 		}
 	}
-	if err = sw.Flush(); err != nil {
+	if err = stream.Flush(); err != nil {
 		return nil, err
 	}
 	var buffer *bytes.Buffer
-	if buffer, err = f.WriteToBuffer(); err != nil {
+	if buffer, err = file.WriteToBuffer(); err != nil {
 		return nil, err
 	}
 	return buffer.Bytes(), nil
+}
+
+func (s *Service) ExcelProductsHistoryWithStatus(ctx context.Context, uploadID, status int64) ([]byte, error) {
+	var (
+		products []model.Product
+		err      error
+	)
+	//TODO ? узнать, необходимо ли ограничение
+	if products, err = s.database.GetProductsHistoryWithStatus(ctx, nil, uploadID, status, 100000, 0); err != nil {
+		return nil, err
+	}
+
+	var file = exl.NewFile()
+	defer func() { _ = file.Close() }()
+	file.SetSheetName(file.GetSheetName(0), "Продукты с ошибками")
+	var stream *exl.StreamWriter
+	if stream, err = file.NewStreamWriter(file.GetSheetName(0)); err != nil {
+		return nil, err
+	}
+
+	var headers = []string{
+		"Бренд",
+		"Артикул поставщика (уникальный артикул)",
+		"Артикул производителя (артикул tec-doc)",
+		"Цена товара",
+		"Штрих-код",
+		"Комплектация",
+		"Ошибка при обработки",
+	}
+	if err = setExcelHeader(stream, 0, headers...); err != nil {
+		return nil, err
+	}
+
+	for i := range products {
+		var axis string
+		if axis, err = exl.CoordinatesToCellName(1, i+2); err != nil {
+			return nil, err
+		}
+		if err = stream.SetRow(axis, []interface{}{
+			products[i].Brand,
+			products[i].ArticleSupplier,
+			products[i].Article,
+			products[i].Price,
+			products[i].Barcode,
+			products[i].Amount,
+			products[i].ErrorResponse,
+		}); err != nil {
+			return nil, err
+		}
+	}
+	if err = stream.Flush(); err != nil {
+		return nil, err
+	}
+	var buf *bytes.Buffer
+	if buf, err = file.WriteToBuffer(); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
