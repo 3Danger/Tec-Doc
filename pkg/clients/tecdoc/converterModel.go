@@ -61,7 +61,7 @@ func (*tecDocClient) ArticleCriteria(ac []model.ArticleCriteria) string {
 }
 
 func (*tecDocClient) OemCross(oems []model.OEM, cross []model.CrossNumbers) string {
-	mapBuff := make(map[string]interface{})
+	mapBuff := make(map[string]struct{})
 	for i := range oems {
 		mapBuff[oems[i].ArticleNumber] = struct{}{}
 	}
