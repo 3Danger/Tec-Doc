@@ -2,7 +2,6 @@ package tecdoc
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"github.com/rs/zerolog"
 	"net/http"
@@ -16,7 +15,7 @@ import (
 type Client interface {
 	GetBrand(brandName string) (*model.Brand, error)
 	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
-	Enrichment(products []model.Product) (productsEnriched []model.ProductEnriched, err error)
+	Enrichment(products []model.Product) (productsEnriched []model.ProductEnriched)
 	ConvertToCharacteristics(pe *model.ProductEnriched) *model.ProductCharacteristics
 }
 
@@ -304,21 +303,18 @@ func (c *tecDocClient) GetCrossNumbers(articleNumber string) ([]model.CrossNumbe
 	return crossNumbers, nil
 }
 
-func (t *tecDocClient) Enrichment(products []model.Product) ([]model.ProductEnriched, error) {
+func (t *tecDocClient) Enrichment(products []model.Product) []model.ProductEnriched {
 	productsEnrichment := make([]model.ProductEnriched, 0, len(products))
 	for i := range products {
 		prodRich, err := t.SingleEnrichment(&products[i])
 		if err != nil {
-			if !errors.Is(err, errinfo.NoTecDocArticlesFound) &&
-				!errors.Is(err, errinfo.MoreThanOneArticlesFound) {
-				return nil, err
-			}
+			t.logger.Error().Str("tecDocClient", "Enrichment").Err(err).Send()
 			prodRich.Status = postgres.StatusError
 			_, prodRich.ErrorResponse = errinfo.GetErrorInfo(err)
 		}
 		productsEnrichment = append(productsEnrichment, *prodRich)
 	}
-	return productsEnrichment, nil
+	return productsEnrichment
 }
 
 func (t *tecDocClient) SingleEnrichment(product *model.Product) (productsEnriched *model.ProductEnriched, err error) {

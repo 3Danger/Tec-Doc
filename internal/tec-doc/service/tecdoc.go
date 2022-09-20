@@ -12,6 +12,6 @@ func (s *Service) GetBrand(brandName string) (*model.Brand, error) {
 	return s.tecDocClient.GetBrand(brandName)
 }
 
-func (s *Service) Enrichment(product []model.Product) ([]model.ProductEnriched, error) {
+func (s *Service) Enrichment(product []model.Product) []model.ProductEnriched {
 	return s.tecDocClient.Enrichment(product)
 }

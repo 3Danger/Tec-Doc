@@ -14,7 +14,7 @@ import (
 )
 
 type Enricher interface {
-	Enrichment(products []model.Product) (productsEnriched []model.ProductEnriched, err error)
+	Enrichment(products []model.Product) []model.ProductEnriched
 	ConvertToCharacteristics(pe *model.ProductEnriched) *model.ProductCharacteristics
 }
 
@@ -27,7 +27,7 @@ type service struct {
 	conf          *config.Config
 	store         postgres.Store
 	contentClient contentCard.ContentCardClient
-	enricher      Enricher // for Enrichment products
+	enricher      Enricher
 }
 
 func New(ctx context.Context, conf *config.Config, log *zerolog.Logger) Service {
@@ -89,42 +89,20 @@ func (s *service) getProductsEnriched(ctx context.Context) (productsEnriched []m
 	var (
 		uploadID int64
 		products []model.Product
-		tx       postgres.Transaction
 	)
 	if uploadID, supplier, err = s.store.GetOldestTask(ctx, nil); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, "", nil
 		}
-		s.log.Error().Err(err).Str("store", "can't get oldest task")
 		return nil, "", err
 	}
-
 	if products, err = s.store.GetProductsBufferWithStatus(ctx, nil, uploadID, 1000, 0, postgres.StatusNew); err != nil {
-		s.log.Error().Err(err).Str("store", "can't get products from buffer")
 		return nil, "", err
 	}
-
 	if len(products) == 0 {
-		if tx, err = s.store.Transaction(ctx); err != nil {
-			s.log.Error().Err(err).Str("store", "can't create a transaction")
-			return nil, "", err
-		}
-		if err = s.store.MoveProductsToHistoryByUploadId(ctx, tx, uploadID); err != nil {
-			s.log.Error().Err(err).Str("store", "can't move products from buffer to history")
-			_ = tx.Rollback(ctx)
-			return nil, "", err
-		}
-		if err = s.store.UpdateTaskStatus(ctx, tx, uploadID, postgres.StatusCompleted); err != nil {
-			s.log.Error().Err(err).Str("store", "can't update status task")
-			_ = tx.Rollback(ctx)
-			return nil, "", err
-		}
-		return nil, "", tx.Commit(ctx)
+		return nil, "", s.store.MarkTaskAsCompletedAndMoveProductsToHistory(ctx, uploadID)
 	}
-	if productsEnriched, err = s.enricher.Enrichment(products); err != nil {
-		return nil, "", err
-	}
-	return productsEnriched, supplier, nil
+	return s.enricher.Enrichment(products), supplier, nil
 }
 
 func (s *service) runProductCreation(productsEnriched []model.ProductEnriched, supplierIdStr string) error {
@@ -148,25 +126,18 @@ func (s *service) runProductCreation(productsEnriched []model.ProductEnriched, s
 			}
 		}
 	}
-
 	return nil
 }
 
 func (s *service) UpdateStatus(ctx context.Context, productsEnriched []model.ProductEnriched) (err error) {
 	tx, err := s.store.Transaction(ctx)
 	if err != nil {
-		s.log.Error().Err(err).Str("store", "can't create a transaction")
 		return err
 	}
-	defer func() {
-		if err != nil {
-			_ = tx.Rollback(ctx)
-		}
-	}()
 	var processed, failed int64
 	for i := range productsEnriched {
 		if err = s.store.UpdateProductBuffer(ctx, tx, &productsEnriched[i].Product); err != nil {
-			s.log.Error().Err(err).Str("store", "can't update product status")
+			_ = tx.Rollback(ctx)
 			return err
 		}
 		if productsEnriched[i].Status == postgres.StatusCompleted {
@@ -177,15 +148,15 @@ func (s *service) UpdateStatus(ctx context.Context, productsEnriched []model.Pro
 	}
 
 	if err = s.store.UpdateTaskProductsNumber(ctx, tx, productsEnriched[0].UploadID, failed, processed); err != nil {
-		s.log.Error().Err(err).Str("store", "can't update task product number")
+		_ = tx.Rollback(ctx)
 		return err
 	}
 	if err = s.store.UpdateTaskStatus(ctx, tx, productsEnriched[0].UploadID, postgres.StatusProcess); err != nil {
-		s.log.Error().Err(err).Str("store", "can't update task status")
+		_ = tx.Rollback(ctx)
 		return err
 	}
 	if err = tx.Commit(ctx); err != nil {
-		s.log.Error().Err(err).Str("store", "can't call Commit on transaction")
+		_ = tx.Rollback(ctx)
 		return err
 	}
 	return nil

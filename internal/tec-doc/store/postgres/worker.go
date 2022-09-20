@@ -188,3 +188,26 @@ func (s *store) UpdateProductBuffer(ctx context.Context, tx Transaction, product
 	}
 	return nil
 }
+
+func (s *store) MarkTaskAsCompletedAndMoveProductsToHistory(ctx context.Context, uploadID int64) error {
+	var (
+		err error
+		tx  Transaction
+	)
+	if tx, err = s.Transaction(ctx); err != nil {
+		return err
+	}
+	if err = s.MoveProductsToHistoryByUploadId(ctx, tx, uploadID); err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+	if err = s.UpdateTaskStatus(ctx, tx, uploadID, StatusCompleted); err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+	if err = tx.Commit(ctx); err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+	return nil
+}

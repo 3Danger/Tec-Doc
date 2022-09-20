@@ -215,7 +215,7 @@ func (s *store) GetProductsBuffer(ctx context.Context, tx Transaction, uploadID 
 	var (
 		getProductsBufferQuery = `
 SELECT
-	id, upload_id, article, article_supplier, brand, barcode, subject, price, upload_date, update_date, amount, status, errorresponse
+	id, upload_id, article, article_supplier, brand, barcode, subject, COALESCE(price, 0), upload_date, update_date, amount, status, COALESCE(errorresponse, '')
 FROM 
     tasks.products_buffer 
 WHERE upload_id = $1 LIMIT $2 OFFSET $3;`

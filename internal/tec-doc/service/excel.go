@@ -159,17 +159,14 @@ func (s *Service) AddFromExcel(ctx *gin.Context, products []model.Product, suppl
 	return nil
 }
 
-func (s *Service) GetProductsEnrichedExcel(productsPoor []model.Product) (data []byte, err error) {
-	var productsEnriched []model.ProductEnriched
-	if productsEnriched, err = s.tecDocClient.Enrichment(productsPoor); err != nil {
-		return nil, err
-	}
-
+func (s *Service) GetProductsEnrichedExcel(products []model.Product) ([]byte, error) {
+	productsEnriched := s.tecDocClient.Enrichment(products)
 	var file = exl.NewFile()
 	defer func() { _ = file.Close() }()
 	file.SetSheetName(file.GetSheetName(0), "Детализация продуктов")
-	var stream *exl.StreamWriter
-	if stream, err = file.NewStreamWriter(file.GetSheetName(0)); err != nil {
+
+	stream, err := file.NewStreamWriter(file.GetSheetName(0))
+	if err != nil {
 		return nil, err
 	}
 
@@ -198,8 +195,8 @@ func (s *Service) GetProductsEnrichedExcel(productsPoor []model.Product) (data [
 		return nil, err
 	}
 
-	var style int
-	if style, err = file.NewStyle(styleExcel); err != nil {
+	style, err := file.NewStyle(styleExcel)
+	if err != nil {
 		return nil, err
 	}
 	for i, p := range productsEnriched {
@@ -233,8 +230,8 @@ func (s *Service) GetProductsEnrichedExcel(productsPoor []model.Product) (data [
 	if err = stream.Flush(); err != nil {
 		return nil, err
 	}
-	var buffer *bytes.Buffer
-	if buffer, err = file.WriteToBuffer(); err != nil {
+	buffer, err := file.WriteToBuffer()
+	if err != nil {
 		return nil, err
 	}
 	return buffer.Bytes(), nil
@@ -265,7 +262,7 @@ func (s *Service) ExcelProductsHistoryWithStatus(ctx context.Context, uploadID, 
 		"Цена товара",
 		"Штрих-код",
 		"Комплектация",
-		"Ошибка при обработки",
+		"Ошибка при обработке",
 	}
 	if err = setExcelHeader(stream, 0, headers...); err != nil {
 		return nil, err

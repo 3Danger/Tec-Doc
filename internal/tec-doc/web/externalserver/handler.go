@@ -161,7 +161,7 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param InputBody body model.UploadIdRequest true "The input body.<br /> UploadID is ID of previously uploaded task."
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
-// @Router /api/v1/product_history [post]
+// @Router /api/v1/history/product [post]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 	//_, _, err := CredentialsFromContext(c)
 	//if err != nil {
@@ -214,7 +214,7 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} model.TaskPublic
 // @Failure 500 {object} errinfo.errInf
-// @Router /api/v1/task_history [get]
+// @Router /api/v1/history/task [get]
 func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	var (
 		supplierID int64

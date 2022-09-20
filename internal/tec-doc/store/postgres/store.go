@@ -26,6 +26,7 @@ type Store interface {
 	GetSupplierTaskHistory(ctx context.Context, tx Transaction, supplierID int64, limit int, offset int) ([]model.Task, error)
 	GetProductsBuffer(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
 	MoveProductsToHistoryByUploadId(ctx context.Context, tx Transaction, uploadId int64) (err error)
+	MarkTaskAsCompletedAndMoveProductsToHistory(ctx context.Context, uploadID int64) error
 	UpdateProductBuffer(ctx context.Context, tx Transaction, products *model.Product) (err error)
 	SaveProductsToHistory(ctx context.Context, tx Transaction, products []model.Product) error
 	DeleteFromBuffer(ctx context.Context, tx Transaction, uploadID int64) error

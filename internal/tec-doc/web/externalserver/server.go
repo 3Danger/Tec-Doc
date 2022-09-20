@@ -14,7 +14,7 @@ import (
 )
 
 type Service interface {
-	GetProductsEnrichedExcel(products []model.Product) (data []byte, err error)
+	GetProductsEnrichedExcel(products []model.Product) ([]byte, error)
 	ExcelTemplateForClient() ([]byte, error)
 	AddFromExcel(ctx *gin.Context, products []model.Product, supplierID int64, userID int64) error
 	LoadFromExcel(bodyData io.Reader) (products []model.Product, err error)
@@ -23,7 +23,7 @@ type Service interface {
 	ExcelProductsHistoryWithStatus(ctx context.Context, uploadID, status int64) ([]byte, error)
 	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
 	GetBrand(brandName string) (*model.Brand, error)
-	Enrichment(product []model.Product) (productsEnriched []model.ProductEnriched, err error)
+	Enrichment(product []model.Product) (productsEnriched []model.ProductEnriched)
 
 	Scope() *config.Scope
 	Abac() services.ABAC
@@ -62,8 +62,8 @@ func (e *externalHttpServer) configureRouter() {
 		api.POST("/excel", e.LoadFromExcel)
 		api.POST("/excel/products/enrichment", e.GetProductsEnrichedExcel)
 		api.POST("/excel/products/errors", e.ExcelProductsWithErrors)
-		api.GET("/task_history", e.GetSupplierTaskHistory)
-		api.POST("/product_history", e.GetProductsHistory)
+		api.GET("/history/task", e.GetSupplierTaskHistory)
+		api.POST("/history/product", e.GetProductsHistory)
 		api.POST("/articles/enrichment", e.GetTecDocArticles)
 	}
 }
