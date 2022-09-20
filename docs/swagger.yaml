@@ -335,7 +335,7 @@ paths:
       summary: ExcelProductsWithErrors
       tags:
       - excel
-  /api/v1/product_history:
+  /api/v1/history/product:
     post:
       consumes:
       - application/json
@@ -384,7 +384,7 @@ paths:
       summary: GetProductsHistory
       tags:
       - product
-  /api/v1/task_history:
+  /api/v1/history/task:
     get:
       description: get task list
       operationId: supplier_task_history

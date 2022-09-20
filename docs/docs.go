@@ -295,7 +295,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/product_history": {
+        "/api/v1/history/product": {
             "post": {
                 "description": "get product list",
                 "consumes": [
@@ -367,7 +367,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/task_history": {
+        "/api/v1/history/task": {
             "get": {
                 "description": "get task list",
                 "produces": [
