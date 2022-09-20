@@ -6,6 +6,7 @@ import (
 )
 
 type Config struct {
+	TestMode         bool   `envconfig:"TEST_MODE" default:"true"`
 	InternalServPort string `envconfig:"INTERNAL_SERV_PORT" required:"true"`
 	ExternalServPort string `envconfig:"EXTERNAL_SERV_PORT" required:"true"`
 	LogLevel         string `envconfig:"LOG_LEVEL" default:"debug"`
@@ -13,6 +14,16 @@ type Config struct {
 	Content          ContentClientConfig
 	TecDoc           TecDocClientConfig
 	Scope            Scope
+	Suppliers        SuppliersClientConfig
+	Abac             AbacClientConfig
+}
+
+type AbacClientConfig struct {
+	AbacUrl string `envconfig:"ABAC_URL" default:"http://abac.suppliers-portal-core.svc.k8s.stage-dp"`
+}
+
+type SuppliersClientConfig struct {
+	Url string `envconfig:"SUPPLIERS_URL" default:"http://suppliers.suppliers-portal-core.svc.k8s.stage-dp"`
 }
 
 type PostgresConfig struct {
@@ -27,9 +38,8 @@ type PostgresConfig struct {
 }
 
 type ContentClientConfig struct {
-	URL        string        `envconfig:"CONTENT_CLIENT_URL"`
-	Timeout    time.Duration `envconfig:"CONTENT_CLIENT_TIMEOUT" default:"30s"`
-	SupplierId string        `envconfig:"CONTENT_CLIENT_SUPPLIER_ID"`
+	URL     string        `envconfig:"CONTENT_CLIENT_URL"`
+	Timeout time.Duration `envconfig:"CONTENT_CLIENT_TIMEOUT" default:"30s"`
 }
 
 type TecDocClientConfig struct {

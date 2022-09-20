@@ -7,7 +7,9 @@ import (
 	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/internal/tec-doc/web/externalserver"
 	"tec-doc/internal/tec-doc/web/internalserver"
+	"tec-doc/pkg/clients/abac"
 	"tec-doc/pkg/clients/services"
+	"tec-doc/pkg/clients/suppliers"
 	"tec-doc/pkg/clients/tecdoc"
 	"tec-doc/pkg/metrics"
 	"tec-doc/pkg/model"
@@ -15,7 +17,7 @@ import (
 )
 
 type Store interface {
-	CreateTask(ctx context.Context, tx postgres.Transaction, supplierID, userID, productsTotal int64, ip string, uploadDate time.Time) (int64, error)
+	CreateTask(ctx context.Context, tx postgres.Transaction, supplierIdString string, supplierID, userID, productsTotal int64, ip string, uploadDate time.Time) (int64, error)
 	SaveIntoBuffer(ctx context.Context, tx postgres.Transaction, products []model.Product) error
 	GetSupplierTaskHistory(ctx context.Context, tx postgres.Transaction, supplierID int64, limit int, offset int) ([]model.Task, error)
 	GetProductsBuffer(ctx context.Context, tx postgres.Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
@@ -59,13 +61,15 @@ func New(ctx context.Context, conf *config.Config, log *zerolog.Logger, mts *met
 	}
 
 	svc := Service{
-		conf:         conf,
-		log:          log,
-		database:     store,
-		tecDocClient: tecdoc.NewClient(conf.TecDoc.URL, conf.TecDoc, log),
+		conf:            conf,
+		log:             log,
+		database:        store,
+		abacClient:      abac.New("abac", *log, conf.Abac.AbacUrl).ABAC(),
+		suppliersClient: suppliers.New("suppliers", *log, conf.Suppliers.Url).Suppliers(),
+		tecDocClient:    tecdoc.NewClient(conf.TecDoc.URL, conf.TecDoc, log),
 	}
 	svc.internalServer = internalserver.New(conf.InternalServPort)
-	svc.externalServer = externalserver.New(conf.ExternalServPort, &svc, log, mts)
+	svc.externalServer = externalserver.New(conf.ExternalServPort, &svc, log, mts, conf.TestMode)
 	return &svc
 }
 

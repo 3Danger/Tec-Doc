@@ -5,19 +5,17 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/cookiejar"
 	"net/url"
 	"tec-doc/internal/tec-doc/config"
 )
 
 type ContentCardClient interface {
-	Upload(body io.Reader) (err error)
+	Upload(supplierIdString string) (upload func(io.Reader) error, err error)
 }
 
 type contentCardClient struct {
-	host string
-	http.Client
-	header http.Header
+	host   *url.URL
+	client http.Client
 }
 
 type errorResponse struct {
@@ -28,54 +26,42 @@ type errorResponse struct {
 }
 
 func New(cnf *config.ContentClientConfig) (ContentCardClient, error) {
-	var (
-		err       error
-		sourceUrl *url.URL
-		cookie    *cookiejar.Jar
-	)
-	if sourceUrl, err = url.Parse(cnf.URL); err != nil {
+	host, err := url.Parse(cnf.URL)
+	if err != nil {
 		return nil, err
 	}
-	if cookie, err = cookiejar.New(nil); err != nil {
-		return nil, err
-	}
-	cookie.SetCookies(sourceUrl, []*http.Cookie{
-		{
-			Name:     "x-supplier-id",
-			Value:    cnf.SupplierId,
-			HttpOnly: true,
-		},
-	})
 	return &contentCardClient{
-		host:   cnf.URL,
-		header: map[string][]string{"Content-Type": {"application/json"}},
-		Client: http.Client{Jar: cookie, Timeout: cnf.Timeout},
+		host:   host,
+		client: http.Client{Timeout: cnf.Timeout},
 	}, nil
 }
 
-func (c *contentCardClient) Upload(body io.Reader) (err error) {
-	var errResp errorResponse
-	if err = c.doRequest(http.MethodPost, c.host+"/source/upload", body, &errResp); err != nil {
-		return err
+func (c *contentCardClient) Upload(supplierIdString string) (upload func(io.Reader) error, err error) {
+	request, err := http.NewRequest(http.MethodPost, c.host.JoinPath("/source/upload").String(), nil)
+	if err != nil {
+		return nil, err
 	}
-	if errResp.Error {
-		return fmt.Errorf("from server: %s", errResp.ErrorText)
-	}
-	return nil
+	request.AddCookie(&http.Cookie{Name: "x-supplier-id", Value: supplierIdString, HttpOnly: true})
+	request.Header.Add("Content-Type", "application/json")
+	return func(body io.Reader) error {
+		var errResp errorResponse
+		request.Body = io.NopCloser(body)
+		if err := c.doRequest(request, &errResp); err != nil {
+			return err
+		}
+		if errResp.Error {
+			return fmt.Errorf("from server: %s", errResp.ErrorText)
+		}
+		return nil
+	}, nil
 }
 
 // doRequest делает запрос и заполняет данными JSON структуру outStructPtr. аналог BindJSON() из gin
-func (c *contentCardClient) doRequest(method, path string, body io.Reader, outStructPtr interface{}) (err error) {
+func (c *contentCardClient) doRequest(request *http.Request, outStructPtr interface{}) (err error) {
 	var (
 		response *http.Response
-		request  *http.Request
 	)
-	if request, err = http.NewRequest(method, path, body); err != nil {
-		return fmt.Errorf("can't create new request: %w", err)
-	}
-
-	request.Header = c.header
-	if response, err = c.Do(request); err != nil {
+	if response, err = c.client.Do(request); err != nil {
 		return err
 	}
 	if response.StatusCode != http.StatusOK {

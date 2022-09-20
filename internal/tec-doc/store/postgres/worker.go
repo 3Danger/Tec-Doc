@@ -4,15 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"tec-doc/pkg/model"
 	"time"
 )
 
-func (s *store) GetOldestTask(ctx context.Context, tx Transaction) (int64, error) {
+func (s *store) GetOldestTask(ctx context.Context, tx Transaction) (int64, string, error) {
 	var (
-		getOldestTaskQuery = `SELECT id FROM tasks.tasks  WHERE status=$1 or status=$2 ORDER BY upload_date ASC LIMIT 1;`
+		getOldestTaskQuery = `SELECT id, supplier_id_string FROM tasks.tasks  WHERE status=$1 or status=$2 ORDER BY upload_date ASC LIMIT 1;`
 		executor           Executor
 		t                  model.Task
 	)
@@ -26,8 +25,10 @@ func (s *store) GetOldestTask(ctx context.Context, tx Transaction) (int64, error
 	defer cancel()
 
 	row := executor.QueryRow(ctx, getOldestTaskQuery, StatusNew, StatusProcess)
-	err := row.Scan(&t.ID)
-	return t.ID, err
+	if err := row.Scan(&t.ID, &t.SupplierIdString); err != nil {
+		return 0, "", err
+	}
+	return t.ID, t.SupplierIdString, nil
 }
 
 func (s *store) GetProductsBufferWithStatus(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int, status int) ([]model.Product, error) {
@@ -40,11 +41,11 @@ func (s *store) GetProductsBufferWithStatus(ctx context.Context, tx Transaction,
 	SELECT 
 			id, 
 			upload_id, 
-	COALESCE(article, ''), 
-	COALESCE(article_supplier, ''), 
-	COALESCE(brand, ''),
-	COALESCE(barcode, ''),
-	COALESCE(subject, ''),
+			article, 
+			article_supplier, 
+			brand,
+			barcode,
+			subject,
 	COALESCE(price, 0),
 			upload_date,
 			update_date,
@@ -86,11 +87,10 @@ func (s *store) GetProductsBufferWithStatus(ctx context.Context, tx Transaction,
 func (s *store) UpdateProductStatus(ctx context.Context, tx Transaction, productID int64, status int) error {
 
 	var (
-		updateProductStatusQuery = `UPDATE tasks.products_buffer SET status=$1, update_date = $2 WHERE id=$3;`
-		executor                 Executor
+		query             = `UPDATE tasks.products_buffer SET status=$1, update_date = $2 WHERE id=$3;`
+		executor Executor = s.pool
 	)
 
-	executor = s.pool
 	if tx != nil {
 		executor = tx
 	}
@@ -98,7 +98,7 @@ func (s *store) UpdateProductStatus(ctx context.Context, tx Transaction, product
 	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 
-	res, err := executor.Exec(ctx, updateProductStatusQuery, status, time.Now().UTC(), productID)
+	res, err := executor.Exec(ctx, query, status, time.Now().UTC(), productID)
 	if err != nil {
 		return fmt.Errorf("can't exec updateProductStatusQuery: %w", err)
 	}
@@ -138,11 +138,10 @@ func (s *store) UpdateTaskProductsNumber(ctx context.Context, tx Transaction, up
 
 func (s *store) UpdateTaskStatus(ctx context.Context, tx Transaction, uploadID int64, status int) error {
 	var (
-		updateTaskStatusQuery = `UPDATE tasks.tasks SET status=$1, update_date = $2 WHERE id=$3;`
-		executor              Executor
+		updateTaskStatusQuery          = `UPDATE tasks.tasks SET status=$1, update_date = $2 WHERE id=$3;`
+		executor              Executor = s.pool
 	)
 
-	executor = s.pool
 	if tx != nil {
 		executor = tx
 	}
@@ -163,73 +162,29 @@ func (s *store) UpdateTaskStatus(ctx context.Context, tx Transaction, uploadID i
 }
 
 func (s *store) MoveProductsToHistoryByUploadId(ctx context.Context, tx Transaction, uploadId int64) (err error) {
-	var _tx = tx
-	if tx == nil {
-		if _tx, err = s.pool.Begin(ctx); err != nil {
-			return err
-		}
-		defer func() { _ = _tx.Rollback(ctx) }()
+	var executor Executor = s.pool
+	if tx != nil {
+		executor = tx
 	}
-	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
-	defer cancel()
-
-	query := `
-INSERT INTO tasks.products_history(
-	upload_id, article, article_supplier,
-	brand, barcode, subject,
-	price, upload_date, update_date,
-	status, errorResponse) 
-SELECT 
-	b.upload_id, b.article, b.article_supplier,
-	b.brand, b.barcode, b.subject,
-	b.price, b.upload_date, b.update_date,
-	b.status, b.errorResponse
-FROM tasks.products_buffer AS b
-WHERE upload_id = $1;`
-
-	var res pgconn.CommandTag
-	if res, err = _tx.Exec(ctx, query, uploadId); err != nil {
+	if _, err = executor.Exec(ctx, "CALL tasks.move_products_from_buffer_to_history($1)", uploadId); err != nil {
 		return err
-	}
-	if res.RowsAffected() == 0 {
-		return fmt.Errorf("no rows were updated")
-	}
-
-	query = `DELETE FROM tasks.products_buffer WHERE upload_id = $1`
-	if res, err = _tx.Exec(ctx, query, uploadId); err != nil {
-		return err
-	}
-	if res.RowsAffected() == 0 {
-		return fmt.Errorf("no rows were updated")
-	}
-	if tx == nil {
-		return _tx.Commit(ctx)
 	}
 	return nil
 }
 
-func (s *store) UpdateProductBufferErrorResponse(ctx context.Context, tx Transaction, products ...model.Product) (err error) {
-	var _tx = tx
-	if tx == nil {
-		if _tx, err = s.pool.Begin(ctx); err != nil {
-			return err
-		}
-		defer func() { _ = _tx.Rollback(ctx) }()
+func (s *store) UpdateProductBuffer(ctx context.Context, tx Transaction, products *model.Product) (err error) {
+	var executor Executor = s.pool
+	if tx != nil {
+		executor = tx
 	}
 	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 
 	query :=
-		`UPDATE tasks.products_buffer SET errorresponse = $1, update_date = $2 WHERE id = $3`
-
-	for i := range products {
-		row := _tx.QueryRow(ctx, query, products[i].ErrorResponse, time.Now().UTC(), products[i].ID)
-		if err = row.Scan(); err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			return err
-		}
-	}
-	if tx == nil {
-		return _tx.Commit(ctx)
+		`UPDATE tasks.products_buffer SET status = $1, errorresponse = $2, update_date = $3 WHERE id = $4`
+	row := executor.QueryRow(ctx, query, products.Status, products.ErrorResponse, time.Now().UTC(), products.ID)
+	if err = row.Scan(); err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return err
 	}
 	return nil
 }

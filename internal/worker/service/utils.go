@@ -7,29 +7,30 @@ import (
 	"tec-doc/pkg/model"
 )
 
-func (s *service) makeUploadBody(pe *model.ProductCharacteristics) (body io.Reader, err error) {
+func (s *service) makeUploadBody(productEnriched *model.ProductEnriched) (body io.Reader, err error) {
+	ch := s.enricher.ConvertToCharacteristics(productEnriched)
 	type M map[string]interface{}
 	var bodyMap = make(M)
 	characteristics := []interface{}{
-		M{"Предмет": pe.Object},
-		M{"Бренд": pe.Brand},
-		M{"Категория": pe.Subject},
-		M{"Артикул товара": pe.ArticleSupplier},
-		M{"Артикул производителя": pe.Article},
-		M{"Штрихкод товара": pe.Barcode},
-		M{"Розничная цена, в руб": pe.Price},
-		M{"Наименование": pe.GenArticleDescr},
-		M{"ОЕМ номер": pe.OEMnumbers},
-		M{"Вес с упаковкой (кг)": pe.Weight},
-		M{"Высота упаковки": pe.Height},
-		M{"Глубина упаковки": pe.Depth},
-		M{"Ширина упаковки": pe.Width},
-		M{"Описание": pe.Description},
-		M{"Марка автомобиля": pe.Targets},
-		M{"Фото": pe.Photo},
-		M{"Комплектация": pe.Amount},
+		M{"Предмет": ch.Object},
+		M{"Бренд": ch.Brand},
+		M{"Категория": ch.Subject},
+		M{"Артикул товара": ch.ArticleSupplier},
+		M{"Артикул производителя": ch.Article},
+		M{"Штрихкод товара": ch.Barcode},
+		M{"Розничная цена, в руб": ch.Price},
+		M{"Наименование": ch.GenArticleDescr},
+		M{"ОЕМ номер": ch.OEMnumbers},
+		M{"Вес с упаковкой (кг)": ch.Weight},
+		M{"Высота упаковки": ch.Height},
+		M{"Глубина упаковки": ch.Depth},
+		M{"Ширина упаковки": ch.Width},
+		M{"Описание": ch.Description},
+		M{"Марка автомобиля": ch.Targets},
+		M{"Фото": ch.Photo},
+		M{"Комплектация": ch.Amount},
 	}
-	bodyMap["vendorCode"] = pe.ArticleSupplier
+	bodyMap["vendorCode"] = ch.ArticleSupplier
 	bodyMap["characteristics"] = characteristics
 	buff := new(bytes.Buffer)
 	if err = json.NewEncoder(buff).Encode(bodyMap); err != nil {

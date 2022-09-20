@@ -122,11 +122,11 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 		supplierID, userID int64
 		err                error
 	)
-	//if supplierID, userID, err = CredentialsFromContext(c); err != nil {
-	//	e.logger.Error().Err(err).Send()
-	//	c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTaskID))
-	//	return
-	//}
+	if supplierID, userID, err = CredentialsFromContext(c); err != nil {
+		e.logger.Error().Err(err).Send()
+		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTaskID))
+		return
+	}
 	var products []model.Product
 	if products, err = e.service.LoadFromExcel(c.Request.Body); err != nil {
 		e.logger.Error().Err(err).Send()

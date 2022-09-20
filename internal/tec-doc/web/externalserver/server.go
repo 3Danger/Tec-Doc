@@ -36,11 +36,12 @@ type Server interface {
 }
 
 type externalHttpServer struct {
-	router  *gin.Engine
-	server  http.Server
-	metrics *metrics.Metrics
-	service Service
-	logger  *zerolog.Logger
+	testMode bool
+	router   *gin.Engine
+	server   http.Server
+	metrics  *metrics.Metrics
+	service  Service
+	logger   *zerolog.Logger
 }
 
 func (e *externalHttpServer) Start() error {
@@ -56,7 +57,7 @@ func (e *externalHttpServer) configureRouter() {
 	e.router.Use(e.MiddleWareMetric)
 	api := e.router.Group("/api/v1")
 	{
-		//api.Use(e.Authorize)
+		api.Use(e.Authorize)
 		api.GET("/excel", e.ExcelTemplate)
 		api.POST("/excel", e.LoadFromExcel)
 		api.POST("/excel/products/enrichment", e.GetProductsEnrichedExcel)
@@ -67,13 +68,14 @@ func (e *externalHttpServer) configureRouter() {
 	}
 }
 
-func New(bindingPort string, service Service, logger *zerolog.Logger, mts *metrics.Metrics) *externalHttpServer {
+func New(bindingPort string, service Service, logger *zerolog.Logger, mts *metrics.Metrics, testMode bool) Server {
 	router := gin.Default()
 	serv := &externalHttpServer{
-		router:  router,
-		service: service,
-		logger:  logger,
-		metrics: mts,
+		testMode: testMode,
+		router:   router,
+		service:  service,
+		logger:   logger,
+		metrics:  mts,
 		server: http.Server{
 			Addr:    bindingPort,
 			Handler: router,

@@ -117,10 +117,11 @@ type TaskPublic struct {
 }
 
 type Task struct {
-	SupplierID int64     `json:"supplierID"`
-	UpdateDate time.Time `json:"updateDate"`
-	IP         string    `json:"ip"`
-	UserID     int64     `json:"userID"`
+	SupplierIdString string    `json:"supplierIdString"`
+	SupplierID       int64     `json:"supplierID"`
+	UpdateDate       time.Time `json:"updateDate"`
+	IP               string    `json:"ip"`
+	UserID           int64     `json:"userID"`
 	TaskPublic
 }
 

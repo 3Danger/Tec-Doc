@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID, userID, productsTotal int64, ip string, uploadDate time.Time) (int64, error) {
+func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierIdString string, supplierID, userID, productsTotal int64, ip string, uploadDate time.Time) (int64, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 	var (
-		createTaskQuery = `INSERT INTO tasks.tasks (supplier_id, user_id, upload_date, update_date, IP, status, products_processed, products_failed, products_total)
-							VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;`
+		createTaskQuery = `INSERT INTO tasks.tasks (supplier_id_string, supplier_id, user_id, upload_date, update_date, IP, status, products_processed, products_failed, products_total)
+							VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;`
 		executor Executor
 		taskID   int64
 	)
@@ -23,7 +23,7 @@ func (s *store) CreateTask(ctx context.Context, tx Transaction, supplierID, user
 		executor = tx
 	}
 
-	row := executor.QueryRow(ctx, createTaskQuery, supplierID, userID,
+	row := executor.QueryRow(ctx, createTaskQuery, supplierIdString, supplierID, userID,
 		uploadDate, uploadDate, ip, StatusNew, 0, 0, productsTotal)
 
 	if err := row.Scan(&taskID); err != nil {
@@ -37,7 +37,7 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supp
 	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
 	defer cancel()
 	var (
-		getSupplierTaskHistoryQuery = `SELECT id, supplier_id, user_id, upload_date, update_date, status, products_processed, products_failed, products_total
+		getSupplierTaskHistoryQuery = `SELECT id, supplier_id_string, supplier_id, user_id, upload_date, update_date, status, products_processed, products_failed, products_total
 								FROM tasks.tasks WHERE supplier_id = $1 ORDER BY upload_date LIMIT $2 OFFSET $3;`
 		executor    Executor
 		taskHistory = make([]model.Task, 0)
@@ -56,7 +56,7 @@ func (s *store) GetSupplierTaskHistory(ctx context.Context, tx Transaction, supp
 
 	for rows.Next() {
 		var t model.Task
-		err = rows.Scan(&t.ID, &t.SupplierID, &t.UserID, &t.UploadDate,
+		err = rows.Scan(&t.ID, &t.SupplierIdString, &t.SupplierID, &t.UserID, &t.UploadDate,
 			&t.UpdateDate, &t.Status, &t.ProductsProcessed, &t.ProductsFailed, &t.ProductsFailed)
 		if err != nil {
 			return nil, fmt.Errorf("can't get tasks from history: %w", err)
@@ -77,18 +77,18 @@ func (s *store) GetProductsHistory(ctx context.Context, tx Transaction, uploadID
 	var (
 		getProductsFromHistoryQuery = `
 SELECT 
-    	 id, 
-    	 upload_id, 
-COALESCE(article, ''), 
-COALESCE(article_supplier, ''), 
-    	 brand, 
-COALESCE(barcode, ''), 
-COALESCE(subject, ''), 
+    	id, 
+    	upload_id, 
+		article, 
+		article_supplier, 
+    	brand, 
+		barcode, 
+		subject, 
 COALESCE(price, 0), 
-		 upload_date, 
-	     update_date, 
-COALESCE(amount, 1),
-COALESCE(status, 0), 
+		upload_date, 
+	    update_date, 
+		amount,
+		status, 
 COALESCE(errorresponse, '') 
 FROM tasks.products_history WHERE upload_id = $1 LIMIT $2 OFFSET $3;`
 		executor        Executor
@@ -130,16 +130,16 @@ func (s *store) GetProductsHistoryWithStatus(ctx context.Context, tx Transaction
 SELECT 
     	 id, 
     	 upload_id, 
-COALESCE(article, ''), 
-COALESCE(article_supplier, ''), 
+		 article, 
+		 article_supplier, 
     	 brand, 
-COALESCE(barcode, ''), 
-COALESCE(subject, ''), 
+		 barcode, 
+		 subject, 
 COALESCE(price, 0), 
 		 upload_date, 
 	     update_date, 
-COALESCE(amount, 1),
-COALESCE(status, 0), 
+		 amount,
+		 status, 
 COALESCE(errorresponse, '') 
 FROM tasks.products_history WHERE upload_id = $1 AND status = $2 LIMIT $3 OFFSET $4;`
 		executor        Executor
