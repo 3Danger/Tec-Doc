@@ -33,22 +33,16 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 	c.Data(http.StatusOK, exl.ContentTypeSheetML, excelTemplate)
 }
 
-//!!!!!!!!!!!!!!!!!!!!!!!!!
-// Param excel_file formData file true "excel file"
-// Param X-User-Id header string true "ID of user"
-// Produce json
-
 // @Summary ProductsEnrichedExcel
 // @Tags excel
 // @Description Enrichment excel file, limit entiies in file = 10000
 // @ID enrich_excel
 // @Param excel_file body []byte true "binary excel file"
-// @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-// @Param X-Supplier-Id header string true "ID of supplier"
+// @Produce json
 // @Success 200 {array} byte
 // @Failure 400 {object} string
 // @Failure 500 {object} string
-// @Router /excel/enrichment [post]
+// @Router /excel/products/enrichment [post]
 func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 	var (
 		err      error
@@ -90,7 +84,7 @@ func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} byte
 // @Failure 500 {object} errinfo.errInf
-// @Router /api/v1/excel/products/errors [post]
+// @Router /excel/products/errors [post]
 func (s *externalHttpServer) ExcelProductsWithErrors(c *gin.Context) {
 	var (
 		err error
@@ -108,9 +102,6 @@ func (s *externalHttpServer) ExcelProductsWithErrors(c *gin.Context) {
 	}
 	c.Data(http.StatusOK, exl.ContentTypeSheetML, fileRaw)
 }
-
-// !!!!!!!
-// Param excel_file formData file true "excel file"
 
 // @Summary LoadFromExcel
 // @Tags excel
@@ -160,8 +151,6 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Produce json
 // @Param limit query string true "limit of contents"
 // @Param offset query string true "offset of contents"
-// @Param X-User-Id header string true "ID of user"
-// @Param X-Supplier-Id header string true "ID of supplier"
 // @Param InputBody body model.UploadIdRequest true "The input body.<br /> UploadID is ID of previously uploaded task."
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
@@ -215,11 +204,11 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 		supplierID int64
 		err        error
 	)
-	//if supplierID, _, err = CredentialsFromContext(c); err != nil {
-	//	e.logger.Error().Err(err).Send()
-	//	c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTaskID))
-	//	return
-	//}
+	if supplierID, _, err = CredentialsFromContext(c); err != nil {
+		e.logger.Error().Err(err).Send()
+		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTaskID))
+		return
+	}
 
 	limit, err := strconv.Atoi(c.Query("limit"))
 	if err != nil {
@@ -247,7 +236,6 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, pubTasks)
 }
-
 
 // @Summary GetTecDocArticles
 // @Tags product

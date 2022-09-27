@@ -16,7 +16,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/articles/enrichment": {
+        "/articles/enrichment": {
             "post": {
                 "description": "to enrichment product by brand and article",
                 "consumes": [
@@ -60,8 +60,8 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "The input body",
-                        "name": "InputBody",
+                        "description": "brand \u0026\u0026 article - about product",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -88,7 +88,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/excel": {
+        "/excel": {
             "get": {
                 "description": "download excel table template",
                 "produces": [
@@ -135,9 +135,6 @@ const docTemplate = `{
             },
             "post": {
                 "description": "upload excel table containing products info",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "excel"
                 ],
@@ -145,11 +142,16 @@ const docTemplate = `{
                 "operationId": "load_from_excel",
                 "parameters": [
                     {
-                        "type": "file",
-                        "description": "excel file",
+                        "description": "binary excel file",
                         "name": "excel_file",
-                        "in": "formData",
-                        "required": true
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
                     },
                     {
                         "type": "string",
@@ -188,11 +190,11 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/excel/enrichment": {
+        "/excel/products/enrichment": {
             "post": {
                 "description": "Enrichment excel file, limit entiies in file = 10000",
                 "produces": [
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    "application/json"
                 ],
                 "tags": [
                     "excel"
@@ -201,18 +203,16 @@ const docTemplate = `{
                 "operationId": "enrich_excel",
                 "parameters": [
                     {
-                        "type": "file",
-                        "description": "excel file",
+                        "description": "binary excel file",
                         "name": "excel_file",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID of supplier",
-                        "name": "X-Supplier-Id",
-                        "in": "header",
-                        "required": true
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
                     }
                 ],
                 "responses": {
@@ -240,7 +240,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/excel/products/errors": {
+        "/excel/products/errors": {
             "post": {
                 "description": "download excel table template",
                 "produces": [
@@ -295,7 +295,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/history/product": {
+        "/history/product": {
             "post": {
                 "description": "get product list",
                 "consumes": [
@@ -322,20 +322,6 @@ const docTemplate = `{
                         "description": "offset of contents",
                         "name": "offset",
                         "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID of user",
-                        "name": "X-User-Id",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID of supplier",
-                        "name": "X-Supplier-Id",
-                        "in": "header",
                         "required": true
                     },
                     {
@@ -367,7 +353,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/history/task": {
+        "/history/task": {
             "get": {
                 "description": "get task list",
                 "produces": [
@@ -650,7 +636,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8002",
-	BasePath:         "/",
+	BasePath:         "/api/v1/",
 	Schemes:          []string{"http"},
 	Title:            "Tec-Doc API",
 	Description:      "",

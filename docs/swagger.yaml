@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api/v1/
 definitions:
   errinfo.errInf:
     properties:
@@ -146,7 +146,7 @@ info:
   title: Tec-Doc API
   version: "1.0"
 paths:
-  /api/v1/articles/enrichment:
+  /articles/enrichment:
     post:
       consumes:
       - application/json
@@ -173,9 +173,9 @@ paths:
         name: X-Supplier-Id
         required: true
         type: string
-      - description: The input body
+      - description: brand && article - about product
         in: body
-        name: InputBody
+        name: request
         required: true
         schema:
           $ref: '#/definitions/model.GetTecDocArticlesRequest'
@@ -195,7 +195,7 @@ paths:
       summary: GetTecDocArticles
       tags:
       - product
-  /api/v1/excel:
+  /excel:
     get:
       description: download excel table template
       operationId: excel_template
@@ -230,11 +230,14 @@ paths:
       description: upload excel table containing products info
       operationId: load_from_excel
       parameters:
-      - description: excel file
-        in: formData
+      - description: binary excel file
+        in: body
         name: excel_file
         required: true
-        type: file
+        schema:
+          items:
+            type: integer
+          type: array
       - description: ID of user
         in: header
         name: X-User-Id
@@ -245,8 +248,6 @@ paths:
         name: X-Supplier-Id
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: OK
@@ -263,23 +264,21 @@ paths:
       summary: LoadFromExcel
       tags:
       - excel
-  /api/v1/excel/enrichment:
+  /excel/products/enrichment:
     post:
       description: Enrichment excel file, limit entiies in file = 10000
       operationId: enrich_excel
       parameters:
-      - description: excel file
-        in: formData
+      - description: binary excel file
+        in: body
         name: excel_file
         required: true
-        type: file
-      - description: ID of supplier
-        in: header
-        name: X-Supplier-Id
-        required: true
-        type: string
+        schema:
+          items:
+            type: integer
+          type: array
       produces:
-      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      - application/json
       responses:
         "200":
           description: OK
@@ -298,7 +297,7 @@ paths:
       summary: ProductsEnrichedExcel
       tags:
       - excel
-  /api/v1/excel/products/errors:
+  /excel/products/errors:
     post:
       description: download excel table template
       operationId: excel_products_with_errors
@@ -335,7 +334,7 @@ paths:
       summary: ExcelProductsWithErrors
       tags:
       - excel
-  /api/v1/history/product:
+  /history/product:
     post:
       consumes:
       - application/json
@@ -350,16 +349,6 @@ paths:
       - description: offset of contents
         in: query
         name: offset
-        required: true
-        type: string
-      - description: ID of user
-        in: header
-        name: X-User-Id
-        required: true
-        type: string
-      - description: ID of supplier
-        in: header
-        name: X-Supplier-Id
         required: true
         type: string
       - description: The input body.<br /> UploadID is ID of previously uploaded task.
@@ -384,7 +373,7 @@ paths:
       summary: GetProductsHistory
       tags:
       - product
-  /api/v1/history/task:
+  /history/task:
     get:
       description: get task list
       operationId: supplier_task_history
