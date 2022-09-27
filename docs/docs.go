@@ -18,7 +18,10 @@ const docTemplate = `{
     "paths": {
         "/articles/enrichment": {
             "post": {
-                "description": "get task list",
+                "description": "to enrichment product by brand and article",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -28,6 +31,34 @@ const docTemplate = `{
                 "summary": "GetTecDocArticles",
                 "operationId": "articles_enrichment",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "limit of contents",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "offset of contents",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of user",
+                        "name": "X-User-Id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of supplier",
+                        "name": "X-Supplier-Id",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "brand \u0026\u0026 article - about product",
                         "name": "request",
@@ -44,10 +75,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/model.Article"
-                                }
+                                "$ref": "#/definitions/model.Article"
                             }
                         }
                     },
@@ -63,11 +91,30 @@ const docTemplate = `{
         "/excel": {
             "get": {
                 "description": "download excel table template",
+                "produces": [
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
+                ],
                 "tags": [
                     "excel"
                 ],
                 "summary": "ExcelTemplate",
                 "operationId": "excel_template",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of user",
+                        "name": "X-User-Id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of supplier",
+                        "name": "X-Supplier-Id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -143,7 +190,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/excel/enrichment": {
+        "/excel/products/enrichment": {
             "post": {
                 "description": "Enrichment excel file, limit entiies in file = 10000",
                 "produces": [
@@ -193,7 +240,62 @@ const docTemplate = `{
                 }
             }
         },
-        "/product_history": {
+        "/excel/products/errors": {
+            "post": {
+                "description": "download excel table template",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "excel"
+                ],
+                "summary": "ExcelProductsWithErrors",
+                "operationId": "excel_products_with_errors",
+                "parameters": [
+                    {
+                        "description": "The input body.\u003cbr /\u003e UploadID is ID of previously uploaded task.",
+                        "name": "InputBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UploadIdRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of user",
+                        "name": "X-User-Id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of supplier",
+                        "name": "X-Supplier-Id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errinfo.errInf"
+                        }
+                    }
+                }
+            }
+        },
+        "/history/product": {
             "post": {
                 "description": "get product list",
                 "consumes": [
@@ -220,20 +322,6 @@ const docTemplate = `{
                         "description": "offset of contents",
                         "name": "offset",
                         "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID of user",
-                        "name": "X-User-Id",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID of supplier",
-                        "name": "X-Supplier-Id",
-                        "in": "header",
                         "required": true
                     },
                     {
@@ -265,7 +353,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/task_history": {
+        "/history/task": {
             "get": {
                 "description": "get task list",
                 "produces": [
@@ -312,7 +400,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.Task"
+                                "$ref": "#/definitions/model.TaskPublic"
                             }
                         }
                     },
@@ -467,6 +555,10 @@ const docTemplate = `{
         "model.Product": {
             "type": "object",
             "properties": {
+                "amount": {
+                    "type": "integer",
+                    "default": 1
+                },
                 "article": {
                     "type": "string"
                 },
@@ -505,14 +597,11 @@ const docTemplate = `{
                 }
             }
         },
-        "model.Task": {
+        "model.TaskPublic": {
             "type": "object",
             "properties": {
                 "id": {
                     "type": "integer"
-                },
-                "ip": {
-                    "type": "string"
                 },
                 "productsFailed": {
                     "type": "integer"
@@ -526,17 +615,8 @@ const docTemplate = `{
                 "status": {
                     "type": "integer"
                 },
-                "supplierID": {
-                    "type": "integer"
-                },
-                "updateDate": {
-                    "type": "string"
-                },
                 "uploadDate": {
                     "type": "string"
-                },
-                "userID": {
-                    "type": "integer"
                 }
             }
         },

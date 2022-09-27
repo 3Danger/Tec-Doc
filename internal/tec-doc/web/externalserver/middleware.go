@@ -32,51 +32,42 @@ func (e *externalHttpServer) Authorize(ctx *gin.Context) {
 	}
 
 	userIDN, err := strconv.ParseUint(userID, 10, 64)
-	if err != nil {
+	if err != nil || userIDN == 0 {
 		e.logger.Error().Err(errinfo.InvalidUserID).Send()
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	supplierID := ctx.Request.Header.Get("X-Supplier-Id")
-	if supplierID == "" {
+	supplierID, err := ctx.Request.Cookie("X-Supplier-Id")
+	if err != nil || supplierID.Value == "" {
 		e.logger.Error().Err(errinfo.InvalidSupplierID).Send()
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	supplierIDN, err := strconv.ParseInt(supplierID, 10, 64)
-	if err != nil {
-		e.logger.Error().Err(errinfo.InvalidSupplierID).Send()
-		ctx.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-	if supplierIDN == 0 || userIDN == 0 {
-		e.logger.Error().Err(errinfo.InvalidUserOrSupplierID).Send()
-		ctx.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	key, err := uuid.FromString(supplierID)
+	key, err := uuid.FromString(supplierID.Value)
 	if err != nil {
 		e.logger.Error().Err(errinfo.SupplierIsNotUUID).Send()
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	//TODO oldID
-	_, err = e.service.Suppliers().GetOldSupplierID(ctx, key)
+	supplierOldId, err := e.service.Suppliers().GetOldSupplierID(ctx, key)
 	if err != nil {
 		e.logger.Error().Err(errinfo.FailOldSupplierID).Send()
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	var decision bool
-	if decision, err = e.service.Abac().CheckAccess(ctx, e.service.Scope().Scope, feature, &userIDN, key); err != nil {
+	decision, err := e.service.Abac().CheckAccess(ctx, e.service.Scope().Scope, feature, &userIDN, key)
+	if err != nil {
 		e.logger.Error().Err(errinfo.CheckAcessError).Send()
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
+	}
+
+	if e.testMode {
+		decision = true
 	}
 
 	if !decision {
@@ -85,21 +76,22 @@ func (e *externalHttpServer) Authorize(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Set("X-User-Id", userIDN)
-	ctx.Set("X-Supplier-Id", supplierIDN)
+	ctx.Set("X-User-Id", int64(userIDN))
+	ctx.Set("X-Supplier-Id", supplierID.Value)
+	ctx.Set("X-Supplier-Old-Id", int64(supplierOldId))
 }
 
-func CredentialsFromContext(ctx *gin.Context) (supplierID, userID int64, err error) {
+func CredentialsFromContext(ctx *gin.Context) (supplierOldID, userID int64, err error) {
 	valueUserID := ctx.GetInt64("X-User-Id")
 	if valueUserID == 0 {
 		return 0, 0, errinfo.InvalidUserID
 	}
 
-	valueSupplierID := ctx.GetInt64("X-Supplier-Id")
-	if valueSupplierID == 0 {
+	valueSupplierOldID := ctx.GetInt64("X-Supplier-Old-Id")
+	if valueSupplierOldID == 0 {
 		return 0, 0, errinfo.InvalidSupplierID
 	}
-	return valueUserID, valueSupplierID, nil
+	return valueUserID, valueSupplierOldID, nil
 }
 
 func (e *externalHttpServer) MiddleWareMetric(c *gin.Context) {

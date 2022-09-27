@@ -96,7 +96,7 @@ var (
 			Status: http.StatusUnauthorized,
 		},
 		NoTecDocArticlesFound: {
-			Msg:    "товары не найдены, проверьте корректно ли переданы параметры",
+			Msg:    "товары не найдены, проверьте корректно ли переданы бренд и артикул",
 			Status: http.StatusUnauthorized,
 		},
 		NoTecDocBrandFound: {
@@ -108,8 +108,8 @@ var (
 
 func GetErrorInfo(err error) (int, string) {
 	info, found := constErrs[err]
-	if found {
-		return info.Status, info.Msg
+	if !found {
+		info, _ = constErrs[InternalServerErr]
 	}
-	return 0, ""
+	return info.Status, info.Msg
 }

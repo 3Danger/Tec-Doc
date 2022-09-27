@@ -2,19 +2,21 @@ package tecdoc
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"github.com/rs/zerolog"
 	"net/http"
 	"tec-doc/internal/tec-doc/config"
+	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/pkg/errinfo"
 	"tec-doc/pkg/model"
+	"time"
 )
 
 type Client interface {
 	GetBrand(brandName string) (*model.Brand, error)
 	GetArticles(dataSupplierID int, article string) ([]model.Article, error)
-	Enrichment(products []model.Product) (productsEnriched *model.ProductEnriched, err error)
+	Enrichment(products []model.Product) (productsEnriched []model.ProductEnriched)
+	ConvertToCharacteristics(pe *model.ProductEnriched) *model.ProductCharacteristics
 }
 
 type tecDocClient struct {
@@ -24,7 +26,7 @@ type tecDocClient struct {
 	logger  *zerolog.Logger
 }
 
-func NewClient(baseURL string, tecDocCfg config.TecDocClientConfig, log *zerolog.Logger) *tecDocClient {
+func NewClient(baseURL string, tecDocCfg config.TecDocClientConfig, log *zerolog.Logger) Client {
 	return &tecDocClient{
 		Client:    http.Client{Timeout: tecDocCfg.Timeout},
 		baseURL:   baseURL,
@@ -33,29 +35,40 @@ func NewClient(baseURL string, tecDocCfg config.TecDocClientConfig, log *zerolog
 	}
 }
 
-func (c *tecDocClient) GetBrand(brandName string) (*model.Brand, error) {
-	type respStruct struct {
-		Data struct {
-			Array []model.Brand `json:"array"`
-		} `json:"data"`
-		Status int `json:"status"`
-	}
+type getBrandType struct {
+	Data struct {
+		Array []model.Brand `json:"array"`
+	} `json:"data"`
+	Status int `json:"status"`
 
+	//Что бы не делать миллион одинаковых запросов на каждый товар
+	time       time.Time
+	providerId int
+}
+
+var respBrand getBrandType
+
+func (c *tecDocClient) GetBrand(brandName string) (*model.Brand, error) {
 	var (
 		reqBody = []byte(fmt.Sprintf(
 			`{"getBrands":{"articleCountry":"ru", "lang":"ru", "provider":%d}}`, c.tecDocCfg.ProviderId))
-		resp respStruct
+		//resp respStruct
 	)
+	if time.Now().Sub(respBrand.time) > (time.Minute*5) ||
+		respBrand.providerId != c.tecDocCfg.ProviderId ||
+		respBrand.Status != http.StatusOK {
 
-	err := c.doRequest(http.MethodPost, bytes.NewReader(reqBody), &resp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to do request: %w", err)
+		respBrand.providerId = c.tecDocCfg.ProviderId
+		respBrand.time = time.Now()
+		err := c.doRequest(http.MethodPost, bytes.NewReader(reqBody), &respBrand)
+		if err != nil {
+			return nil, fmt.Errorf("failed to do request: %w", err)
+		}
+		if respBrand.Status != http.StatusOK {
+			return nil, fmt.Errorf("request failed with status code: %d", respBrand.Status)
+		}
 	}
-	if resp.Status != http.StatusOK {
-		return nil, fmt.Errorf("request failed with status code: %d", resp.Status)
-	}
-
-	for _, brand := range resp.Data.Array {
+	for _, brand := range respBrand.Data.Array {
 		if brand.Brand == brandName {
 			return &brand, nil
 		}
@@ -101,7 +114,7 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
 	}
 
 	if firstResp.TotalMatchingArticles > 1 {
-		return nil, errinfo.NoTecDocBrandFound
+		return nil, errinfo.MoreThanOneArticlesFound
 	}
 
 	const LIMIT = 100
@@ -129,8 +142,7 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
                         }
 				}`, c.tecDocCfg.ProviderId, article, dataSupplierID, LIMIT, pageNum+1))
 		var mainResp model.TecDocResponse
-		err := c.doRequest(http.MethodPost, bytes.NewReader(mainReq), &mainResp)
-		if err != nil {
+		if err = c.doRequest(http.MethodPost, bytes.NewReader(mainReq), &mainResp); err != nil {
 			return nil, err
 		}
 		if mainResp.Status != http.StatusOK {
@@ -138,7 +150,6 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
 		}
 		articles = append(articles, c.ConvertArticleFromRaw(mainResp.Articles)...)
 	}
-
 	return articles, nil
 }
 
@@ -184,17 +195,17 @@ func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw) []m
 			switch {
 			case img.ImageURL3200 != "":
 				imgURL = img.ImageURL3200
-			case img.ImageURL1600 == "":
+			case img.ImageURL1600 != "":
 				imgURL = img.ImageURL1600
-			case img.ImageURL800 == "":
+			case img.ImageURL800 != "":
 				imgURL = img.ImageURL800
-			case img.ImageURL400 == "":
+			case img.ImageURL400 != "":
 				imgURL = img.ImageURL400
-			case img.ImageURL200 == "":
+			case img.ImageURL200 != "":
 				imgURL = img.ImageURL200
-			case img.ImageURL100 == "":
+			case img.ImageURL100 != "":
 				imgURL = img.ImageURL100
-			case img.ImageURL50 == "":
+			case img.ImageURL50 != "":
 				imgURL = img.ImageURL50
 			}
 			a.Images = append(a.Images, imgURL)
@@ -292,37 +303,32 @@ func (c *tecDocClient) GetCrossNumbers(articleNumber string) ([]model.CrossNumbe
 	return crossNumbers, nil
 }
 
-func (t *tecDocClient) Enrichment(products []model.Product) ([]model.ProductEnriched, error) {
+func (t *tecDocClient) Enrichment(products []model.Product) []model.ProductEnriched {
 	productsEnrichment := make([]model.ProductEnriched, 0, len(products))
 	for i := range products {
-		prodRich, err := t.enrichment(&products[i])
+		prodRich, err := t.SingleEnrichment(&products[i])
 		if err != nil {
-			return nil, err
+			t.logger.Error().Str("tecDocClient", "Enrichment").Err(err).Send()
+			prodRich.Status = postgres.StatusError
+			_, prodRich.ErrorResponse = errinfo.GetErrorInfo(err)
 		}
 		productsEnrichment = append(productsEnrichment, *prodRich)
 	}
-	return productsEnrichment, nil
+	return productsEnrichment
 }
 
-func (t *tecDocClient) enrichment(product *model.Product) (productsEnriched *model.ProductEnriched, err error) {
+func (t *tecDocClient) SingleEnrichment(product *model.Product) (productsEnriched *model.ProductEnriched, err error) {
 	var (
 		brand    *model.Brand
 		articles []model.Article
 	)
+	productsEnriched = &model.ProductEnriched{Product: *product}
 	if brand, err = t.GetBrand(product.Brand); err != nil {
-		product.ErrorResponse = err.Error()
-		return nil, err
+		return productsEnriched, err
 	}
 	if articles, err = t.GetArticles(brand.SupplierId, product.Article); err != nil {
-		return nil, err
+		return productsEnriched, err
 	}
-	if len(articles) != 1 {
-		return nil, errors.New("articles too much")
-	}
-	productsEnriched = &model.ProductEnriched{
-		Product: *product,
-		Article: articles[0],
-	}
+	productsEnriched.Article = articles[0]
 	return productsEnriched, nil
-
 }

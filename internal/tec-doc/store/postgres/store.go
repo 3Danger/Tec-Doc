@@ -21,17 +21,20 @@ const (
 )
 
 type Store interface {
-	CreateTask(ctx context.Context, tx Transaction, supplierID int64, userID int64, ip string, uploadDate time.Time) (int64, error)
+	CreateTask(ctx context.Context, tx Transaction, supplierIdString string, supplierID, userID, productsTotal int64, ip string, uploadDate time.Time) (int64, error)
 	SaveIntoBuffer(ctx context.Context, tx Transaction, products []model.Product) error
 	GetSupplierTaskHistory(ctx context.Context, tx Transaction, supplierID int64, limit int, offset int) ([]model.Task, error)
 	GetProductsBuffer(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
+	MoveProductsToHistoryByUploadId(ctx context.Context, tx Transaction, uploadId int64) (err error)
+	MarkTaskAsCompletedAndMoveProductsToHistory(ctx context.Context, uploadID int64) error
+	UpdateProductBuffer(ctx context.Context, tx Transaction, products *model.Product) (err error)
 	SaveProductsToHistory(ctx context.Context, tx Transaction, products []model.Product) error
 	DeleteFromBuffer(ctx context.Context, tx Transaction, uploadID int64) error
 	GetProductsHistory(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int) ([]model.Product, error)
+	GetProductsHistoryWithStatus(ctx context.Context, tx Transaction, uploadID, status int64, limit int, offset int) ([]model.Product, error)
 
-	GetOldestTask(ctx context.Context, tx Transaction) (int64, error)
+	GetOldestTask(ctx context.Context, tx Transaction) (uploadId int64, supplierIdStr string, err error)
 	GetProductsBufferWithStatus(ctx context.Context, tx Transaction, uploadID int64, limit int, offset int, status int) ([]model.Product, error)
-	UpdateProductStatus(ctx context.Context, tx Transaction, productID int64, status int) error
 	UpdateTaskProductsNumber(ctx context.Context, tx Transaction, uploadID, productsFailed, productsProcessed int64) error
 	UpdateTaskStatus(ctx context.Context, tx Transaction, uploadID int64, status int) error
 
@@ -65,7 +68,7 @@ type store struct {
 	pool *pgxpool.Pool
 }
 
-func NewStore(ctx context.Context, cfg *config.PostgresConfig) (*store, error) {
+func NewStore(ctx context.Context, cfg *config.PostgresConfig) (Store, error) {
 	pool, err := NewPool(ctx, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("can't create pool: %v", err)

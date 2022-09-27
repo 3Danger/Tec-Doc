@@ -107,17 +107,22 @@ type CrossNumbers struct {
 	MfrName       string `json:"mfrName"`
 }
 
-type Task struct {
+type TaskPublic struct {
 	ID                int64     `json:"id"`
-	SupplierID        int64     `json:"supplierID"`
-	UserID            int64     `json:"userID"`
 	UploadDate        time.Time `json:"uploadDate"`
-	UpdateDate        time.Time `json:"updateDate"`
-	IP                string    `json:"ip"`
 	Status            int       `json:"status"`
 	ProductsProcessed int       `json:"productsProcessed"`
 	ProductsFailed    int       `json:"productsFailed"`
 	ProductsTotal     int       `json:"productsTotal"`
+}
+
+type Task struct {
+	SupplierIdString string    `json:"supplierIdString"`
+	SupplierID       int64     `json:"supplierID"`
+	UpdateDate       time.Time `json:"updateDate"`
+	IP               string    `json:"ip"`
+	UserID           int64     `json:"userID"`
+	TaskPublic
 }
 
 type ProductEnriched struct {
@@ -138,6 +143,28 @@ type Product struct {
 	UpdateDate      time.Time `json:"updateDate"`
 	Status          int       `json:"status"`
 	ErrorResponse   string    `json:"errorResponse"`
+	Amount          int       `json:"amount" default:"1"`
+}
+
+type ProductCharacteristics struct {
+	Object          string  `json:"Предмет"`
+	Brand           string  `json:"Бренд"`
+	Subject         string  `json:"Категория"`
+	ArticleSupplier string  `json:"Артикул товара"`
+	Article         string  `json:"Артикул производителя"`
+	Barcode         string  `json:"Штрихкод товара"`
+	Price           int     `json:"Розничная цена, в руб"`
+	GenArticleDescr string  `json:"Наименование"`
+	OEMnumbers      string  `json:"ОЕМ номер"`
+	Weight          float64 `json:"Вес с упаковкой (кг)"`
+	Height          float64 `json:"Высота упаковки"`
+	Depth           float64 `json:"Глубина упаковки"`
+	Width           float64 `json:"Ширина упаковки"`
+	Description     string  `json:"Описание"`
+	Targets         string  `json:"Марка автомобиля"`
+	Photo           string  `json:"Фото"`
+	Amount          int     `json:"Комплектация"`
+	ErrorResponse   string  `json:"Ошибки"`
 }
 
 type LinkageTargets struct {

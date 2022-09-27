@@ -47,7 +47,7 @@ func main() {
 	})
 
 	svc := service.New(ctx, conf, logger, mts)
-	logger.Info().Msg("service starting..")
+	logger.Info().Bool("TestMode", conf.TestMode).Msg("service starting..")
 	erg.Go(func() error {
 		return svc.Start(ctx)
 	})

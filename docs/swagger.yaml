@@ -91,6 +91,9 @@ definitions:
     type: object
   model.Product:
     properties:
+      amount:
+        default: 1
+        type: integer
       article:
         type: string
       articleSupplier:
@@ -116,12 +119,10 @@ definitions:
       uploadId:
         type: integer
     type: object
-  model.Task:
+  model.TaskPublic:
     properties:
       id:
         type: integer
-      ip:
-        type: string
       productsFailed:
         type: integer
       productsProcessed:
@@ -130,14 +131,8 @@ definitions:
         type: integer
       status:
         type: integer
-      supplierID:
-        type: integer
-      updateDate:
-        type: string
       uploadDate:
         type: string
-      userID:
-        type: integer
     type: object
   model.UploadIdRequest:
     properties:
@@ -153,9 +148,31 @@ info:
 paths:
   /articles/enrichment:
     post:
-      description: get task list
+      consumes:
+      - application/json
+      description: to enrichment product by brand and article
       operationId: articles_enrichment
       parameters:
+      - description: limit of contents
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset of contents
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: ID of user
+        in: header
+        name: X-User-Id
+        required: true
+        type: string
+      - description: ID of supplier
+        in: header
+        name: X-Supplier-Id
+        required: true
+        type: string
       - description: brand && article - about product
         in: body
         name: request
@@ -169,9 +186,7 @@ paths:
           description: OK
           schema:
             items:
-              items:
-                $ref: '#/definitions/model.Article'
-              type: array
+              $ref: '#/definitions/model.Article'
             type: array
         "500":
           description: Internal Server Error
@@ -184,6 +199,19 @@ paths:
     get:
       description: download excel table template
       operationId: excel_template
+      parameters:
+      - description: ID of user
+        in: header
+        name: X-User-Id
+        required: true
+        type: string
+      - description: ID of supplier
+        in: header
+        name: X-Supplier-Id
+        required: true
+        type: string
+      produces:
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml
       responses:
         "200":
           description: OK
@@ -236,7 +264,7 @@ paths:
       summary: LoadFromExcel
       tags:
       - excel
-  /excel/enrichment:
+  /excel/products/enrichment:
     post:
       description: Enrichment excel file, limit entiies in file = 10000
       operationId: enrich_excel
@@ -269,7 +297,44 @@ paths:
       summary: ProductsEnrichedExcel
       tags:
       - excel
-  /product_history:
+  /excel/products/errors:
+    post:
+      description: download excel table template
+      operationId: excel_products_with_errors
+      parameters:
+      - description: The input body.<br /> UploadID is ID of previously uploaded task.
+        in: body
+        name: InputBody
+        required: true
+        schema:
+          $ref: '#/definitions/model.UploadIdRequest'
+      - description: ID of user
+        in: header
+        name: X-User-Id
+        required: true
+        type: string
+      - description: ID of supplier
+        in: header
+        name: X-Supplier-Id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errinfo.errInf'
+      summary: ExcelProductsWithErrors
+      tags:
+      - excel
+  /history/product:
     post:
       consumes:
       - application/json
@@ -284,16 +349,6 @@ paths:
       - description: offset of contents
         in: query
         name: offset
-        required: true
-        type: string
-      - description: ID of user
-        in: header
-        name: X-User-Id
-        required: true
-        type: string
-      - description: ID of supplier
-        in: header
-        name: X-Supplier-Id
         required: true
         type: string
       - description: The input body.<br /> UploadID is ID of previously uploaded task.
@@ -318,7 +373,7 @@ paths:
       summary: GetProductsHistory
       tags:
       - product
-  /task_history:
+  /history/task:
     get:
       description: get task list
       operationId: supplier_task_history
@@ -350,7 +405,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.Task'
+              $ref: '#/definitions/model.TaskPublic'
             type: array
         "500":
           description: Internal Server Error
