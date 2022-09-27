@@ -63,12 +63,14 @@ func (e *externalHttpServer) configureRouter() {
 		api.Use(e.Authorize)
 		api.GET("/excel", e.ExcelTemplate)
 		api.POST("/excel", e.LoadFromExcel)
-		api.POST("/excel/products/enrichment", e.GetProductsEnrichedExcel)
 		api.POST("/excel/products/errors", e.ExcelProductsWithErrors)
 		api.GET("/history/task", e.GetSupplierTaskHistory)
 		api.POST("/history/product", e.GetProductsHistory)
 		api.POST("/articles/enrichment", e.GetTecDocArticles)
 	}
+
+	admin := e.router.Group("/api/v1/admin")
+	admin.POST("/excel/products/enrichment", e.GetProductsEnrichedExcel)
 }
 
 func New(bindingPort string, service Service, logger *zerolog.Logger, mts *metrics.Metrics, testMode bool) Server {
