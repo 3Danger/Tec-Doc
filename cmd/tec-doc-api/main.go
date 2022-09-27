@@ -18,8 +18,8 @@ import (
 // @descriptionAPI Tec-Doc server
 
 // @host localhost:8002
+// @BasePath /api/v1/
 // @schemes http
-// @BasePath /
 func initConfig() (*config.Config, *zerolog.Logger, *metrics.Metrics, error) {
 	var conf config.Config
 	if err := envconfig.Process("", &conf); err != nil {

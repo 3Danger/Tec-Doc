@@ -6,9 +6,11 @@ import (
 	"github.com/rs/zerolog"
 	"io"
 	"net/http"
+	"os"
 	_ "tec-doc/docs"
 	"tec-doc/internal/tec-doc/config"
 	"tec-doc/pkg/clients/services"
+	"tec-doc/pkg/ginLogger"
 	"tec-doc/pkg/metrics"
 	"tec-doc/pkg/model"
 )
@@ -55,6 +57,7 @@ func (e *externalHttpServer) Stop() error {
 func (e *externalHttpServer) configureRouter() {
 	e.router.Use(gin.Recovery())
 	e.router.Use(e.MiddleWareMetric)
+	e.router.Use(ginLogger.Logger(os.Stdout))
 	api := e.router.Group("/api/v1")
 	{
 		api.Use(e.Authorize)
@@ -69,7 +72,7 @@ func (e *externalHttpServer) configureRouter() {
 }
 
 func New(bindingPort string, service Service, logger *zerolog.Logger, mts *metrics.Metrics, testMode bool) Server {
-	router := gin.Default()
+	router := gin.New()
 	serv := &externalHttpServer{
 		testMode: testMode,
 		router:   router,

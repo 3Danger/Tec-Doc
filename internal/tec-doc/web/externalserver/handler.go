@@ -22,7 +22,7 @@ import (
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} byte
 // @Failure 500 {object} errinfo.errInf
-// @Router /api/v1/excel [get]
+// @Router /excel [get]
 func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 	excelTemplate, err := e.service.ExcelTemplateForClient()
 	if err != nil {
@@ -33,18 +33,22 @@ func (e *externalHttpServer) ExcelTemplate(c *gin.Context) {
 	c.Data(http.StatusOK, exl.ContentTypeSheetML, excelTemplate)
 }
 
+//!!!!!!!!!!!!!!!!!!!!!!!!!
+// Param excel_file formData file true "excel file"
+// Param X-User-Id header string true "ID of user"
+// Produce json
+
 // @Summary ProductsEnrichedExcel
 // @Tags excel
 // @Description Enrichment excel file, limit entiies in file = 10000
 // @ID enrich_excel
+// @Param excel_file body []byte true "binary excel file"
 // @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-// @Param excel_file formData file true "excel file"
-// Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} byte
 // @Failure 400 {object} string
 // @Failure 500 {object} string
-// @Router /api/v1/excel/enrichment [post]
+// @Router /excel/enrichment [post]
 func (e *externalHttpServer) GetProductsEnrichedExcel(c *gin.Context) {
 	var (
 		err      error
@@ -105,30 +109,30 @@ func (s *externalHttpServer) ExcelProductsWithErrors(c *gin.Context) {
 	c.Data(http.StatusOK, exl.ContentTypeSheetML, fileRaw)
 }
 
+// !!!!!!!
+// Param excel_file formData file true "excel file"
+
 // @Summary LoadFromExcel
 // @Tags excel
 // @Description upload excel table containing products info
 // @ID load_from_excel
-// @Produce json
-// @Param excel_file formData file true "excel file"
+// @Param excel_file body []byte true "binary excel file"
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {object} string
 // @Failure 400 {object} string
 // @Failure 500 {object} string
-// @Router /api/v1/excel [post]
+// @Router /excel [post]
 func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
-	var (
-		supplierID, userID int64
-		err                error
-	)
-	if supplierID, userID, err = CredentialsFromContext(c); err != nil {
+	supplierID, userID, err := CredentialsFromContext(c)
+	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTaskID))
 		return
 	}
-	var products []model.Product
-	if products, err = e.service.LoadFromExcel(c.Request.Body); err != nil {
+
+	products, err := e.service.LoadFromExcel(c.Request.Body)
+	if err != nil {
 		e.logger.Error().Err(err).Send()
 		if err.Error() == "empty data" || err == io.EOF {
 			c.JSON(errinfo.GetErrorInfo(errinfo.InvalidExcelEmpty))
@@ -161,41 +165,32 @@ func (e *externalHttpServer) LoadFromExcel(c *gin.Context) {
 // @Param InputBody body model.UploadIdRequest true "The input body.<br /> UploadID is ID of previously uploaded task."
 // @Success 200 {array} model.Product
 // @Failure 500 {object} errinfo.errInf
-// @Router /api/v1/history/product [post]
+// @Router /history/product [post]
 func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
-	//_, _, err := CredentialsFromContext(c)
-	//if err != nil {
-	//	e.logger.Error().Err(err).Send()
-	//	c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTaskID))
-	//	return
-	//}
+	var rq model.UploadIdRequest
 
-	var (
-		rq  model.UploadIdRequest
-		err error
-	)
-	if err = json.NewDecoder(c.Request.Body).Decode(&rq); err != nil {
+	if err := json.NewDecoder(c.Request.Body).Decode(&rq); err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTaskID))
 		return
 	}
 
-	var limit int
-	if limit, err = strconv.Atoi(c.Query("limit")); err != nil {
+	limit, err := strconv.Atoi(c.Query("limit"))
+	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidLimit))
 		return
 	}
 
-	var offset int
-	if offset, err = strconv.Atoi(c.Query("offset")); err != nil {
+	offset, err := strconv.Atoi(c.Query("offset"))
+	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidOffset))
 		return
 	}
 
-	var productsHistory []model.Product
-	if productsHistory, err = e.service.GetProductsHistory(c, rq.UploadID, limit, offset); err != nil {
+	productsHistory, err := e.service.GetProductsHistory(c, rq.UploadID, limit, offset)
+	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
 		return
@@ -214,7 +209,7 @@ func (e *externalHttpServer) GetProductsHistory(c *gin.Context) {
 // @Param X-Supplier-Id header string true "ID of supplier"
 // @Success 200 {array} model.TaskPublic
 // @Failure 500 {object} errinfo.errInf
-// @Router /api/v1/history/task [get]
+// @Router /history/task [get]
 func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	var (
 		supplierID int64
@@ -226,21 +221,22 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	//	return
 	//}
 
-	var limit int
-	if limit, err = strconv.Atoi(c.Query("limit")); err != nil {
+	limit, err := strconv.Atoi(c.Query("limit"))
+	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidLimit))
 		return
 	}
 
-	var offset int
-	if offset, err = strconv.Atoi(c.Query("offset")); err != nil {
+	offset, err := strconv.Atoi(c.Query("offset"))
+	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidOffset))
 		return
 	}
-	var rawTasks []model.Task
-	if rawTasks, err = e.service.GetSupplierTaskHistory(c, supplierID, limit, offset); err != nil {
+
+	rawTasks, err := e.service.GetSupplierTaskHistory(c, supplierID, limit, offset)
+	if err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InternalServerErr))
 		return
@@ -252,6 +248,7 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 	c.JSON(http.StatusOK, pubTasks)
 }
 
+
 // @Summary GetTecDocArticles
 // @Tags product
 // @Description to enrichment product by brand and article
@@ -262,30 +259,21 @@ func (e *externalHttpServer) GetSupplierTaskHistory(c *gin.Context) {
 // @Param offset query string true "offset of contents"
 // @Param X-User-Id header string true "ID of user"
 // @Param X-Supplier-Id header string true "ID of supplier"
-// @Param InputBody body model.GetTecDocArticlesRequest true "The input body"
+// @Param request body model.GetTecDocArticlesRequest true "brand && article - about product"
 // @Success 200 {array} model.Article
 // @Failure 500 {object} errinfo.errInf
-// @Router /api/v1/articles/enrichment [post]
+// @Router /articles/enrichment [post]
 func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
-	//_, _, err := CredentialsFromContext(c)
-	//if err != nil {
-	//	e.logger.Error().Err(err).Send()
-	//	c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTaskID))
-	//	return
-	//}
+	var rq model.GetTecDocArticlesRequest
 
-	var (
-		rq  model.GetTecDocArticlesRequest
-		err error
-	)
-	if err = json.NewDecoder(c.Request.Body).Decode(&rq); err != nil {
+	if err := json.NewDecoder(c.Request.Body).Decode(&rq); err != nil {
 		e.logger.Error().Err(err).Send()
 		c.JSON(errinfo.GetErrorInfo(errinfo.InvalidTecDocParams))
 		return
 	}
 
-	var brand *model.Brand
-	if brand, err = e.service.GetBrand(rq.Brand); err != nil {
+	brand, err := e.service.GetBrand(rq.Brand)
+	if err != nil {
 		e.logger.Error().Err(err).Send()
 		if errors.Is(err, errinfo.NoTecDocBrandFound) {
 			c.JSON(errinfo.GetErrorInfo(err))
@@ -295,8 +283,8 @@ func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
 		return
 	}
 
-	var articles []model.Article
-	if articles, err = e.service.GetArticles(brand.SupplierId, rq.ArticleNumber); err != nil {
+	articles, err := e.service.GetArticles(brand.SupplierId, rq.ArticleNumber)
+	if err != nil {
 		e.logger.Error().Err(err).Send()
 		if errors.Is(err, errinfo.NoTecDocArticlesFound) {
 			c.JSON(errinfo.GetErrorInfo(err))
@@ -305,5 +293,6 @@ func (e *externalHttpServer) GetTecDocArticles(c *gin.Context) {
 		}
 		return
 	}
+
 	c.JSON(http.StatusOK, articles)
 }
