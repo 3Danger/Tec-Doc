@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/rs/zerolog"
 	"net/http"
+	"sync"
 	"tec-doc/internal/tec-doc/config"
 	"tec-doc/internal/tec-doc/store/postgres"
 	"tec-doc/pkg/errinfo"
@@ -138,7 +139,12 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
                                 "includeGenericArticles": true,
                                 "includeOEMNumbers": true,
                                 "includeArticleCriteria": true,
-                                "includeImages": true
+                                "includeImages": true,
+								"assemblyGroupFacetOptions": {
+                                    "enabled": true,
+                                    "assemblyGroupType": "P",
+                                    "includeCompleteTree": true
+                                }
                         }
 				}`, c.tecDocCfg.ProviderId, article, dataSupplierID, LIMIT, pageNum+1))
 		var mainResp model.TecDocResponse
@@ -148,12 +154,13 @@ func (c *tecDocClient) GetArticles(dataSupplierID int, article string) ([]model.
 		if mainResp.Status != http.StatusOK {
 			return nil, fmt.Errorf("request failed with status code: %d", mainResp.Status)
 		}
-		articles = append(articles, c.ConvertArticleFromRaw(mainResp.Articles)...)
+		articles = append(articles, c.ConvertArticleFromRaw(mainResp)...)
 	}
 	return articles, nil
 }
 
-func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw) []model.Article {
+func (c *tecDocClient) ConvertArticleFromRaw(mainResp model.TecDocResponse) []model.Article {
+	rawArticles := mainResp.Articles
 	articles := make([]model.Article, 0)
 	for _, rawArticle := range rawArticles {
 		var (
@@ -182,11 +189,14 @@ func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw) []m
 
 		for _, criteria := range rawArticle.ArticleCriterias {
 			convCriteria := convertArticleCriteriaRaw(criteria)
+			if convCriteria == nil {
+				continue
+			}
 			if criteria.CriteriaID == 212 || criteria.CriteriaID == 1620 || criteria.CriteriaID == 1621 ||
 				criteria.CriteriaID == 1622 || criteria.CriteriaID == 1623 || criteria.CriteriaID == 3653 {
-				a.PackageArticleCriteria = append(a.PackageArticleCriteria, convCriteria)
+				a.PackageArticleCriteria = append(a.PackageArticleCriteria, *convCriteria)
 			} else {
-				a.ArticleCriteria = append(a.ArticleCriteria, convCriteria)
+				a.ArticleCriteria = append(a.ArticleCriteria, *convCriteria)
 			}
 		}
 
@@ -210,6 +220,8 @@ func (c *tecDocClient) ConvertArticleFromRaw(rawArticles []model.ArticleRaw) []m
 			}
 			a.Images = append(a.Images, imgURL)
 		}
+
+		a.AssemblyGroupName = getAssemblyGroupName(mainResp.AssemblyGroupFacets)
 		articles = append(articles, a)
 	}
 	return articles
@@ -303,32 +315,49 @@ func (c *tecDocClient) GetCrossNumbers(articleNumber string) ([]model.CrossNumbe
 	return crossNumbers, nil
 }
 
-func (t *tecDocClient) Enrichment(products []model.Product) []model.ProductEnriched {
-	productsEnrichment := make([]model.ProductEnriched, 0, len(products))
+func (c *tecDocClient) Enrichment(products []model.Product) []model.ProductEnriched {
+	productsEnriched := make([]model.ProductEnriched, len(products), len(products))
+	var wg sync.WaitGroup
+
 	for i := range products {
-		prodRich, err := t.SingleEnrichment(&products[i])
-		if err != nil {
-			t.logger.Error().Str("tecDocClient", "Enrichment").Err(err).Send()
-			prodRich.Status = postgres.StatusError
-			_, prodRich.ErrorResponse = errinfo.GetErrorInfo(err)
-		}
-		productsEnrichment = append(productsEnrichment, *prodRich)
+		wg.Add(1)
+		go func(product *model.Product, toEnrich *model.ProductEnriched, wg *sync.WaitGroup) {
+			defer wg.Done()
+			err := c.SingleEnrichment(product, toEnrich)
+			if err != nil {
+				c.logger.Error().Str("tecDocClient", "Enrichment").Err(err).Send()
+				toEnrich.Status = postgres.StatusError
+				_, toEnrich.ErrorResponse = errinfo.GetErrorInfo(err)
+			}
+		}(&products[i], &productsEnriched[i], &wg)
 	}
-	return productsEnrichment
+	wg.Wait()
+	return productsEnriched
 }
 
-func (t *tecDocClient) SingleEnrichment(product *model.Product) (productsEnriched *model.ProductEnriched, err error) {
+func (c *tecDocClient) SingleEnrichment(product *model.Product, enriched *model.ProductEnriched) error {
 	var (
 		brand    *model.Brand
 		articles []model.Article
 	)
-	productsEnriched = &model.ProductEnriched{Product: *product}
-	if brand, err = t.GetBrand(product.Brand); err != nil {
-		return productsEnriched, err
+	*enriched = model.ProductEnriched{Product: *product}
+	brand, err := c.GetBrand(product.Brand)
+	if err != nil {
+		return err
 	}
-	if articles, err = t.GetArticles(brand.SupplierId, product.Article); err != nil {
-		return productsEnriched, err
+	if articles, err = c.GetArticles(brand.SupplierId, product.Article); err != nil {
+		return err
 	}
-	productsEnriched.Article = articles[0]
-	return productsEnriched, nil
+	(*enriched).Article = articles[0]
+	return nil
+}
+
+func getAssemblyGroupName(facets model.AssemblyGroupFacets) string {
+	for j := facets.Total - 1; j >= 0; j-- {
+		if facets.Counts[j].Children == 0 {
+			return facets.Counts[j].AssemblyGroupName
+		}
+	}
+
+	return ""
 }
