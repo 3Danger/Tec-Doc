@@ -316,22 +316,29 @@ func (c *tecDocClient) GetCrossNumbers(articleNumber string) ([]model.CrossNumbe
 }
 
 func (c *tecDocClient) Enrichment(products []model.Product) []model.ProductEnriched {
-	productsEnriched := make([]model.ProductEnriched, len(products), len(products))
-	var wg sync.WaitGroup
+	const GOROUTINESMAX = 1000
+	var (
+		productsEnriched = make([]model.ProductEnriched, len(products), len(products))
+		wg               sync.WaitGroup
+		stepsNum         = len(products)/GOROUTINESMAX + 1
+	)
 
-	for i := range products {
-		wg.Add(1)
-		go func(product *model.Product, toEnrich *model.ProductEnriched, wg *sync.WaitGroup) {
-			defer wg.Done()
-			err := c.SingleEnrichment(product, toEnrich)
-			if err != nil {
-				c.logger.Error().Str("tecDocClient", "Enrichment").Err(err).Send()
-				toEnrich.Status = postgres.StatusError
-				_, toEnrich.ErrorResponse = errinfo.GetErrorInfo(err)
-			}
-		}(&products[i], &productsEnriched[i], &wg)
+	//TODO переработать
+	for step := 0; step < stepsNum; step++ {
+		for i := step * GOROUTINESMAX; i < (step+1)*GOROUTINESMAX && i < len(products); i++ {
+			wg.Add(1)
+			go func(product *model.Product, toEnrich *model.ProductEnriched, wg *sync.WaitGroup) {
+				defer wg.Done()
+				err := c.SingleEnrichment(product, toEnrich)
+				if err != nil {
+					c.logger.Error().Str("tecDocClient", "Enrichment").Err(err).Send()
+					toEnrich.Status = postgres.StatusError
+					_, toEnrich.ErrorResponse = errinfo.GetErrorInfo(err)
+				}
+			}(&products[i], &productsEnriched[i], &wg)
+		}
+		wg.Wait()
 	}
-	wg.Wait()
 	return productsEnriched
 }
 

@@ -198,9 +198,6 @@ github.com/richardlehane/mscfb
 # github.com/richardlehane/msoleps v1.0.1
 ## explicit
 github.com/richardlehane/msoleps/types
-# github.com/rs/cors v1.8.2
-## explicit; go 1.13
-github.com/rs/cors
 # github.com/rs/zerolog v1.27.0
 ## explicit; go 1.15
 github.com/rs/zerolog
@@ -213,12 +210,6 @@ github.com/satori/go.uuid
 # github.com/stretchr/testify v1.8.0
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
-# github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe
-## explicit; go 1.15
-github.com/swaggo/files
-# github.com/swaggo/gin-swagger v1.5.1
-## explicit; go 1.15
-github.com/swaggo/gin-swagger
 # github.com/swaggo/swag v1.8.1
 ## explicit; go 1.18
 github.com/swaggo/swag
@@ -262,8 +253,6 @@ golang.org/x/net/http2
 golang.org/x/net/http2/h2c
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
-golang.org/x/net/webdav
-golang.org/x/net/webdav/internal/xml
 # golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 ## explicit
 golang.org/x/sync/errgroup
