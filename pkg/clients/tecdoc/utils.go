@@ -8,8 +8,11 @@ import (
 	"tec-doc/pkg/model"
 )
 
-func convertArticleCriteriaRaw(cr model.ArticleCriteriaRaw) model.ArticleCriteria {
-	return model.ArticleCriteria{
+func convertArticleCriteriaRaw(cr model.ArticleCriteriaRaw) *model.ArticleCriteria {
+	if cr.RawValue == "0" || len(cr.RawValue) == 0 {
+		return nil
+	}
+	return &model.ArticleCriteria{
 		CriteriaDescription:     cr.CriteriaDescription,
 		CriteriaAbbrDescription: cr.CriteriaAbbrDescription,
 		CriteriaUnitDescription: cr.CriteriaUnitDescription,

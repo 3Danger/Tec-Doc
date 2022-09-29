@@ -19,9 +19,10 @@ type Brand struct {
 }
 
 type TecDocResponse struct {
-	TotalMatchingArticles int          `json:"totalMatchingArticles"`
-	Articles              []ArticleRaw `json:"articles"`
-	Status                int          `json:"status"`
+	TotalMatchingArticles int                 `json:"totalMatchingArticles"`
+	Articles              []ArticleRaw        `json:"articles"`
+	Status                int                 `json:"status"`
+	AssemblyGroupFacets   AssemblyGroupFacets `json:"assemblyGroupFacets"`
 }
 
 type ArticleRaw struct {
@@ -47,6 +48,18 @@ type ArticleRaw struct {
 	} `json:"searchQueryMatches"`
 }
 
+type AssemblyGroupFacets struct {
+	Total  int `json:"total"`
+	Counts []struct {
+		AssemblyGroupNodeID int    `json:"assemblyGroupNodeId"`
+		AssemblyGroupName   string `json:"assemblyGroupName"`
+		AssemblyGroupType   string `json:"assemblyGroupType"`
+		Children            int    `json:"children,omitempty"`
+		Count               int    `json:"count"`
+		ParentNodeID        int    `json:"parentNodeId,omitempty"`
+	} `json:"counts"`
+}
+
 type Article struct {
 	ArticleNumber             string            `json:"articleNumber,omitempty"`
 	MfrName                   string            `json:"mfrName,omitempty"`
@@ -57,6 +70,7 @@ type Article struct {
 	PackageArticleCriteria    []ArticleCriteria `json:"packageArticleCriteria"`
 	LinkageTargets            []LinkageTargets  `json:"linkageTargets,omitempty"`
 	Images                    []string          `json:"images,omitempty"`
+	AssemblyGroupName         string            `json:"assemblyGroupName,omitempty"`
 }
 
 type ArticleCriteriaRaw struct {
@@ -147,24 +161,25 @@ type Product struct {
 }
 
 type ProductCharacteristics struct {
-	Object          string  `json:"Предмет"`
-	Brand           string  `json:"Бренд"`
-	Subject         string  `json:"Категория"`
-	ArticleSupplier string  `json:"Артикул товара"`
-	Article         string  `json:"Артикул производителя"`
-	Barcode         string  `json:"Штрихкод товара"`
-	Price           int     `json:"Розничная цена, в руб"`
-	GenArticleDescr string  `json:"Наименование"`
-	OEMnumbers      string  `json:"ОЕМ номер"`
-	Weight          float64 `json:"Вес с упаковкой (кг)"`
-	Height          float64 `json:"Высота упаковки"`
-	Depth           float64 `json:"Глубина упаковки"`
-	Width           float64 `json:"Ширина упаковки"`
-	Description     string  `json:"Описание"`
-	Targets         string  `json:"Марка автомобиля"`
-	Photo           string  `json:"Фото"`
-	Amount          int     `json:"Комплектация"`
-	ErrorResponse   string  `json:"Ошибки"`
+	Object          string `json:"Предмет"`
+	Brand           string `json:"Бренд"`
+	Subject         string `json:"Категория"`
+	AssemblyGroup   string `json:"Сборочная группа"`
+	ArticleSupplier string `json:"Артикул товара"`
+	Article         string `json:"Артикул производителя"`
+	Barcode         string `json:"Штрихкод товара"`
+	Price           string `json:"Розничная цена, в руб"`
+	GenArticleDescr string `json:"Наименование"`
+	OEMnumbers      string `json:"ОЕМ номер"`
+	Weight          string `json:"Вес с упаковкой (кг)"`
+	Height          string `json:"Высота упаковки"`
+	Depth           string `json:"Глубина упаковки"`
+	Width           string `json:"Ширина упаковки"`
+	Description     string `json:"Описание"`
+	Targets         string `json:"Марка автомобиля"`
+	Photo           string `json:"Фото"`
+	Amount          string `json:"Комплектация"`
+	ErrorResponse   string `json:"Ошибки"`
 }
 
 type LinkageTargets struct {
