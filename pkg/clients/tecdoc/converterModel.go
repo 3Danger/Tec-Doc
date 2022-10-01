@@ -1,6 +1,7 @@
 package tecdoc
 
 import (
+	"fmt"
 	"math"
 	"sort"
 	"strconv"
@@ -8,32 +9,34 @@ import (
 	"tec-doc/pkg/model"
 )
 
-func (t *tecDocClient) ConvertToCharacteristics(pe *model.ProductEnriched) *model.ProductCharacteristics {
+func (c *tecDocClient) ConvertToCharacteristics(pe *model.ProductEnriched) *model.ProductCharacteristics {
 	var width, height, depth, weight float64
 	if pe.PackageArticleCriteria != nil {
-		width, height, depth, weight = t.Sizes(pe.Article.PackageArticleCriteria)
+		width, height, depth, weight = c.Sizes(pe.Article.PackageArticleCriteria)
 	}
 	if width == 0 {
-		width, height, depth, weight = t.Sizes(pe.Article.ArticleCriteria)
+		width, height, depth, weight = c.Sizes(pe.Article.ArticleCriteria)
 	}
+
 	result := &model.ProductCharacteristics{
 		Object:          "Автозапчасти",
 		Brand:           pe.Product.Brand,
 		Subject:         pe.Product.Subject,
+		AssemblyGroup:   pe.AssemblyGroupName,
 		ArticleSupplier: pe.Product.ArticleSupplier,
 		Article:         pe.Product.Article,
 		Barcode:         pe.Product.Barcode,
-		Price:           pe.Product.Price,
+		Price:           strconv.Itoa(pe.Product.Price),
 		GenArticleDescr: pe.GenericArticleDescription,
-		OEMnumbers:      t.OemCross(pe.OEMnumbers, pe.CrossNumbers),
-		Weight:          weight,
-		Height:          height,
-		Depth:           depth,
-		Width:           width,
-		Description:     t.ArticleCriteria(pe.Article.ArticleCriteria),
-		Targets:         t.LinkageTargets(pe.Article.LinkageTargets),
+		OEMnumbers:      c.OemCross(pe.OEMnumbers, pe.CrossNumbers),
+		Weight:          convertZeroArticleCriterias(weight),
+		Height:          convertZeroArticleCriterias(height),
+		Depth:           convertZeroArticleCriterias(depth),
+		Width:           convertZeroArticleCriterias(width),
+		Description:     c.ArticleCriteria(pe.Article.ArticleCriteria),
+		Targets:         c.LinkageTargets(pe.Article.LinkageTargets),
 		Photo:           strings.Join(pe.Images, ";"),
-		Amount:          pe.Product.Amount,
+		Amount:          strconv.Itoa(pe.Product.Amount),
 		ErrorResponse:   pe.ErrorResponse,
 	}
 	return result
@@ -116,4 +119,10 @@ func (*tecDocClient) Sizes(pe []model.ArticleCriteria) (width, height, depth, we
 	return width, height, depth, weight
 }
 
-//func handleCriteriaUnitDescriotnion(ac *model.ArticleCriteria)
+func convertZeroArticleCriterias(cr float64) string {
+	if cr == 0 {
+		return ""
+	} else {
+		return fmt.Sprintf(" %8.3f", cr)
+	}
+}
