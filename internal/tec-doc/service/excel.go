@@ -100,7 +100,7 @@ func (e *Service) LoadFromExcel(bodyData io.Reader) (products []model.Product, e
 	if len(list) == 0 {
 		return nil, errors.New("empty data")
 	}
-	rows, err = f.GetRows("Products")
+	rows, err = f.GetRows(f.GetSheetName(0))
 	if len(rows) < 2 {
 		return nil, errors.New("empty data")
 	}
@@ -126,8 +126,8 @@ func (e *Service) parseExcelRow(p *model.Product, row []string) (err error) {
 	p.Barcode = row[4]
 	p.Amount = 1
 	if len(row) >= 6 && len(row[5]) != 0 {
-		n := strings.LastIndexFunc(row[5], func(r rune) bool { return unicode.IsNumber(r) })
-		if p.Amount, err = strconv.Atoi(row[5][:n+1]); err != nil {
+		n := strings.IndexFunc(row[5], func(r rune) bool { return !unicode.IsNumber(r) })
+		if p.Amount, err = strconv.Atoi(row[5][:n]); err != nil {
 			return err
 		}
 	}
